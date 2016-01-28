@@ -1,4 +1,4 @@
 # ZInfoTech
 ZRiemann Infomation Technology
 
-z<fun>(...) support Windows and POSIX API
+zfun(...) support Windows and POSIX API
