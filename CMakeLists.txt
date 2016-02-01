@@ -1,0 +1,3 @@
+PROJECT(ZInfoTech)
+ADD_SUBDIRECTORY(src bin)
+ADD_SUBDIRECTORY(tests)
