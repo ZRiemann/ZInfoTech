@@ -1,0 +1,268 @@
+//================================================================
+// CMakeLists.txt
+
+//Sample
+PROJECT(HELLO)
+SET(SRC_LIST main.c)
+MESSABE(STATUS "This is BINARY dir" ${HELLO_BINARY_DIR})
+MESSAGE(STATUS "This is SOURCE dir" ${HELLO_SOURCE_DIR})
+ADD_EXECUTABLE(hello SRC_LIST)
+
+// make project
+#cmake .
+
+// syntax
+CMD(PARAM1 PARAM2 ...)
+${[VALUE]}
+
+1) PROJECT(<projectname> [CXX][C][Java])
+PROJECT(HELLO)
+<projectname>_BINARY_DIR == PROJECT_BINARY_DIR
+<projectname>_SOURCE_DIR == PROJECT_SOURCE_DIR
+
+2) SET(<var> [VALUE] [CACHE TYPE DOCSTRING [FOURCE]])
+SET(SRC_LIST main.c t1.c t2.c)
+
+3) MESSAGE([SEND_ERROR|STATUS|FATAL_ERROR] "message to display" ...)
+
+4) ADD_EXECUTABLE(<executablename> [SRC_LIST])
+4.1) ADD_LIBRARY(<libraryname> [SHARED|STATIC|MODULE]
+   		[EXCLUDE_FROM_ALL][SRC_LIST])
+4.2) SET_TARGET_PROPERTIES(target1 target2 ... PROPERTIES prop1 value1
+     				   prop2 value2 ...)
+     SET_TARGET_PROPERTIES(hello_static PROPERTIES OUTPUT_NAME "hello")
+     // not clean libhello.so or libhello.a
+     SET_TARGET_PROPERTIES(hello PROPERTIES CLEAN_DIRECT_OUTPUT 1)
+     SET_TARGET_PROPERTIES(hello_static PROPERTIES CLEAN_DIRECT_OUTPUT 1)
+     // set libhello.so version
+     // libhello.so.1.2
+     // libhello.so.1->libhello.so.1.2
+     // libhello.so -> libhello.so.1
+     SET_TARGET_PROPERTIES(hello PROPERTIES VERSION 1.2 SOVERSION 1)
+     
+4.3) GET_TARGET_PROPERTY(VAR target property)
+     GET_TARGET_PROPERTY(OUTPUT_VALUE hello_static OUTPUT_NAME)
+     MESSAGE(STATUS "This is the hello_static" ${OUTPUT_VALUE})
+     
+5) ADD_SUBDIRECTORY(<source_dir> [binary_dir][EXCLUDE_FROM_ALL])
+
+6) SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR}/bin)
+   SET(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR}/lib)
+
+7) CMAKE_INSTALL_PREFIX / INSTALL
+#cmake -DCMAKE_INSTALL_PREFIX=/usr .
+INSTALL(TARGETS targets...
+ [[ARCHIVE|LIBRARY|BUNTIME]
+	[DESTINATION <dir>]
+	[PERMISSIONS permissions...]
+	[CONFIGURATIONS [Debug|Release|...]]
+	[COMPONENT <component>]
+	[OPTIONAL]	
+	][...])
+INSTALL(TARGETS myrun mylib mystaticlib
+	RUNTIME DESTINATION bin
+	LIBRARY DESTINATION lib
+	ARCHIVE DESTINATION libstatic
+)
+
+INSTALL(FILES files... DESTINATION <dir>
+	      [PERMISSION permissions...]
+	      [CONFIGURATIONS [Debug|Release|...]]
+	      [COMPONENT <component>]
+	      [RENAME <name>] [OPTIONAL] )
+
+INSTALL(PROGRAMS files... DESTINATION <dir>
+	      [PERMISION  permissions...]
+	      [CONFIGURATIONS [Debug|Release|...]]
+	      [COMPONENT <component>]
+	      [RENAME <name>] [OPTIONAL] )
+
+INSTALL(DIRECTORY dirs... DESTIANTION <dir>
+	[FILE_PERMISSIONS permissions...]
+	[DIRECTORY_PERMISSIONS permissions...]
+	[USE_SOURCE_PERMISSION]
+	[CONFIGURATIONS [Debug|Release|...]]
+	[COMPONENT <component>]
+	[[PATTERN <pattern> | REGEX <regex>]
+	[EXCLUDE][PERMISSION permission...]][...])		  
+INSTALL(DIRECTORY icons scripts/ DESTINATION share/myproj
+	PATTERN "CVS" EXCLUDE
+	PATTERN "scripts/*"
+	PERMISSION OWNER_EXECUTE OWNER_WRITE OWNER_READ GROUP_EXECUTE GROUP_READ)
+
+INSTALL([[SCRIPT <file>] [CODE <code>]][...])
+INSTALL(CODE "MESSAGE(\"Sample install message.\")")
+
+8) INCLUDE_DIRECTORIES([AFTER|BEFORE] [SYSTEM] dir1 dir2 ...)
+
+9) LINK_DIRECTORIES(directory1 directory2 ...)
+9.1) TARGET_LINK_LIBRARIES(target library1 <debug | optimized> library2...)
+
+10) FIND_PATH(myHeader NAMES hello.h PATHS /usr/include
+    /usr/include/hello)
+
+
+//================================================================
+CMake vairables and const variables
+
+SET(VALUE xxx)
+MESSAGE(STATUS "VALUE = " ${VALUE})
+
+1) CMAKE_BINARY_DIR
+2) PROJECT_BINARY_DIR
+3) <projectname>_BINARY_DIR
+
+4) CMAKE_SOURCE_DIR
+5) PROJECT_SOURCE_DIR
+6) <projectname>_SOURCE_DIR
+
+7) CMAKE_CURRENT_SOURCE_DIR
+8) CMAKE_CURRENT_BINRARY_DIR
+9) CMAKE_CURRENT_LIST_FILE
+10) CMAKE_CURRENT_LIST_LINE
+11) CMAKE_MODULE_PATH
+12) EXECUTABLE_OUTPUT_PATH
+13) LIBRARY_OUTPUT_PATH
+14) PROJECT_NAME
+
+// get system enviroment variable
+$ENV{NAME}
+SET(ENV{<name>} <value>)
+MESSAGE(STATUS "HOME dir: $ENV{HOME}")
+
+1) CMAKE_INCLUDE_CURRENT_DIR
+2) CMAKE_INCLUDE_DIRECTORIES_PROJECT_BEFORE
+
+// system infomation CMake2.4.6
+1) CMAKE_MAJOR_VERSION //2
+2) CMAKE_MINOR_VERSION //4
+3) CMAKE_PATCH_VERSION //6
+4) CMAKE_SYSTEM	       // Linux-2.6.22
+5) CMAKE_SYSTEM_NAME   // Linux
+6) CMAKE_SYSTEM_VERSION// 2.6.22
+7) CMAKE_SYSTEM_PROCESSOR // i686
+8) UNIX			  // TRUE if POSIX
+9) WIN32		  // TRUE if windows 32
+
+// on/off options
+1) CMAKE_ALLOW_LOOSE_LOOP_CONSTRUCTS
+2) BULD_SHARED_LIBS
+3) CMAKE_C_FLAGS	// set c compiler options by ADD_DEFINITIONS() CMD
+4) CMAKE_CXX_FLAGS	// like CMAKE_C_FLAGS
+
+// general commands
+// basic commands
+1) ADD_DEFINITIONS()	// ADD_DEFINITIONS(-DENABLE_DEBUG -DUSE_OK)
+2) ADD_DEPENDENCIES(target depend-target1 ...)
+3) ADD_EXECUTABLE/LIBRARY/SUBDIRECTORY
+4) ADD_TEST/ENABLE_TESTING
+   ADD_TEST(testname Exename arg1 arg2 ...)
+5) AUX_SOURCE_DIRECTORY(dir VARIABLE) // set all source file to VARIABLE
+//*** USEFALL ****
+   AUX_SOURCE_DIRECTORY(. SRC_LIST)
+   ADD_EXECUTABLE(main ${SRC_LIST})
+6) CMAKE_MINIMUM_REQUIRED(VERSIION 2.5 [FATAL_ERROR])
+7) EXEC_PROGRAM(Executable [directory in which to run]
+   			   [ARGS <args to executable>]
+			   [OUTPUT_VARIABLE <var>]
+			   [RETURN_VALUE <var>])
+// sample
+   EXEC_PROGRAM(ls ARGS "*.c" OUTPUT_VARIABLE LS_OUTPUT RETURN_VALUE LS_RVALUE)
+   IF(not LS_RVALUE)
+   MESSAGE(STATUS "ls result:" ${LS_OUTPUT})
+   ENDIF(not LS_RVALUE)
+8) FILE COMMANDS
+   FILE(WRITE <fname> "message to write"...)
+   FILE(APPEND <fname> "message to write"...)
+   FILE(READ <fname> variable)
+   FILE(GLOB variable [RELATIVE path] [globbing expressions]...)
+   FILE(GLOB_RECURSE variable [RELATIVE path] [globbing expressions]...)
+   FILE([REMOVE|REMOVE_RECURSE] [directory]...)
+   FILE([MAKE_DIRECTORY|RELATIVE_PATH|TO_CMAKE_PATH|TO_NATIVE_PATH]...)
+9) INCLUDE(<file1>|<module> [OPTIONAL])
+10)INSTALL(...)
+11) FIND_...(...)
+    FIND_FILE/LIBRARY/PATH/PROGRAM/PACKAGE(<VAR> name1 path1 path2...)
+    FIND_LIBRARY(libXXX X11 /usr/lib)
+    IF(NOT libXXX)
+    MESSAGE(FATAL_ERROR "libX not found")
+    ENDIF(NOT libXXX)
+    
+
+// control command
+1) IF(expression)
+   #THEN section
+   COMMAND1(ARGS...)
+   COMMAND2(ARGS...)
+   ELSE(exprssion)
+   #ELSE sectin
+   COMMAND3(...)
+   COMMAND4(...)
+   ENDIF(expression)
+
+   IF(NOT var | var1 AND/OR var2 | EXISTS dir |
+   file1 IS_NEWER_THEN file2 | IS_DIRECTORY dirname |
+   variable/string MATCHS regex|
+   var [STR]LESS/GREATER/EQUAL number)
+
+2) WHILE(condition)
+   CMD1(...)
+   CMD2(...)
+   ...
+   ENDWHILE(condition)
+
+3) FOREACH(loop_var arg1 arg2 ...)
+   CMD1(...)
+   CMD2(...)
+   ...
+   ENDFOREACH(loop_var)
+   //sample
+   AUX_SOURCE_DIRECTORY(. SRC_LIST)
+   FOREACH( SOURCE_FILE ${SRC_LIST})
+   	    MESSAGE(${SOURCE_FILE})
+   ENDFOREACH(SOURCE_FILE)
+
+3.1) FOREACH( loop_var RANGE total | start stop [step])
+     ENDRFOREACH(loop_var)
+     FOREACH( NUM RANGE 10)
+     MESSAGE(STAUTS ${NUM})
+     ENDFOREACH(NUM)
+
+//===========================================
+// define MODULES and use MODULES
+// mathed 1 src/CMakeLists.txt
+INCLUDE_DIRECTORIES(/usr/include)
+TARGET_LINK_LIBRARIES(curltest curl)
+
+// mathed 2 src/CMakeLists.txt
+FIND_PACKAGE(CURL)
+IF(CURL_FOUND)
+	INCLUDE_DIRECTORIES(${CURL_INCLUDE_DIR})
+	TARGET_LINK_LIBRARIES(curltest ${CURL_LIBRARY})
+ELSE(CURL_FOUND)
+	MESSAGE(FATAL_ERROR "CURL library not found")
+ENDIF(CURL_FOUND)
+
+//FindCURL.cmake
+SET(CURL_FOUND)
+SET(CURL_INCLDE_DIR) //SET(CURL_INCLUDES)
+SET(CURL_LIBRARY) // SET(CURL_LIBRARIES)
+
+//sample if support JPEG OR PNG
+SET(mySources viewer.c)
+SET(optionalSources)
+SET(optionalLibs)
+FIND_PACKAGE(JPEG)
+IF(JPEG_FOUND)
+  SET(optionalSources ${optionalSource} jpegview.c)
+  INCLUDE_DIRECTORIES(${JPEG_INCLUDE_DIR})
+  SET(optionalLibs ${optionalLibs} ${JPEG_LIBRARIES})
+  ADD_DEFINITIONS(-DENABLE_JPEG_SUPPORT)
+ENDIF(JPEG_FOUND)
+
+IF(PNG_FOUND)
+  ...
+ENDIF(PNG_FOUND)
+
+ADD_EXECUTABLE(viewer ${mySources} ${optionalSources} )
+TARGET_LINK_LIBRARIES(viewer ${optionalLibs})
