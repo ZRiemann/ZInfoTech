@@ -2,8 +2,8 @@
  * @brief trace message
  */
 #include "export.h"
-#include <zinc/base/type.h>
-#include <zinc/base/trace.h>
+#include <zit/base/type.h>
+#include <zit/base/trace.h>
 #include <stdio.h>
 #include <stdarg.h>
 #include <string.h>

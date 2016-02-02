@@ -1,12 +1,12 @@
 #ifndef _ZBASE_TRACE_H_
 #define _ZBASE_TRACE_H_
 
-/**@file zinc/base/trace.h
+/**@file zit/base/trace.h
  * @brief trace message
  */
 
 #include "platform.h"
-#include <zinc/base/error.h>
+#include <zit/base/error.h>
 
 #define ZTRACE_LEVEL_DBG 0
 #define ZTRACE_LEVEL_MSG 1

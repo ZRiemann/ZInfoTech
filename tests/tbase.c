@@ -1,6 +1,6 @@
 #include <stdio.h>
-#include <zinc/base/type.h>
-#include <zinc/base/trace.h>
+#include <zit/base/type.h>
+#include <zit/base/trace.h>
 #include "tbase.h"
 
 int ztst_trace(int level, void* user, const char* msg){

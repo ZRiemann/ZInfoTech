@@ -4,7 +4,7 @@
  * zhuweiping 2016-01-04 found
  */
 #include "export.h"
-#include <zinc/base/type.h>
+#include <zit/base/type.h>
 
 int zversion(){
   return 0x010101;
