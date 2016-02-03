@@ -7,7 +7,7 @@
 #ifndef ZEXPORT
 #define ZEXPORT 0
 #endif
-/* ZEXPORT = 0 use code directory in z.c
+/* ZEXPORT = 0 use code directory
  * ZEXPORT = 1 export ZInfoTech API
  * ZEXPORT = 2 import ZInfoTech API
  */
@@ -20,7 +20,7 @@
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
 #endif
-#include <windows.h>
+//#include <windows.h>
 //#include <winsock2.h>
 //#include <mswsock.h>
 //#include <process.h>
