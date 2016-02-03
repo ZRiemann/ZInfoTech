@@ -8,6 +8,7 @@
 #include <stdarg.h>
 #include <string.h>
 #ifdef ZSYS_WINDOWS
+#include <windows.h>
 #include <lmerr.h>
 #pragma warning(disable:4996)
 #endif

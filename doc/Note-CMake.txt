@@ -266,3 +266,21 @@ ENDIF(PNG_FOUND)
 
 ADD_EXECUTABLE(viewer ${mySources} ${optionalSources} )
 TARGET_LINK_LIBRARIES(viewer ${optionalLibs})
+
+
+//=======================================================================
+// simple emacs list, download color-theme-solarize, sr-speedbar on web.
+(add-to-list 'load-path "~/emacs-color-theme-solarized-master")
+(require 'color-theme-solarized)
+
+(require 'sr-speedbar)
+(setq speedbar-show-unknown-files t)  
+(setq speedbar-use-images nil)  
+(setq sr-speedbar-width 20)  
+(setq sr-speedbar-right-side nil)  
+   
+(global-set-key (kbd "<f5>") (lambda()  
+                               (interactive)  
+                               (sr-speedbar-toggle))) 
+
+(color-theme-solarized)

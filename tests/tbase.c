@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <zit/base/type.h>
 #include <zit/base/trace.h>
+#include <zit/base/time.h>
 #include "tbase.h"
 
 int ztst_trace(int level, void* user, const char* msg){
@@ -9,6 +10,7 @@ int ztst_trace(int level, void* user, const char* msg){
 }
 
 void ztst_base(){
+  char buf[256];
   int v = zversion();
   ztrace_reg(ztst_trace, NULL);
   zmsg("\nZInfoTech:\nversion: %06x\nsystem: %s\nhistory: %s\n",v, zsystem(),zhistory());
@@ -26,4 +28,9 @@ void ztst_base(){
   zmsg("test zmsg()");
   zwar("test zwar()");
   zerr("test zerr()");
+
+  zdbg("now precision second:\t %s", zstr_systime_now(buf, ZTP_SEC));
+  zdbg("now precision millisecond:%s", zstr_systime_now(buf, ZTP_MILLISEC));
+  zdbg("now precision microsecond:%s", zstr_systime_now(buf, ZTP_MICROSEC));
+  
 }

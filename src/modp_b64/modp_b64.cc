@@ -186,8 +186,18 @@ int modp_b64_decode(char* dest, const char* src, int len)
 
 int modp_b64_decode(char* dest, const char* src, int len)
 {
-    if (len == 0) return 0;
+	int i;
+	int leftover = len % 4;
+	int chunks = (leftover == 0) ? len / 4 - 1 : len /4;
 
+	uint8_t* p = (uint8_t*)dest;
+	uint32_t x = 0;
+	uint32_t* destInt = (uint32_t*) p;
+	uint32_t* srcInt = (uint32_t*) src;
+	uint32_t y = *srcInt++;
+
+    if (len == 0) return 0;
+	
 #ifdef DOPAD
     /*
      * if padding is used, then the message must be at least
@@ -203,15 +213,6 @@ int modp_b64_decode(char* dest, const char* src, int len)
     }
 #endif
 
-    int i;
-    int leftover = len % 4;
-    int chunks = (leftover == 0) ? len / 4 - 1 : len /4;
-
-    uint8_t* p = (uint8_t*)dest;
-    uint32_t x = 0;
-    uint32_t* destInt = (uint32_t*) p;
-    uint32_t* srcInt = (uint32_t*) src;
-    uint32_t y = *srcInt++;
     for (i = 0; i < chunks; ++i) {
         x = d0[y & 0xff] |
             d1[(y >> 8) & 0xff] |
