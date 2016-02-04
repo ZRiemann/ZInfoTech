@@ -13,7 +13,6 @@ ZEXP int ztrace_log(int level, const char* msg);
 #ifdef __cplusplus
 }
 #endif
-<<<<<<< HEAD
 
 /** @fn int ztrace_logctl(const char* fname, int log_size)
  *  @brief control trace log file name, max size and *close log file*
@@ -24,6 +23,4 @@ ZEXP int ztrace_log(int level, const char* msg);
  *  @brief write <msg> to log file
  *  @param int level [in] log level, defined in <zit/base/trace.h>
  */
-=======
->>>>>>> 50c723a6da09f1a1ae35b7f79b0ada488f21d4a7
 #endif
