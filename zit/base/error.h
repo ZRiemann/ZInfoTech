@@ -10,5 +10,5 @@
 #define ZEMEM_INSUFFICIENT (ZEMASK | 2)
 #define ZEFUN_FAIL (ZEMASK | 3)
 #define ZENOT_SUPPORT (ZEMASK | 4)
-
+#define ZEPARAM_INVALID (ZEMASK | 5)
 #endif
