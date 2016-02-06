@@ -43,4 +43,6 @@ typedef enum
 
 #define ZSEM_MAX 0xffff // specifies the maximum count of the semaphore object[windows].
 #define ZNANO_SEC 999999999 // nanoseconds per second
+
+
 #endif

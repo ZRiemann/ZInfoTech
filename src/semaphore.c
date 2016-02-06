@@ -1,4 +1,5 @@
 #include "export.h"
+#include <zit/thread/thread_def.h>
 #include <zit/thread/semaphore.h>
 #include <zit/base/error.h>
 #include <zit/base/trace.h>
@@ -10,8 +11,12 @@ int zsem_init(zsem_t* sem, int value){
       ret = errno;
   }
 #else//ZSYS_WINDOWS
-  if( NULL == (*sem = CreateSemaphoreA(NULL, value, ZSEM_MAX) ){
-    ret = GetLastError();
+ // if( NULL == (*sem = CreateSemaphoreA(NULL, value, x0ffff£¬ NULL)) ){
+  //  ret = GetLastError();
+ // }
+  *sem = CreateSemaphoreA(NULL, value, 1000, NULL);
+  if (NULL == *sem) {
+	  ret = GetLastError();
   }
 #endif
   ZERRC(ret);
@@ -91,7 +96,7 @@ int zsem_wait(zsem_t* sem, int ms){
   case WAIT_ABANDONED:
     ret =ZEFUN_FAIL;
     break;
-  case WAIT_EFAILED:
+  case WAIT_FAILED:
     ret = GetLastError();
     break;
   default:
@@ -102,7 +107,6 @@ int zsem_wait(zsem_t* sem, int ms){
   if((ZEOK != ret) && (ZETIMEOUT != ret)){
     ZERRC(ret);
   }
-  ZERRC(ret);
   return ret;
 }
 
