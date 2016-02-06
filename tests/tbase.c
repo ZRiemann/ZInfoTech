@@ -1,22 +1,12 @@
-#include <stdio.h>
 #include <zit/base/type.h>
 #include <zit/base/trace.h>
 #include <zit/base/time.h>
-#include <zit/utility/tracelog.h>
-#include <zit/utility/traceconsole.h>
 #include "tbase.h"
-
-int ztst_trace(int level, void* user, const char* msg){
-  ztrace_console(level, msg);
-  ztrace_log(level, msg);
-  return ZEOK;
-}
 
 void ztst_base(){
   char buf[256];
   int v = zversion();
-  ztrace_reg(ztst_trace, NULL);
-  ztrace_logctl("ztest.log",0);
+  zmsg("=====================================\ntesting base...\n");
   zmsg("\nZInfoTech:\nversion: %06x\nsystem: %s\nhistory: %s\n",v, zsystem(),zhistory());
   zmsg(zstrerr(ZEOK));
   zmsg(zstrerr(ZEFAIL));
@@ -36,6 +26,6 @@ void ztst_base(){
   zdbg("now precision second:\t %s", zstr_systime_now(buf, ZTP_SEC));
   zdbg("now precision millisecond:%s", zstr_systime_now(buf, ZTP_MILLISEC));
   zdbg("now precision microsecond:%s", zstr_systime_now(buf, ZTP_MICROSEC));
-
-  ztrace_logctl(NULL,0); // close the log file.
+  
+  zmsg("\ntest base end.\n");
 }

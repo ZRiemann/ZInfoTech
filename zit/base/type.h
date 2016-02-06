@@ -25,6 +25,18 @@ extern "C" {
 #endif//__cplusplus
 #endif//NULL
 
+#ifndef ZMAX_PATH
+#define ZMAX_PATH 256
+#endif
+
+ZEXP int zversion();
+ZEXP const char* zsystem();
+ZEXP const char* zhistory();
+
+#ifdef __cplusplus
+}
+#endif//__cplusplus
+
 /**@fn int zversion()
  * @brief get ZInfoTech version
  * @return version = 0x[char(major)char(minor)char(patch)] 
@@ -37,12 +49,5 @@ extern "C" {
  * @brief get ZInfoTech version history
  * @return history string
  */
-ZEXP int zversion();
-ZEXP const char* zsystem();
-ZEXP const char* zhistory();
-
-#ifdef __cplusplus
-}
-#endif//__cplusplus
 
 #endif//_Z_TYPE_H_

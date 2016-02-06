@@ -12,4 +12,7 @@
 #define ZENOT_SUPPORT (ZEMASK | 4)
 #define ZEPARAM_INVALID (ZEMASK | 5)
 #define ZEAGAIN (ZEMASK |6)
+#define ZETIMEOUT (ZEMASK | 7)
+#define ZENOT_EXIST (ZEMASK | 8)
+
 #endif

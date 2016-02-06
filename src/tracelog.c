@@ -5,6 +5,7 @@
 #include <zit/base/time.h>
 #include <zit/base/trace.h>
 #include <zit/utility/tracelog.h>
+#include <zit/utility/module.h>
 
 #ifdef ZSYS_WINDOWS
 #pragma warning(disable:4267)
@@ -21,22 +22,34 @@ static long zg_loglen = 0;
 static char zg_logname[ZLOG_NAME_SIZE] = "ZInfoTech.log";
 static char zg_logname_backup[ZLOG_NAME_SIZE] = "ZInfoTech.log.log";
 
+static int ztrace_logfixname(){
+  // set log file path seem to module path
+  if((NULL == strchr(zg_logname, '\\')) || (NULL == strchr(zg_logname, '/'))){
+    char path[ZLOG_NAME_SIZE];
+    if(ZEOK == zmodule_name(path, NULL)){
+      strcat(path,"/");
+      strcat(path, zg_logname);
+      strcpy(zg_logname, path);
+      strcat(path, ".log");
+      strcpy(zg_logname_backup, path);
+    }
+  }
+}
+
 static int ztrace_logopen()
 {
-    int ret = ZEOK;
-    if( NULL == zg_logpf )
-    {
-        zg_logpf = fopen(zg_logname,"a");
-        if( NULL != zg_logpf ){
-            fseek(zg_logpf,0,SEEK_END);
-            zg_loglen = ftell(zg_logpf);
-        }
-        else
-        {
-            ret = ZEFUN_FAIL;
-        }
+  int ret = ZEOK;
+  if( NULL == zg_logpf ){
+    ztrace_logfixname();
+    zg_logpf = fopen(zg_logname,"a");
+    if( NULL != zg_logpf ){
+      fseek(zg_logpf,0,SEEK_END);
+      zg_loglen = ftell(zg_logpf);
+    }else{
+      ret = ZEFUN_FAIL;
     }
-    return ret;
+  }
+  return ret;
 }
 
 static int ztrace_logbackup(const char* msg)
