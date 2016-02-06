@@ -11,10 +11,7 @@ int zsem_init(zsem_t* sem, int value){
       ret = errno;
   }
 #else//ZSYS_WINDOWS
- // if( NULL == (*sem = CreateSemaphoreA(NULL, value, x0ffff£¬ NULL)) ){
-  //  ret = GetLastError();
- // }
-  *sem = CreateSemaphoreA(NULL, value, 1000, NULL);
+  *sem = CreateSemaphoreA(NULL, value, ZSEM_MAX, NULL);
   if (NULL == *sem) {
 	  ret = GetLastError();
   }
