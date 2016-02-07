@@ -9,7 +9,7 @@
 
 int ztst_trace(int level, void* user, const char* msg){
   ztrace_console(level, msg);
-  ztrace_log(level, msg);
+  //ztrace_log(level, msg);
   return ZEOK;
 }
 
