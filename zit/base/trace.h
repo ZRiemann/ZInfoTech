@@ -27,7 +27,7 @@ ZEXP const char*  zstrerr(int code);
 #define ZWAR(fmt, ...)       zwar("[ln:%04d fn:%s]\t"fmt,__LINE__,__FUNCTION__,##__VA_ARGS__)
 #define ZERR(fmt, ...)       zerr("[ln:%04d fn:%s]\t"fmt,__LINE__,__FUNCTION__,##__VA_ARGS__)
 
-#define ZERRC(x) zerr("[ln:%04d fn:%s no:%d]\t%s",__LINE__,__FUNCTION__,(x),zstrerr(x))
+#define ZERRC(x) zerr("[ln:%04d fn:%s]\t%s",__LINE__,__FUNCTION__,zstrerr(x))
 #define ZERRCX(x) if( ZEOK != (x) )ZERRC(x)
 
 #endif//_ZBASE_TRACE_H_
