@@ -52,8 +52,8 @@ int zsem_post(zsem_t* sem){
 
 int zsem_wait(zsem_t* sem, int ms){
   int ret = ZEOK;
+  //ZDBG("sem_wait begin...");
 #ifdef ZSYS_POSIX
- again:
   if(0 == ms){// trywait
     while((-1 == (ret =sem_trywait(sem))) && (errno == EINTR))continue;
     if((-1 == ret) && (EAGAIN == (ret = errno))){
@@ -79,7 +79,11 @@ int zsem_wait(zsem_t* sem, int ms){
       ret = ZETIMEOUT;
     }
   }else{// infinit wait
-    while((-1 == (ret =sem_wait(sem))) && ((ret = errno) == EINTR))continue;
+    //while((-1 == (ret =sem_wait(sem))) && ((ret = errno) == EINTR))continue;
+    ret = sem_wait(sem);
+    if(-1 == ret ){
+      ret = errno;
+    }
   }
 
 #else//ZSYS_WINDOWS
@@ -104,6 +108,7 @@ int zsem_wait(zsem_t* sem, int ms){
   if((ZEOK != ret) && (ZETIMEOUT != ret)){
     ZERRC(ret);
   }
+  //ZDBG("sem_wait end...");
   return ret;
 }
 

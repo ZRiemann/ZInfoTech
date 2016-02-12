@@ -14,6 +14,14 @@ ZEXP int zmutex_lock(zmutex_t* pmtx);
 ZEXP int zmutex_unlock(zmutex_t* pmtx);
 ZEXP int zmutex_trylock(zmutex_t* pmtx);
 
+#ifdef ZSYS_POSIX
+#define ZLOCK(x) pthread_mutex_lock(x)
+#define ZUNLOCK(x) pthread_mutex_unlock(x)
+#else
+#define ZLOCK(x) EnterCriticalSection(x)
+#define ZUNLOCK(x) LeaveCriticalSection(x)
+#endif
+
 #ifdef __cplusplus
 }
 #endif

@@ -39,6 +39,7 @@ int zmutex_lock(zmutex_t* pmtx){
 #else//ZSYS_WINDOWS
   EnterCriticalSection(pmtx);
 #endif
+  ZERRC(ret);
   return ret;
 }
 
@@ -49,6 +50,7 @@ int zmutex_unlock(zmutex_t* pmtx){
 #else//ZSYS_WINDOWS
   LeaveCriticalSection(pmtx);
 #endif
+  ZERRC(ret);
   return ret;
 }
 
