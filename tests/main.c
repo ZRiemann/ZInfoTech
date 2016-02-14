@@ -3,8 +3,8 @@
 #include <zit/base/trace.h>
 #include <zit/utility/tracelog.h>
 #include <zit/utility/traceconsole.h>
-#include "tbase.h"
-#include "tutility.h"
+//#include "tbase.h"
+//#include "tutility.h"
 #include "tthread.h"
 
 int ztst_trace(int level, void* user, const char* msg){

@@ -7,9 +7,10 @@
 #include "tthread.h"
 
 void ztst_thread(){
-  ztst_semaphore();
-  ztst_mutex();
-  ztst_thrctl();
+  //ztst_semaphore();
+  //ztst_mutex();
+  //ztst_thrctl();
+  ztst_thrxctl();
 }
 
 void ztst_mutex(){
@@ -60,7 +61,7 @@ void ztst_semaphore(){
   //zsem_wait(&sem1,ZINFINIT);
 }
 
-zthr_ret_t ZAPI proc_thr1(void* param){
+zthr_ret_t ZAPI zproc_thr1(void* param){
   zthr_attr_t* attr = (zthr_attr_t*)param;
   int i = 0;
   
@@ -74,28 +75,31 @@ zthr_ret_t ZAPI proc_thr1(void* param){
   return (zthr_ret_t)ZEOK;
 }
 
-zthr_ret_t ZAPI proc_thr2(void* param){
+zthr_ret_t ZAPI zproc_thr2(void* param){
   int ret = ZEOK;
   zthr_attr_t* attr = (zthr_attr_t*)param;
   void* user_param = attr->param; // for user parameter
-  ZDBG("thread[%s] running...");
-  while( ZETIMEOUT == zsem_wait(&(attr->exit), 300)){
-    // loop working...
-    ZDBG("thread[%s] working...");
+  //ZDBG("thread[%s] running...");
+  if(ZEOK != zthreadx_procbegin(attr)){
+    zthreadx_procend(attr);
+    return (zthr_ret_t)ZEFAIL;
   }
-  ZDBG("thread[%s] exit now.");
-  return (zthr_ret_t)ret;
+  while( ZETIMEOUT == zsem_wait(&(attr->exit), 500)){
+    // loop working...
+    ZDBG("%s working...", attr->name);
+  }
+  zthreadx_procend(attr, ret);
+  //ZDBG("thread[%s] exit now.");
+  return (zthr_ret_t)ZEOK;
 }
-
 
 void ztst_thrctl(){
   int i = 0;
-  zthr_attr_t attr;
   zthr_id_t id;
+  zthr_attr_t attr;
+  sprintf(attr.name, "thr[0");
   ZDBG("testing ztst_thrctl()...");
-  sprintf(attr.name, "thr[1]");
-  
-  zthread_create(&id, proc_thr1, (void*)&attr);
+  zthread_create(&id, zproc_thr1, (void*)&attr);
   // main loop
   for(i=0; i< 10; i++){
     ZDBG("main loop %d...", i);
@@ -104,4 +108,22 @@ void ztst_thrctl(){
   // cancel thread
   zthread_cancel(&id);
   zthread_join(&id);
+}
+
+void ztst_thrxctl(){
+  zthr_attr_t zthr;
+  zthr_attr_t zthr1;
+  zthr_attr_t zthr2;
+  zthr.name[0] = 0; // use default thread name.
+  zthr1.name[0] = 0;
+  zthr2.name[0] = 0;
+
+  zthreadx_create(&zthr, zproc_thr2);
+  zthreadx_create(&zthr1, zproc_thr2);
+  zthreadx_create(&zthr2, zproc_thr2);
+  zsleepsec(3);
+  zthreadx_cancelall(); // cancel all threads
+  zthreadx_joinall(); // join all threads
+  //zthreadx_cancel(&zthr);
+  //zthreadx_join(&zthr);
 }

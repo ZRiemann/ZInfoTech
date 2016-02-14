@@ -87,23 +87,7 @@ int zsem_wait(zsem_t* sem, int ms){
   }
 
 #else//ZSYS_WINDOWS
-  ret = WaitForSingleObject(*sem, ms);
-  switch(ret){
-  case WAIT_OBJECT_0:
-    break;
-  case WAIT_TIMEOUT:
-    ret = ZETIMEOUT;
-    break;
-  case WAIT_ABANDONED:
-    ret =ZEFUN_FAIL;
-    break;
-  case WAIT_FAILED:
-    ret = GetLastError();
-    break;
-  default:
-    ret = ZEFUN_FAIL;
-    break;
-  }
+  ret = zobj_wait(*sem, ms);
 #endif
   if((ZEOK != ret) && (ZETIMEOUT != ret)){
     ZERRC(ret);
@@ -111,4 +95,18 @@ int zsem_wait(zsem_t* sem, int ms){
   //ZDBG("sem_wait end...");
   return ret;
 }
+
+#ifdef ZSYS_WINDOWS
+int zobj_wait(HANDLE h, int ms){
+  int ret = WaitForSingleObject(h, ms);
+  switch(ret){
+  case WAIT_OBJECT_0:ret = ZEOK;break;
+  case WAIT_TIMEOUT:ret = ZETIMEOUT;break;
+  case WAIT_ABANDONED:ret =ZEFUN_FAIL;break;
+  case WAIT_FAILED:ret = GetLastError();break;
+  default:ret = ZEFUN_FAIL;break;
+  }
+  return ret;
+}
+#endif
 

@@ -17,10 +17,10 @@ ZEXP int zthreadx_create(zthr_attr_t* attr, zproc_thr proc);
 ZEXP int zthreadx_detach(zthr_attr_t* attr);
 ZEXP int zthreadx_cancel(zthr_attr_t* attr);
 ZEXP int zthreadx_join(zthr_attr_t* attr);
-ZEXP int zthreadx_wait(zthr_attr_t* attr, int ms);
-ZEXP int zthreadx_cancelall(); // mast enable zthreadx_wait()
-ZEXP int zthreadx_joinall();
-
+ZEXP int zthreadx_cancelall();
+ZEXP int zthreadx_joinall(); // only call in main thread
+ZEXP int zthreadx_procbegin(zthr_attr_t* attr);
+ZEXP int zthreadx_procend(zthr_attr_t* attr, int result);
 #ifdef __cplusplus
 }
 #endif

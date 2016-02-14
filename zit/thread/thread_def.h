@@ -15,6 +15,7 @@ typedef HANDLE zsem_t;
 #define ZAPI __stdcall
 #define ZIFINIT INFINIT
 
+ZEXP int zobj_wait(HANDLE h, int ms); // WaitForSingleObject(HANDLE, int ms);
 #else // ZSYS_POSIX
 
 #include <pthread.h>
@@ -33,25 +34,35 @@ typedef sem_t zsem_t;
 #endif// SYS_WINDOWS
 
 typedef zthr_ret_t (ZAPI *zproc_thr)(void*);
-typedef struct _zthread_attribute_t{
-  int detach;  ///< 1 detach
+
+typedef struct zthread_attribute_t{
+  int detach;  ///< 0/1-detach
+  int run; ///< 0/1-thread running
+  int join; ///< 0/1-thread down
   int prioraty; ///< prioraty
-  int result; ///< thread exit result
+  int result; ///< thread exit result[proc out]
+  char name[64]; ///< thread name, set name[0]=0 use default name
+  void* param; ///< user param for thread proc
   zsem_t exit; ///< control thread exit
   zthr_id_t id; ///< thread id
-  char name[64]; ///< thread name
-  void* param; ///< user param for thread proc
+  struct zthread_attribute_t* next; ///< attr list for zthreadx_*()[api]
 }zthr_attr_t;
+
 #if 0 // sample thread proc using zthr_attr_t normally
 zthr_ret_t ZAPI proc(void* param){
   int ret = ZEOK;
   zthr_attr_t* attr = (zthr_attr_t*)param;
   void* user_param = attr->param; // for user parameter
-  ZDBG("thread[%s] running...");
-  while( ZETIMEDOUT == zsem_wait(&(attr->exit))){
+  //ZDBG("thread[%s] running...");
+  if(ZEOK != zthreadx_procbegin(attr)){
+    zthreadx_procend(attr);
+    return (zthr_ret_t)ret;
+  }
+  while( ZETIMEDOUT == zsem_wait(&(attr->exit), 200)){
     // loop working...
   }
-  ZDBG("thread[%s] exit now.");
+  zthreadx_procend(attr, ret);
+  //ZDBG("thread[%s] exit now.");
   return (zthr_ret_t)ret;
 }
 #endif
