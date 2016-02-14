@@ -7,9 +7,7 @@
 #include <zit/base/trace.h>
 #include <stdio.h>
 #include <zit/thread/thread_def.h>
-#ifdef ZSYS_WINDOWS
-#pragma warning(disable:4996)
-#endif
+
 static zthr_attr_t* zg_thrattr_head = NULL; ///< head ofthread attr list
 static zmutex_t zg_thrattr_mutex; ///< lock for thread attr list
 static int zg_thrattr_name = 0; ///< thread name base thr0,thr1,...

@@ -7,9 +7,6 @@
 #include <stdio.h>
 #include "tthread.h"
 
-#ifdef ZSYS_WINDOWS
-#pragma warning(disable:4996)
-#endif
 void ztst_thread(){
   //ztst_semaphore();
   //ztst_mutex();

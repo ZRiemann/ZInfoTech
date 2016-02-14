@@ -50,4 +50,7 @@
 
 #endif
 
+#ifdef ZSYS_WINDOWS
+#pragma warning(disable:4996)
+#endif
 #endif//_ZBASE_PLATFORM_H_

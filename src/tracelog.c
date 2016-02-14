@@ -7,11 +7,6 @@
 #include <zit/utility/tracelog.h>
 #include <zit/utility/module.h>
 
-#ifdef ZSYS_WINDOWS
-#pragma warning(disable:4267)
-#pragma warning(disable:4996)
-#endif
-
 #define ZLOG_FILE_SIZE 1024*1024*16
 #define ZLOG_NAME_SIZE 256
 
@@ -34,6 +29,7 @@ static int ztrace_logfixname(){
       strcpy(zg_logname_backup, path);
     }
   }
+  return ZEOK;
 }
 
 static int ztrace_logopen()

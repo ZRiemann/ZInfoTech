@@ -6,7 +6,6 @@
 #include <sys/time.h>
 #include <unistd.h>
 #else
-#pragma warning(disable:4996)
 #include <windows.h>
 #include <time.h>
 #endif

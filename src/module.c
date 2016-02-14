@@ -14,7 +14,6 @@
 int zmodule_name(char* path, char* name){
   int ret = ZEOK;
   char buf[1024];
-  char c;
   char* dest;
   
 #ifdef ZSYS_POSIX

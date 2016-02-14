@@ -10,7 +10,6 @@
 #ifdef ZSYS_WINDOWS
 #include <windows.h>
 #include <lmerr.h>
-#pragma warning(disable:4996)
 #endif
 
 #define ZTRACE_FLAG_DBG 0x01
