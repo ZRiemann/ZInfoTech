@@ -2,6 +2,7 @@
 #define _ZTHREAD_THREAD_H_
 
 #include <zit/base/platform.h>
+#include <zit/thread/thread_def.h>
 
 #ifdef __cplusplus
 extern "C" {

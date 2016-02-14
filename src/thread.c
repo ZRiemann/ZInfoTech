@@ -6,7 +6,10 @@
 #include <zit/base/error.h>
 #include <zit/base/trace.h>
 #include <stdio.h>
-
+#include <zit/thread/thread_def.h>
+#ifdef ZSYS_WINDOWS
+#pragma warning(disable:4996)
+#endif
 static zthr_attr_t* zg_thrattr_head = NULL; ///< head ofthread attr list
 static zmutex_t zg_thrattr_mutex; ///< lock for thread attr list
 static int zg_thrattr_name = 0; ///< thread name base thr0,thr1,...
@@ -57,7 +60,7 @@ int zthread_create(zthr_id_t* id, zproc_thr proc, void* param){
 #ifdef ZSYS_POSIX
   if( 0 != (ret = pthread_create(id, NULL, proc, param)))ret = errno;
 #else//ZSYS_WINDOWS
-  if( NULL == (*id = (zhr_id_t)_beginthreadex(NULL, 0, proc, param, 0, NULL)))ret = GetLastError();
+  if( NULL == (*id = (zthr_id_t)_beginthreadex(NULL, 0, proc, param, 0, NULL)))ret = GetLastError();
 #endif
   ZDBG("zthread_create[id:%p] %s", id, zstrerr(ret));
   return ret;
@@ -77,12 +80,12 @@ int zthread_detach(zthr_id_t* id){
 
 int zthread_join(zthr_id_t* id){
   int ret = ZEOK;
-  void* result;
+  void* result = NULL;
   ZMSG("zthread_join(id:%p) begin...", id);
 #ifdef ZSYS_POSIX
   if( 0 != (ret = pthread_join(*id, &result)))ret = errno;
 #else//ZSYS_WINDOWS
-  ret = zobj_wait(*id, ZINFINIT);
+  ret = zobj_wait(*id, ZINFINITE);
 #endif
   ZMSG("zthread_join(id:%p) end %s", id, zstrerr(ret));
   return ret;
@@ -107,13 +110,13 @@ int zthreadx_create(zthr_attr_t* attr, zproc_thr proc){
   attr->detach = 0;
   attr->next = NULL;
   if(0 == attr->name[0]){
-    sprintf(attr->name,"thr[%d]",zg_thrattr_name);
+    sprintf(attr->name,"thread[%d]",zg_thrattr_name);
   }
   zthr_attrlist_push(attr);
 #ifdef ZSYS_POSIX
   if( 0 != (ret = pthread_create(&(attr->id), NULL, proc, (void*)attr)))ret = errno;
 #else//ZSYS_WINDOWS
-  if( NULL == (attr->id = (zhr_id_t)_beginthreadex(NULL, 0, proc, (void*)attr, 0, NULL)))ret = GetLastError();
+  if( NULL == (attr->id = (zthr_id_t)_beginthreadex(NULL, 0, proc, (void*)attr, 0, NULL)))ret = GetLastError();
 #endif
   if(ZEOK != ret){
     zthr_attrlist_erase(attr);
@@ -140,12 +143,12 @@ int zthreadx_detach(zthr_attr_t* attr){
 
 int zthreadx_join(zthr_attr_t* attr){
   int ret = ZEOK;
-  void* result;
+  void* result = NULL;
   ZMSG("%s join begin...", attr->name);
 #ifdef ZSYS_POSIX
   if( 0 != (ret = pthread_join(attr->id, &result)))ret = errno;
 #else//ZSYS_WINDOWS
-  ret = zobj_wait(attr->id, ZINFINIT);
+  ret = zobj_wait(attr->id, ZINFINITE);
 #endif
   if(ZEOK == ret){
     zthr_attrlist_erase(attr);
@@ -177,7 +180,7 @@ int zthreadx_cancelall(){
 }
 int zthreadx_joinall(){
   int ret = ZEOK;
-  void* result;
+  void* result = NULL;
   zthr_attr_t* pa = NULL;
   zmutex_lock(&zg_thrattr_mutex);
   pa = zg_thrattr_head;
@@ -187,7 +190,7 @@ int zthreadx_joinall(){
 #ifdef ZSYS_POSIX
     if( 0 != (ret = pthread_join(pa->id, &result)))ret = errno;
 #else // ZSYS_WINDOWS
-    ret = zobj_wait(pa->id, ZINFINIT);
+    ret = zobj_wait(pa->id, ZINFINITE);
 #endif
     ZMSG("%s join end. %s", pa->name, zstrerr(ret));
     pa = pa->next;

@@ -1,11 +1,15 @@
 #include <zit/base/trace.h>
 #include <zit/thread/semaphore.h>
 #include <zit/thread/mutex.h>
+#include <zit/thread/thread.h>
 #include <zit/base/time.h>
 #include <zit/base/error.h>
 #include <stdio.h>
 #include "tthread.h"
 
+#ifdef ZSYS_WINDOWS
+#pragma warning(disable:4996)
+#endif
 void ztst_thread(){
   //ztst_semaphore();
   //ztst_mutex();
@@ -18,39 +22,19 @@ void ztst_mutex(){
   zmutex_init(&mtx);
   zmutex_lock(&mtx);
   zmutex_unlock(&mtx);
-  if(0 == ZLOCK(&mtx)){
-    ZDBG("ZLOCK() OK.");
-  }else{
-    ZDBG("ZLOCK() FAILED.");
-  }
-  if( 0 == ZUNLOCK(&mtx)){
-    ZDBG("ZUNLOCK() OK.");
-  }else{
-    ZDBG("ZUNLOCK() FAILED.");
-  }
   zmutex_uninit(&mtx);
 
   zmutex_lock(&mtx);
   zmutex_unlock(&mtx);
-  if(0 == ZLOCK(&mtx)){
-    ZDBG("ZLOCK() OK.");
-  }else{
-    ZDBG("ZLOCK() FAILED.");
-  }
-  if( 0 == ZUNLOCK(&mtx)){
-    ZDBG("ZUNLOCK() OK.");
-  }else{
-    ZDBG("ZUNLOCK() FAILED.");
-  }
   
 }
 void ztst_semaphore(){
   zsem_t sem;
-  zsem_t sem1;
+  //zsem_t sem1;
   //ZMSG("test normal...");
   zsem_init(&sem,0);
   zsem_post(&sem);
-  zsem_wait(&sem, ZINFINIT);
+  zsem_wait(&sem, ZINFINITE);
   zsem_wait(&sem, 1000);
   zsem_uninit(&sem);
   
@@ -58,7 +42,7 @@ void ztst_semaphore(){
   //zsem_post(&sem1);
   //zsem_init(&sem1, 0);
   //zsem_wait(&sem1,100);
-  //zsem_wait(&sem1,ZINFINIT);
+  //zsem_wait(&sem1,ZINFINITE);
 }
 
 zthr_ret_t ZAPI zproc_thr1(void* param){
@@ -81,7 +65,7 @@ zthr_ret_t ZAPI zproc_thr2(void* param){
   void* user_param = attr->param; // for user parameter
   //ZDBG("thread[%s] running...");
   if(ZEOK != zthreadx_procbegin(attr)){
-    zthreadx_procend(attr);
+    zthreadx_procend(attr, ret);
     return (zthr_ret_t)ZEFAIL;
   }
   while( ZETIMEOUT == zsem_wait(&(attr->exit), 500)){
@@ -97,7 +81,7 @@ void ztst_thrctl(){
   int i = 0;
   zthr_id_t id;
   zthr_attr_t attr;
-  sprintf(attr.name, "thr[0");
+  sprintf(attr.name, "thr[0]");
   ZDBG("testing ztst_thrctl()...");
   zthread_create(&id, zproc_thr1, (void*)&attr);
   // main loop

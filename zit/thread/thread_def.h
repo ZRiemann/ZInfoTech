@@ -6,6 +6,7 @@
 #ifdef ZSYS_WINDOWS
 
 #include <windows.h>
+#include <process.h>
 // _beginthreadex()
 typedef unsigned int zthr_ret_t;
 typedef HANDLE zthr_id_t;
@@ -13,7 +14,7 @@ typedef CRITICAL_SECTION zmutex_t;
 typedef HANDLE zsem_t;
 
 #define ZAPI __stdcall
-#define ZIFINIT INFINIT
+#define ZINFINITE INFINITE
 
 ZEXP int zobj_wait(HANDLE h, int ms); // WaitForSingleObject(HANDLE, int ms);
 #else // ZSYS_POSIX
@@ -30,7 +31,7 @@ typedef pthread_mutex_t zmutex_t;
 typedef sem_t zsem_t;
 
 #define ZAPI
-#define ZINFINIT -1
+#define ZINFINITE -1
 #endif// SYS_WINDOWS
 
 typedef zthr_ret_t (ZAPI *zproc_thr)(void*);
