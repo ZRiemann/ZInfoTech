@@ -8,34 +8,34 @@
 #include <stdio.h>
 #include <zit/thread/thread_def.h>
 
-static zthr_attr_t* zg_thrattr_head = NULL; ///< head ofthread attr list
-static zmutex_t zg_thrattr_mutex; ///< lock for thread attr list
-static int zg_thrattr_name = 0; ///< thread name base thr0,thr1,...
-static int zthr_attrlist_push(zthr_attr_t* attr){
+static zthr_t* zg_thr_head = NULL; ///< head ofthread attr list
+static zmutex_t zg_thr_mtx; ///< lock for thread attr list
+static int zg_thr_name = 0; ///< thread name base thr0,thr1,...
+static int zthr_listpush(zthr_t* attr){
   int ret = ZEOK;
-  if( NULL == zg_thrattr_head ){
+  if( NULL == zg_thr_head ){
     // first thread not need lock, and init list
-    if( ZEOK != (ret = zmutex_init(&zg_thrattr_mutex)))return ret;
-    zg_thrattr_head = attr;
+    if( ZEOK != (ret = zmutex_init(&zg_thr_mtx)))return ret;
+    zg_thr_head = attr;
     attr->next = NULL;
-    ++zg_thrattr_name;
+    ++zg_thr_name;
   }else{
-    zmutex_lock(&zg_thrattr_mutex);
-    attr->next = zg_thrattr_head;
-    zg_thrattr_head = attr;
-    ++zg_thrattr_name;
-    zmutex_unlock(&zg_thrattr_mutex);
+    zmutex_lock(&zg_thr_mtx);
+    attr->next = zg_thr_head;
+    zg_thr_head = attr;
+    ++zg_thr_name;
+    zmutex_unlock(&zg_thr_mtx);
   }
   return ret;
 }
 
-static int zthr_attrlist_erase(zthr_attr_t* attr){
+static int zthr_listerase(zthr_t* attr){
   int ret = ZENOT_EXIST;
-  zthr_attr_t* pa = zg_thrattr_head;
-    zmutex_lock(&zg_thrattr_mutex);
+  zthr_t* pa = zg_thr_head;
+    zmutex_lock(&zg_thr_mtx);
     attr->detach = 1;
     if(pa == attr){
-      zg_thrattr_head = pa->next;
+      zg_thr_head = pa->next;
       ret = ZEOK;
     }
     while(pa && (pa->next != attr))pa = pa->next;
@@ -43,10 +43,10 @@ static int zthr_attrlist_erase(zthr_attr_t* attr){
       pa->next = attr->next;
       ret = ZEOK;
     }
-    zmutex_unlock(&zg_thrattr_mutex);
+    zmutex_unlock(&zg_thr_mtx);
 
-    if(NULL == zg_thrattr_head){
-      zmutex_uninit(&zg_thrattr_mutex);
+    if(NULL == zg_thr_head){
+      zmutex_uninit(&zg_thr_mtx);
     }
     ZERRCX(ret);
     return ret;
@@ -102,29 +102,29 @@ int zthread_cancel(zthr_id_t* id){
 }
 
 // threads manager
-int zthreadx_create(zthr_attr_t* attr, zproc_thr proc){
+int zthreadx_create(zthr_t* attr, zproc_thr proc){
   int ret = ZEOK;
   attr->join = 0;
   attr->detach = 0;
   attr->next = NULL;
   if(0 == attr->name[0]){
-    sprintf(attr->name,"thread[%d]",zg_thrattr_name);
+    sprintf(attr->name,"thread[%d]",zg_thr_name);
   }
-  zthr_attrlist_push(attr);
+  zthr_listpush(attr);
 #ifdef ZSYS_POSIX
   if( 0 != (ret = pthread_create(&(attr->id), NULL, proc, (void*)attr)))ret = errno;
 #else//ZSYS_WINDOWS
   if( NULL == (attr->id = (zthr_id_t)_beginthreadex(NULL, 0, proc, (void*)attr, 0, NULL)))ret = GetLastError();
 #endif
   if(ZEOK != ret){
-    zthr_attrlist_erase(attr);
+    zthr_listerase(attr);
   }
 
   ZDBG("%s create %s", attr->name, zstrerr(ret));
   return ret;
 } 
 
-int zthreadx_detach(zthr_attr_t* attr){
+int zthreadx_detach(zthr_t* attr){
   int ret = ZEOK;
 #ifdef ZSYS_POSIX
   if(0 != (ret = pthread_detach(attr->id)))ret = errno;
@@ -132,14 +132,14 @@ int zthreadx_detach(zthr_attr_t* attr){
   if(0 == CloseHandle(attr->id))ret = GetLastError();
 #endif
   if(ZEOK == ret){
-    zthr_attrlist_erase(attr);
+    zthr_listerase(attr);
     attr->detach = 1;
   }
   ZDBG("%s detach %s", attr->name, zstrerr(ret));
   return ret;
 }
 
-int zthreadx_join(zthr_attr_t* attr){
+int zthreadx_join(zthr_t* attr){
   int ret = ZEOK;
   void* result = NULL;
   ZMSG("%s join begin...", attr->name);
@@ -149,7 +149,7 @@ int zthreadx_join(zthr_attr_t* attr){
   ret = zobj_wait(attr->id, ZINFINITE);
 #endif
   if(ZEOK == ret){
-    zthr_attrlist_erase(attr);
+    zthr_listerase(attr);
     attr->join = 1;
     //zsem_uninit(&(attr->exit)); // destroyed in thread proc.
   }
@@ -157,7 +157,7 @@ int zthreadx_join(zthr_attr_t* attr){
   return ret;
 }
 
-int zthreadx_cancel(zthr_attr_t* attr){
+int zthreadx_cancel(zthr_t* attr){
   int ret = ZEOK;
   ret = zsem_post(&(attr->exit));
   ZMSG("%s cancel %s", attr->name, zstrerr(ret));
@@ -166,22 +166,22 @@ int zthreadx_cancel(zthr_attr_t* attr){
 
 int zthreadx_cancelall(){
   int ret = ZEOK;
-  zmutex_lock(&zg_thrattr_mutex);
-  zthr_attr_t* pa = zg_thrattr_head;
+  zmutex_lock(&zg_thr_mtx);
+  zthr_t* pa = zg_thr_head;
   while(pa){
     ZMSG("%s cancel",pa->name);
     zsem_post(&(pa->exit));
     pa = pa->next;
   }
-  zmutex_unlock(&zg_thrattr_mutex);
+  zmutex_unlock(&zg_thr_mtx);
   return ZEOK;
 }
 int zthreadx_joinall(){
   int ret = ZEOK;
   void* result = NULL;
-  zthr_attr_t* pa = NULL;
-  zmutex_lock(&zg_thrattr_mutex);
-  pa = zg_thrattr_head;
+  zthr_t* pa = NULL;
+  zmutex_lock(&zg_thr_mtx);
+  pa = zg_thr_head;
   while(pa){
     //zthreadx_join(pa); // cause dead lock by mutex
     ZMSG("%s join begin...", pa->name);
@@ -193,20 +193,20 @@ int zthreadx_joinall(){
     ZMSG("%s join end. %s", pa->name, zstrerr(ret));
     pa = pa->next;
   }
-  zg_thrattr_head = NULL;
-  zmutex_unlock(&zg_thrattr_mutex);
+  zg_thr_head = NULL;
+  zmutex_unlock(&zg_thr_mtx);
   
-  zmutex_uninit(&zg_thrattr_mutex);
+  zmutex_uninit(&zg_thr_mtx);
   return ZEOK;
 }
 
-ZEXP int zthreadx_procbegin(zthr_attr_t* attr){
+ZEXP int zthreadx_procbegin(zthr_t* attr){
   attr->run = 1;
   ZMSG("%s begin...", attr->name);
   return zsem_init(&(attr->exit), 0); //* init semaphore.
 }
 
-ZEXP int zthreadx_procend(zthr_attr_t* attr, int ret){
+ZEXP int zthreadx_procend(zthr_t* attr, int ret){
   attr->result = ret;
   ZMSG("%s end.", attr->name);
   return zsem_uninit(&attr->exit); //* destroy semaphore.

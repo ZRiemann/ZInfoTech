@@ -36,7 +36,7 @@ typedef sem_t zsem_t;
 
 typedef zthr_ret_t (ZAPI *zproc_thr)(void*);
 
-typedef struct zthread_attribute_t{
+typedef struct zthread_t{
   int detach;  ///< 0/1-detach
   int run; ///< 0/1-thread running
   int join; ///< 0/1-thread down
@@ -46,13 +46,13 @@ typedef struct zthread_attribute_t{
   void* param; ///< user param for thread proc
   zsem_t exit; ///< control thread exit
   zthr_id_t id; ///< thread id
-  struct zthread_attribute_t* next; ///< attr list for zthreadx_*()[api]
-}zthr_attr_t;
+  struct zthread_t* next; ///< attr list for zthreadx_*()[api]
+}zthr_t;
 
 #if 0 // sample thread proc using zthr_attr_t normally
 zthr_ret_t ZAPI proc(void* param){
   int ret = ZEOK;
-  zthr_attr_t* attr = (zthr_attr_t*)param;
+  zthr_t* attr = (zthr_t*)param;
   void* user_param = attr->param; // for user parameter
   //ZDBG("thread[%s] running...");
   if(ZEOK != zthreadx_procbegin(attr)){

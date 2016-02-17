@@ -1,0 +1,33 @@
+# Note-iptables.txt
+# http://blog.chinaunix.net/uid-22780578-id-3346350.html
+
+# 5 hook functions
+1. PREROUTING
+2. INPUT
+3. FORWARD
+4. OUTPUT
+5. POSTROUTING
+
+# pass or stop
+1. filter ; permission
+   INPUT/FORWARD/OUTPUT
+2. nat	  ; address transmision
+   PREROUTING/OUTPUT/POSTROUTING
+3. mangle ; modify package data, TTL
+   PREROUTING/INPUT/FORWARD/OUTPUT/POSTROUTING
+
+# 
+iptables [-t table] COMMAND chain CRETIRIA -j ACTION
+-t table : [filter|nat|mangle]
+COMMAND	 : 
+	 -P [INPUT...] [DROP|ACCEPT]
+	 -F ;FLASH (iptables -t nat -F PREOUTING)
+	 -N ;NEW (iptables -N inbound_tcp_web)
+	 -X/-E/-Z/-A/-I num/-R num/-D num/-L
+chain	 : chain
+CRETIRIA : cretiria
+-j ACTION: action
+
+iptables -t filter -A INPUT -s 172.16.0.0/16 -p udp --dport 53 -j DROP
+iptables -t filter -R INPUT 1 -s 172.16.0.0/16 -p udp --dport 53 -j REJECT
+iptables -L -n -v

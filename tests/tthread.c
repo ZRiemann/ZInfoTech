@@ -2,18 +2,75 @@
 #include <zit/thread/semaphore.h>
 #include <zit/thread/mutex.h>
 #include <zit/thread/thread.h>
+#include <zit/thread/jet.h>
 #include <zit/base/time.h>
 #include <zit/base/error.h>
+#include <zit/base/queue.h>
 #include <stdio.h>
 #include "tthread.h"
+
+void ztst_jet();
+void ztst_queue();
 
 void ztst_thread(){
   //ztst_semaphore();
   //ztst_mutex();
   //ztst_thrctl();
-  ztst_thrxctl();
+  //ztst_thrxctl();
+  ztst_queue();
+  ztst_jet();
+
 }
 
+int zcmp_int(zvalue_t v1, zvalue_t v2){
+  int ret = ZEQUAL;
+  int sub = (int)v1 - (int)v2;
+  if(0 < sub){
+    ret = ZGREAT;
+  }else if(0 > sub){
+    ret = ZLITTLE;
+  }
+  return ret;
+}
+
+int zact_intque(zvalue_t user, zvalue_t hint){
+  zmsg("queue[%03d] = %d", (int)hint, (int)user);
+  hint++;
+}
+void ztst_queue(){
+  ztsk_t tsk;
+  zcontainer_t que;
+  int data = 0;
+  zqueue_create(&que);
+  zqueue_push(que, ZBACK, (zvalue_t)data, NULL);data++;
+  zqueue_pushback(que, (zvalue_t)data);data++;
+  zqueue_push(que, ZFRONT, (zvalue_t)data, NULL);data++;
+  zqueue_pushfront(que, (zvalue_t)data);data++;
+  
+  zqueue_push(que, ZBACK, (zvalue_t)data, NULL);data++;
+  zqueue_pushback(que, (zvalue_t)data);data++;
+  zqueue_push(que, ZFRONT, (zvalue_t)data, NULL);data++;
+  zqueue_pushfront(que, (zvalue_t)data);data++;
+  
+  data = 4; // erase 4
+  zqueue_pop(que, ZBACK, (zvalue_t*)&data, NULL);
+
+  zqueue_pop(que, ZBACK, (zvalue_t*)&data, NULL);
+  zqueue_pop(que, ZFRONT, (zvalue_t*)&data, NULL);
+
+  tsk.hint = 0;
+  tsk.act = zact_intque;
+  zqueue_foreach(que, &tsk);
+  zqueue_destroy(&que);
+}
+
+void ztst_jet(){
+  zjet_init();
+  zjet_run();
+  zsleepsec(3);
+  zjet_stop(0);
+  zjet_uninit();
+}
 void ztst_mutex(){
   zmutex_t mtx;
   zmutex_init(&mtx);
@@ -43,7 +100,7 @@ void ztst_semaphore(){
 }
 
 zthr_ret_t ZAPI zproc_thr1(void* param){
-  zthr_attr_t* attr = (zthr_attr_t*)param;
+  zthr_t* attr = (zthr_t*)param;
   int i = 0;
   
   ZDBG("thread[%s] beging...", attr->name);
@@ -58,7 +115,7 @@ zthr_ret_t ZAPI zproc_thr1(void* param){
 
 zthr_ret_t ZAPI zproc_thr2(void* param){
   int ret = ZEOK;
-  zthr_attr_t* attr = (zthr_attr_t*)param;
+  zthr_t* attr = (zthr_t*)param;
   void* user_param = attr->param; // for user parameter
   //ZDBG("thread[%s] running...");
   if(ZEOK != zthreadx_procbegin(attr)){
@@ -77,7 +134,7 @@ zthr_ret_t ZAPI zproc_thr2(void* param){
 void ztst_thrctl(){
   int i = 0;
   zthr_id_t id;
-  zthr_attr_t attr;
+  zthr_t attr;
   sprintf(attr.name, "thr[0]");
   ZDBG("testing ztst_thrctl()...");
   zthread_create(&id, zproc_thr1, (void*)&attr);
@@ -92,9 +149,9 @@ void ztst_thrctl(){
 }
 
 void ztst_thrxctl(){
-  zthr_attr_t zthr;
-  zthr_attr_t zthr1;
-  zthr_attr_t zthr2;
+  zthr_t zthr;
+  zthr_t zthr1;
+  zthr_t zthr2;
   zthr.name[0] = 0; // use default thread name.
   zthr1.name[0] = 0;
   zthr2.name[0] = 0;
