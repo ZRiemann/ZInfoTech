@@ -3,6 +3,7 @@
 #include <zit/thread/semaphore.h>
 #include <zit/base/error.h>
 #include <zit/base/trace.h>
+#include <time.h>
 
 int zsem_init(zsem_t* sem, int value){
   int ret = ZEOK;

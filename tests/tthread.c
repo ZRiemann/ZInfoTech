@@ -13,10 +13,10 @@ void ztst_jet();
 void ztst_queue();
 
 void ztst_thread(){
-  //ztst_semaphore();
-  //ztst_mutex();
-  //ztst_thrctl();
-  //ztst_thrxctl();
+  ztst_semaphore();
+  ztst_mutex();
+  ztst_thrctl();
+  ztst_thrxctl();
   ztst_queue();
   ztst_jet();
 
