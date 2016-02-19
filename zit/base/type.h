@@ -69,7 +69,7 @@ typedef struct ztask_t{
   zvalue_t user; ///< user data
   zvalue_t hint; ///< user hint
   zact act; ///< action task
-  zfree fre; ///< release user data
+  zfree free; ///< release user data
 }ztsk_t;
 
 ZEXP int zversion();

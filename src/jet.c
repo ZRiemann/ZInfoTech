@@ -1,3 +1,9 @@
+/**@file jet.c
+   @brief general thread pool
+   @note
+   mission: 1        2         3        4        5 ...     misnum
+            ^id=++id%misnum
+*/
 #include "export.h"
 #include <zit/base/trace.h>
 #include <zit/base/queue.h>
@@ -13,7 +19,7 @@ typedef struct zmission_s{
   zsem_t sem; ///< semaphore
   zmutex_t mtx; ///< mutex for push task
   zthr_t thr; ///< thread
-  zque_t que; ///< task queue
+  zque_t* tsks; ///< task queue
   znod_t nod; ///< nod.value = mission id
 }zmis_t;
 
@@ -21,9 +27,10 @@ typedef struct zjet_s{
   int misnum;
   int misnow;
   zmis_t mis[ZJET_MAX_MISSION]; ///< missions
-  znod_t* idel; ///< idel mission list
+  zque_t* idels; ///< idel task queue
   zvalue_t id; ///< id generator
   zmutex_t mtx; ///< jet lock
+  zsem_t semidel; ///< idel task semaphore
 }zjet_t;
 
 zjet_t* zg_jet = NULL;
@@ -40,14 +47,18 @@ zthr_ret_t ZAPI zproc_mission(void* param){
     return (zthr_ret_t)ret;
   }
   while(ZETIMEOUT == zsem_wait(&(thr->exit), 0)){
-    // loop working...
-    if(ZEOK == zsem_wait(&(mis->sem))){
-      // do task
-      //zqueue_popfront(&(mis->que), &tsk);
-      //tsk(act
+    if(ZEOK == zsem_wait(&(mis->sem), 300)){ // get normal task
+      zqueue_popfront(mis->tsks, (zvalue_t*)&tsk);
+    }else if(ZEOK == zsem_wait(&(zg_jet->semidel), 0)){ // get idel task
+      zmutex_lock(&(zg_jet->mtx));
+      zqueue_popfront(zg_jet->idels, (zvalue_t*)&tsk);
+      zmutex_unlock(&(zg_jet->mtx));
     }else{
-      // zg_jet push idel
+      continue; // do nothing
     }
+    // act task
+    tsk->act(tsk->user, tsk->hint);
+    tsk->free(tsk->user, tsk->hint);
   }
   zthreadx_procend(thr, ret);
   return (zthr_ret_t)ret;
@@ -60,7 +71,7 @@ int zjet_init(){
   if( NULL == zg_jet){
     ret = ZEMEM_INSUFFICIENT;
   }else{
-    zg_jet->idel = NULL;
+    zg_jet->idels = NULL;
     zg_jet->id = 0;
     zmutex_init(&(zg_jet->mtx));
     zg_jet->misnum = 8; ///< cpu*2+2
