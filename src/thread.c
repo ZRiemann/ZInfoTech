@@ -166,8 +166,9 @@ int zthreadx_cancel(zthr_t* attr){
 
 int zthreadx_cancelall(){
   int ret = ZEOK;
+  zthr_t* pa = NULL;
   zmutex_lock(&zg_thr_mtx);
-  zthr_t* pa = zg_thr_head;
+  pa = zg_thr_head;
   while(pa){
     ZMSG("%s cancel",pa->name);
     zsem_post(&(pa->exit));

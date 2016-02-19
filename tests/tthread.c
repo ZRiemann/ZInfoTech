@@ -13,12 +13,12 @@ void ztst_jet();
 void ztst_queue();
 
 void ztst_thread(){
-  ztst_semaphore();
-  ztst_mutex();
-  ztst_thrctl();
-  ztst_thrxctl();
+  //ztst_semaphore();
+  //  ztst_mutex();
+  //ztst_thrctl();
+  //ztst_thrxctl();
   ztst_queue();
-  ztst_jet();
+  //ztst_jet();
 
 }
 
@@ -34,33 +34,35 @@ int zcmp_int(zvalue_t v1, zvalue_t v2){
 }
 
 int zact_intque(zvalue_t user, zvalue_t hint){
-  zmsg("queue[%03d] = %d", (int)hint, (int)user);
-  hint++;
+  int* index = (int*)hint;
+  zmsg("queue[%03d] = %d", *index, user);
+  ++(*index);
+  return ZEOK;
 }
 void ztst_queue(){
   ztsk_t tsk;
-  zque_t* que;
-  int data = 0;
+  zque_t* que = NULL;
+  int64_t data = 0;
   int ret = ZEOK;
-  
+  int cnt = 0;
   if(ZEOK != (ret = zqueue_create(&que))){
     ZERRC(ret);
     return;
   }
+  
   zqueue_pushback(que, (zvalue_t)data);data++;
   zqueue_pushfront(que, (zvalue_t)data);data++;
   zqueue_pushback(que, (zvalue_t)data);data++;
   zqueue_pushfront(que, (zvalue_t)data);data++;
   
-  tsk.hint = 0;
+  tsk.hint = (void*)&cnt;
   tsk.act = zact_intque;
   zqueue_foreach(que, &tsk);
 
-  zqueue_popfornt(que, &data);
-  zqueue_popback(que, &data);
-  task.hint = 0;
+  zqueue_popfront(que,(zvalue_t*)&data);
+  zqueue_popback(que, (zvalue_t*)&data);
+  cnt = 0;
   zqueue_foreach(que, &tsk);
-
   zqueue_destroy(&que);
 }
 
@@ -77,10 +79,10 @@ void ztst_mutex(){
   zmutex_lock(&mtx);
   zmutex_unlock(&mtx);
   zmutex_uninit(&mtx);
-
+#ifdef ZSYS_POSIX
   zmutex_lock(&mtx);
   zmutex_unlock(&mtx);
-  
+#endif
 }
 void ztst_semaphore(){
   zsem_t sem;

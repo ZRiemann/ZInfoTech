@@ -25,6 +25,7 @@
 //#include <mswsock.h>
 //#include <process.h>
 //#include <ws2tcpip.h>
+#pragma warning(disable:4996)// 4047 4022)
 
 #define ZSYS_WINDOWS
 

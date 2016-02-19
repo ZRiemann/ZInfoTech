@@ -51,7 +51,7 @@ extern "C" {
 #endif
 
 typedef void* zcontainer_t; // for all zit container
-typedef void* zvalue_t; // for all container value
+typedef void* zvalue_t; // for all container value, CAUTION: bit64 system int
 typedef struct znode_t{
   zvalue_t value;
   struct znode_t* next;
@@ -65,6 +65,7 @@ typedef int (*zact)(zvalue_t user, zvalue_t hint);
 typedef struct ztask_t{
   int priority; ///< 0-low(idel) 1-normal 2-(above normal)hight priority queue
   int level; ///< 0-sequence ; 1-immediate ; 2-normal
+  int mission; ///< attach mission if sequence level
   zvalue_t user; ///< user data
   zvalue_t hint; ///< user hint
   zact act; ///< action task

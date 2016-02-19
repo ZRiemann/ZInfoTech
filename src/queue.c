@@ -52,9 +52,9 @@ pre_chnkback 0 1 2 3 ... ZQUEUE_SIZE-1
 */
 int zqueue_create(zque_t** que){
   int ret = ZEOK;
-  zque_t* pque = (zque_t*)malloc(sizeof(zque_t));
-  zatmc_t* atm = (zatmc_t*)malloc(sizeof(zatmc_t));
   zchnk_t* chnk = (zchnk_t*)malloc(sizeof(zchnk_t));
+  zque_t* pque = (zque_t*)malloc(sizeof(zque_t));
+  zatmc_t* atm = zatomic_create();
 
   if((NULL == pque) || (NULL == atm) || (NULL == chnk)){
     *que = NULL;
@@ -76,8 +76,9 @@ int zqueue_create(zque_t** que){
 int zqueue_destroy(zque_t** que){
   int ret = ZEOK;
   if(NULL != *que){
-    free(zatomic_xchg((*que)->atm, NULL))
-    zatomic_destroy((*que)->atm);
+    void* ptr = zatomic_xchg((*que)->atm, (void*)NULL);
+    free(ptr);
+    zatomic_destroy(&((*que)->atm));
     free(*que);
     *que = NULL;
   }
@@ -96,7 +97,7 @@ int zqueue_pushback(zque_t* que, zvalue_t value){
     }else{
       que->chnkback->next = chnksqare;
       chnksqare->prev = que->chnkback;
-      que->chnkback = chnksqre;
+      que->chnkback = chnksqare;
       que->posback = 0;
       ZDBG("exchange sqare chunk.");
     }
@@ -107,7 +108,7 @@ int zqueue_pushback(zque_t* que, zvalue_t value){
 
 int zqueue_pushfront(zque_t* que, zvalue_t value){
   int ret = ZEOK;
-  if(--(que->posfront) == 0){
+  if(--(que->posfront) < 0){
     zchnk_t* chnksqare = zatomic_xchg(que->atm, NULL);
     if((NULL == chnksqare) && (NULL ==(chnksqare = (zchnk_t*)malloc(sizeof(zchnk_t))))){
       ++(que->posback);
@@ -130,7 +131,7 @@ int zqueue_pushfront(zque_t* que, zvalue_t value){
 int zqueue_popback(zque_t* que, zvalue_t* value){
   int ret = ZEOK;
   if(que->chnkfront == que->chnkback){
-    if(que->posfornt < que->posback){
+    if(que->posfront < que->posback){
       --(que->posback);
     }else{
       ret = ZENOT_EXIST;
@@ -141,7 +142,7 @@ int zqueue_popback(zque_t* que, zvalue_t* value){
     que->posback = ZQUEUE_SIZE-1;
     que->chnkback = que->chnkback->prev;
     que->chnkback->next = NULL;
-    chnksqare = (zchnk_t*)zatomic_xchg(chnkback);
+    chnksqare = (zchnk_t*)zatomic_xchg(que->atm, chnkback);
     free(chnksqare);
     ZDBG("exchange sqare chunk");
   }
@@ -150,7 +151,7 @@ int zqueue_popback(zque_t* que, zvalue_t* value){
   return ret;
 }
 
-int zqueuq_popfornt(zque_t* que, zvalue_t* value){
+int zqueue_popfront(zque_t* que, zvalue_t* value){
   int ret = ZEOK;
   *value = que->chnkfront->v[que->posfront];
   if(que->chnkfront == que->chnkback){
@@ -163,9 +164,9 @@ int zqueuq_popfornt(zque_t* que, zvalue_t* value){
     zchnk_t* chnkfront = que->chnkfront;
     zchnk_t* chnksqare = NULL;
     que->posfront = 0;
-    que->chnkfront = que->chnkfornt->next;
+    que->chnkfront = que->chnkfront->next;
     que->chnkfront->prev = NULL;
-    chnksqare = zatomic_xchg(chnkfront);
+    chnksqare = zatomic_xchg(que->atm, chnkfront);
     free(chnksqare);
     ZDBG("exchange sqare chunk");
   }
@@ -185,15 +186,19 @@ int zqueue_foreach(zque_t* que, ztsk_t* tsk){
       end = 1;
     }else{
       posend = ZQUEUE_SIZE;
-      visitor = visitor->next;
     }
     
     while(posbegin < posend){
       tsk->act(visitor->v[posbegin], tsk->hint);
       ++posbegin;
     }
-    posbegin = 0;
-    if(1 == end)break;
+    
+    if(1 == end){
+      break;
+    }else{
+      posbegin = 0;
+      visitor = visitor->next;
+    }
   }
   //ZERRC(ret);
   return ret;

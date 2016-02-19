@@ -50,19 +50,19 @@ typedef struct zthread_t{
 }zthr_t;
 
 #if 0 // sample thread proc using zthr_attr_t normally
-zthr_ret_t ZAPI proc(void* param){
+zthr_ret_t ZAPI zproc_mission(void* param){
   int ret = ZEOK;
-  zthr_t* attr = (zthr_t*)param;
-  void* user_param = attr->param; // for user parameter
+  zthr_t* thr = (zthr_t*)param;
+  void* user_param = thr->param; // for user parameter
   //ZDBG("thread[%s] running...");
-  if(ZEOK != zthreadx_procbegin(attr)){
-    zthreadx_procend(attr);
+  if(ZEOK != zthreadx_procbegin(thr)){
+    zthreadx_procend(thr, ret);
     return (zthr_ret_t)ret;
   }
-  while( ZETIMEDOUT == zsem_wait(&(attr->exit), 200)){
+  while( ZETIMEOUT == zsem_wait(&(thr->exit), 200)){
     // loop working...
   }
-  zthreadx_procend(attr, ret);
+  zthreadx_procend(thr, ret);
   //ZDBG("thread[%s] exit now.");
   return (zthr_ret_t)ret;
 }
