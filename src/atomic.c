@@ -1,6 +1,6 @@
 #include "export.h"
 #include <zit/base/atomic.h>
-#include <ztdlib.h>
+#include <stdlib.h>
 zatmc_t* zatomic_create(){
   zatmc_t* atm = (zatmc_t*)malloc(sizeof(zatmc_t));
   if(NULL != atm){
@@ -11,12 +11,12 @@ zatmc_t* zatomic_create(){
 }
 void zatmic_destroy(zatmc_t** atm){
   if((NULL != atm) && (NULL != *atm)){
-    zmutex_uninit(&atm->mtx);
+    zmutex_uninit(&((*atm)->mtx));
     free(*atm);
     *atm = NULL;
   }
 }
-void* zatomic_xchg(zatmic_t* atm, void* v){
+void* zatomic_xchg(zatmc_t* atm, void* v){
 #ifdef ZSYS_WINDOWS
   return (void*) InterlockedExchangePointer ((PVOID*) &ptr, v);
 #else
@@ -29,7 +29,7 @@ void* zatomic_xchg(zatmic_t* atm, void* v){
 #endif
 }
 
-void* zatomic_cmpswap(zatmic_t* atm, void* cmp, void* v){
+void* zatomic_cmpswap(zatmc_t* atm, void* cmp, void* v){
 #ifdef ZSYS_WINDOWS
   return (void*)InterlockedCompareExchangePointer((volatile PVOID*)&ptr, v, cmp);
 #else

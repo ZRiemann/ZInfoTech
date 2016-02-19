@@ -39,28 +39,28 @@ int zact_intque(zvalue_t user, zvalue_t hint){
 }
 void ztst_queue(){
   ztsk_t tsk;
-  zcontainer_t que;
+  zque_t* que;
   int data = 0;
-  zqueue_create(&que);
-  zqueue_push(que, ZBACK, (zvalue_t)data, NULL);data++;
+  int ret = ZEOK;
+  
+  if(ZEOK != (ret = zqueue_create(&que))){
+    ZERRC(ret);
+    return;
+  }
   zqueue_pushback(que, (zvalue_t)data);data++;
-  zqueue_push(que, ZFRONT, (zvalue_t)data, NULL);data++;
+  zqueue_pushfront(que, (zvalue_t)data);data++;
+  zqueue_pushback(que, (zvalue_t)data);data++;
   zqueue_pushfront(que, (zvalue_t)data);data++;
   
-  zqueue_push(que, ZBACK, (zvalue_t)data, NULL);data++;
-  zqueue_pushback(que, (zvalue_t)data);data++;
-  zqueue_push(que, ZFRONT, (zvalue_t)data, NULL);data++;
-  zqueue_pushfront(que, (zvalue_t)data);data++;
-  
-  data = 4; // erase 4
-  zqueue_pop(que, ZBACK, (zvalue_t*)&data, NULL);
-
-  zqueue_pop(que, ZBACK, (zvalue_t*)&data, NULL);
-  zqueue_pop(que, ZFRONT, (zvalue_t*)&data, NULL);
-
   tsk.hint = 0;
   tsk.act = zact_intque;
   zqueue_foreach(que, &tsk);
+
+  zqueue_popfornt(que, &data);
+  zqueue_popback(que, &data);
+  task.hint = 0;
+  zqueue_foreach(que, &tsk);
+
   zqueue_destroy(&que);
 }
 

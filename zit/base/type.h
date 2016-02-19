@@ -59,16 +59,16 @@ typedef struct znode_t{
 }znod_t;
 
 typedef int (*zcompare)(zvalue_t p1, zvalue_t p2); //return ZGREAT/ZEQUAL/ZLITTLE
-typedef int (*ztask_free)(zvalue_t user, zvalue_t hint);
-typedef int (*ztask_act)(zvalue_t user, zvalue_t hint);
+typedef int (*zfree)(zvalue_t user, zvalue_t hint);
+typedef int (*zact)(zvalue_t user, zvalue_t hint);
 
 typedef struct ztask_t{
   int priority; ///< 0-low(idel) 1-normal 2-(above normal)hight priority queue
   int level; ///< 0-sequence ; 1-immediate ; 2-normal
   zvalue_t user; ///< user data
   zvalue_t hint; ///< user hint
-  ztask_act act; ///< action task
-  ztask_free fre; ///< release user data
+  zact act; ///< action task
+  zfree fre; ///< release user data
 }ztsk_t;
 
 ZEXP int zversion();
