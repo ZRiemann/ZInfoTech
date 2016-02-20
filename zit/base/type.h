@@ -6,7 +6,7 @@
 #define _Z_TYPE_H_
 
 #ifdef __cplusplus
-extern "C" {
+//extern "C" {
 #endif//__cplusplus
 
 #include "platform.h"
@@ -31,9 +31,11 @@ extern "C" {
 #ifndef ZFALSE
 #define ZFALSE 0
 #endif
+
 #ifndef ZMAX_PATH
 #define ZMAX_PATH 256
 #endif
+
 #ifndef ZFRONT
 #define ZFRONT 0
 #endif
@@ -50,8 +52,24 @@ extern "C" {
 #define ZLITTLE -1
 #endif
 
+typedef enum{
+  ZINIT = 0,
+  ZRUN,
+  ZSTOP,
+  ZUNINIT
+}zstatus_t;
+  
 typedef void* zcontainer_t; // for all zit container
-typedef void* zvalue_t; // for all container value, CAUTION: bit64 system int
+/* for all container value, caution in 64bit system:
+ * int i; // 32bit
+ * zvalue_t v; // 64bit
+ * ZCONVERT(i,v); //use memset(v, i, sizeof(v)) instand of v = i;(warning)
+ * ZCONVERT(v,i); //use memcpy(&i, v, sizeof(int)) instand of i = v;(warning)
+ */
+typedef void* zvalue_t;
+// include <string.h> before use ZI2V()/ZV2I()
+#define ZCONVERT(dest, src) do{memset(&(dest),0,sizeof(dest));memcpy(&(dest),&(src),(sizeof(src)<sizeof(dest)?sizeof(src):sizeof(dest)));}while(0)
+
 typedef struct znode_t{
   zvalue_t value;
   struct znode_t* next;

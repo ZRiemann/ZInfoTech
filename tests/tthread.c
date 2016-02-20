@@ -7,6 +7,7 @@
 #include <zit/base/error.h>
 #include <zit/base/queue.h>
 #include <stdio.h>
+#include <string.h>
 #include "tthread.h"
 
 void ztst_jet();
@@ -14,7 +15,7 @@ void ztst_queue();
 
 void ztst_thread(){
   //ztst_semaphore();
-  //  ztst_mutex();
+  //ztst_mutex();
   //ztst_thrctl();
   //ztst_thrxctl();
   ztst_queue();
@@ -24,7 +25,13 @@ void ztst_thread(){
 
 int zcmp_int(zvalue_t v1, zvalue_t v2){
   int ret = ZEQUAL;
-  int sub = (int)v1 - (int)v2;
+  int i1;
+  int i2;
+  int sub;
+  ZCONVERT(v1,i1);
+  ZCONVERT(v2,i2);
+
+  sub = i1 - i2;
   if(0 < sub){
     ret = ZGREAT;
   }else if(0 > sub){
@@ -42,28 +49,43 @@ int zact_intque(zvalue_t user, zvalue_t hint){
 void ztst_queue(){
   ztsk_t tsk;
   zque_t* que = NULL;
-  int64_t data = 0;
+  int data = 0;
+  zvalue_t v;
   int ret = ZEOK;
   int cnt = 0;
   if(ZEOK != (ret = zqueue_create(&que))){
     ZERRC(ret);
     return;
   }
-  
-  zqueue_pushback(que, (zvalue_t)data);data++;
-  zqueue_pushfront(que, (zvalue_t)data);data++;
-  zqueue_pushback(que, (zvalue_t)data);data++;
-  zqueue_pushfront(que, (zvalue_t)data);data++;
+  ZCONVERT(v, data);data++;
+  zqueue_pushback(que, v);
+  ZCONVERT(v, data);data++;
+  zqueue_pushfront(que, v);
+  ZCONVERT(v, data);data++;
+  zqueue_pushback(que, v);
+  ZCONVERT(v, data);data++;
+  zqueue_pushfront(que, v);
   
   tsk.hint = (void*)&cnt;
   tsk.act = zact_intque;
   zqueue_foreach(que, &tsk);
 
-  zqueue_popfront(que,(zvalue_t*)&data);
-  zqueue_popback(que, (zvalue_t*)&data);
+  zqueue_popfront(que, &v); //CAUTION: *_pop*(que, (zvalue_t*)&data); CAUSE FLAGMENT FAULT. 
+  zqueue_popback(que, &v);
   cnt = 0;
   zqueue_foreach(que, &tsk);
   zqueue_destroy(&que);
+
+  zdbg("test ZCONVERT(dest, src) convert 'src' data to 'dest' data...");
+  data = 987654321;
+  zdbg("before ZCONVERT(): data = %d; v = %d", data, v);
+  ZCONVERT(v, data);
+  zdbg("after ZCONVERT(): data = %d; v = %d", data, v);
+  data = 0;
+  zdbg("before ZCONVERT(): data = %d; v = %d", data, v);
+  ZCONVERT(data, v);
+  zdbg("after ZCONVERT(): data = %d; v = %d", data, v);
+
 }
 
 void ztst_jet(){

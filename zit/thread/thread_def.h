@@ -34,6 +34,7 @@ typedef sem_t zsem_t;
 #define ZINFINITE -1
 #endif// SYS_WINDOWS
 
+typedef zmutex_t zmtx_t;
 typedef zthr_ret_t (ZAPI *zproc_thr)(void*);
 
 typedef struct zthread_t{
@@ -42,8 +43,8 @@ typedef struct zthread_t{
   int join; ///< 0/1-thread down
   int prioraty; ///< prioraty
   int result; ///< thread exit result[proc out]
-  char name[64]; ///< thread name, set name[0]=0 use default name
-  void* param; ///< user param for thread proc
+  char name[64]; ///< ** thread name, set name[0]=0 use default name
+  void* param; ///< ** user param for thread proc
   zsem_t exit; ///< control thread exit
   zthr_id_t id; ///< thread id
   struct zthread_t* next; ///< attr list for zthreadx_*()[api]

@@ -10,6 +10,8 @@ extern "C" {
 
 ZEXP int zsem_init(zsem_t* sem, int value);
 ZEXP int zsem_uninit(zsem_t* sem);
+ZEXP zsem_t* zsem_create(int value);
+ZEXP void zsem_destroy(zsem_t* sem); // Destroy zsem_create() 'sem'
 ZEXP int zsem_post(zsem_t* sem);
 ZEXP int zsem_wait(zsem_t* sem, int ms);// ZINFINIT|0-trywait|>0-timedwait
 

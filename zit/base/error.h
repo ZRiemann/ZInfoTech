@@ -14,5 +14,6 @@
 #define ZEAGAIN (ZEMASK |6)
 #define ZETIMEOUT (ZEMASK | 7)
 #define ZENOT_EXIST (ZEMASK | 8)
+#define ZENOT_INIT (ZEMASK | 9)
 
 #endif

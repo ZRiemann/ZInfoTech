@@ -8,11 +8,13 @@
 extern "C" {
 #endif
 
-ZEXP int zmutex_init(zmutex_t* pmtx);
-ZEXP int zmutex_uninit(zmutex_t* pmtx);
-ZEXP int zmutex_lock(zmutex_t* pmtx);
-ZEXP int zmutex_unlock(zmutex_t* pmtx);
-ZEXP int zmutex_trylock(zmutex_t* pmtx);
+ZEXP int zmutex_init(zmutex_t* mtx);
+ZEXP int zmutex_uninit(zmutex_t* mtx);
+ZEXP zmutex_t* zmutex_create();
+ZEXP void zmutex_destroy(zmutex_t* mtx); // Destroy zmutex_create() 'mtx'. 
+ZEXP int zmutex_lock(zmutex_t* mtx);
+ZEXP int zmutex_unlock(zmutex_t* mtx);
+ZEXP int zmutex_trylock(zmutex_t* mtx);
 
 #ifdef ZSYS_POSIX
 #define ZLOCK(x) pthread_mutex_lock(x)

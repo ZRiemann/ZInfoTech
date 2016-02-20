@@ -4,7 +4,7 @@
 #include <zit/base/error.h>
 #include <zit/base/trace.h>
 #include <time.h>
-
+#include <stdlib.h>
 int zsem_init(zsem_t* sem, int value){
   int ret = ZEOK;
 #ifdef ZSYS_POSIX
@@ -34,6 +34,42 @@ int zsem_uninit(zsem_t* sem){
 #endif
     ZERRC(ret);
     return ret;
+}
+
+zsem_t* zsem_create(int value){
+  int ret = ZEOK;
+  zsem_t* sem = (zsem_t*)malloc(sizeof(zsem_t));
+  if(NULL != sem){
+#ifdef ZSYS_POSIX
+    if(0 != (ret = sem_init(sem, 0, value))){
+      ret = errno;
+    }
+#else//ZSYS_WINDOWS
+    *sem = CreateSemaphoreA(NULL, value, ZSEM_MAX, NULL);
+    if (NULL == *sem) {
+      ret = GetLastError();
+    }
+#endif
+  }else{
+    ret = ZEMEM_INSUFFICIENT;
+  }
+  ZERRC(ret);
+  return sem;
+}
+void zsem_destroy(zsem_t* sem){
+  int ret = ZEOK;
+  if(NULL == sem)
+    return;
+#ifdef ZSYS_POSIX
+  if(0 != sem_destroy(sem)){
+      ret = errno;
+    }
+#else//ZSYS_WINDOWS
+    if(0 == CloseHandle(*sem)){
+      ret = GetLastError();
+    }
+#endif
+    ZERRC(ret);  
 }
 
 int zsem_post(zsem_t* sem){

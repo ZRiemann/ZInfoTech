@@ -1,4 +1,5 @@
 #include "export.h"
+#include <zit/base/trace.h>
 #include <zit/base/atomic.h>
 #include <stdlib.h>
 zatmc_t* zatomic_create(){
@@ -16,6 +17,26 @@ void zatomic_destroy(zatmc_t** atm){
     *atm = NULL;
   }
 }
+
+int zatomic_init(zatmc_t* atm){
+  int ret = ZEOK;
+  if(NULL != atm){
+    ret = zmutex_init(&atm->mtx);
+    zatomic_xchg(atm, NULL);
+  }
+  ZERRC(ret);
+  return ret;
+}
+
+int zatomic_uninit(zatmc_t* atm){
+  int ret = ZEOK;
+  if(NULL != atm){
+    ret = zmutex_uninit(&(atm->mtx));
+  }
+  ZERRC(ret);
+  return ret;
+}
+
 void* zatomic_xchg(zatmc_t* atm, void* v){
 #ifdef ZSYS_WINDOWS
   return (void*) InterlockedExchangePointer ((PVOID*)&(atm->ptr), v);

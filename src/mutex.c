@@ -2,6 +2,7 @@
 #include <zit/thread/mutex.h>
 #include <zit/base/error.h>
 #include <zit/base/trace.h>
+#include <stdlib.h>
 
 int zmutex_init(zmutex_t* pmtx){
   int ret = ZEOK;
@@ -32,6 +33,33 @@ int zmutex_uninit(zmutex_t* pmtx){
   return ret;
 }
 
+ZEXP zmutex_t* zmutex_create(){
+  zmutex_t* mtx;
+  if(NULL != (mtx = (zmutex_t*)malloc(sizeof(zmutex_t)))){
+#ifdef ZSYS_POSIX
+    if( 0 != pthread_mutex_init(mtx, 0)){
+      ZERRC(ZEFUN_FAIL);
+    }
+#else//ZSYS_WINDOWS
+    InitializeCriticalSection(mtx);
+#endif    
+  }else{
+    ZERRC(ZEMEM_INSUFFICIENT);
+  }
+  return mtx;
+}
+
+ZEXP void zmutex_destroy(zmutex_t* mtx){
+  if(NULL == mtx)
+    return;
+#ifdef ZSYS_POSIX
+  if( 0 != pthread_mutex_destroy(mtx)){
+    ZERRC(ZEFUN_FAIL);
+  }
+#else//ZSYS_WINDOWS
+  DeleteCriticalSection(mtx);
+#endif
+}
 int zmutex_lock(zmutex_t* pmtx){
   int ret = ZEOK;
 #ifdef ZSYS_POSIX

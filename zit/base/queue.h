@@ -31,6 +31,8 @@ typedef struct zqueue_t{
 
 ZEXP int zqueue_create(zque_t** que);
 ZEXP int zqueue_destroy(zque_t** que);
+ZEXP int zqueue_init(zque_t* que);
+ZEXP int zqueue_uninit(zque_t* que);
 // extern queue api
 ZEXP int zqueue_pushback(zque_t* que, zvalue_t value);
 ZEXP int zqueue_pushfront(zque_t* que, zvalue_t value);

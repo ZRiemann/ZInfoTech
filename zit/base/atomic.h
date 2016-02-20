@@ -10,11 +10,13 @@ extern "C" {
 
 typedef struct zatomic_t{
   volatile void* ptr;
-  zmutex_t mtx;
+  zmtx_t mtx;
 }zatmc_t;
 
 ZEXP zatmc_t* zatomic_create();
 ZEXP void zatomic_destroy(zatmc_t** atm);
+ZEXP int zatomic_init(zatmc_t* atm);
+ZEXP int zatomic_uninit(zatmc_t* atm);
 // exchange pointers, pointer is set 'v' and return old value. 
 ZEXP void* zatomic_xchg(zatmc_t* atm, void* v);
 // compare and swap, if 'cmp' equal then set 'v' and return old value.

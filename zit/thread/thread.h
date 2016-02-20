@@ -14,14 +14,14 @@ ZEXP int zthread_join(zthr_id_t* id);
 ZEXP int zthread_cancel(zthr_id_t* id);
   
 // threads manager
-ZEXP int zthreadx_create(zthr_t* attr, zproc_thr proc);
-ZEXP int zthreadx_detach(zthr_t* attr);
-ZEXP int zthreadx_cancel(zthr_t* attr);
-ZEXP int zthreadx_join(zthr_t* attr);
+ZEXP int zthreadx_create(zthr_t* thr, zproc_thr proc);
+ZEXP int zthreadx_detach(zthr_t* thr);
+ZEXP int zthreadx_cancel(zthr_t* thr);
+ZEXP int zthreadx_join(zthr_t* thr);
 ZEXP int zthreadx_cancelall();
 ZEXP int zthreadx_joinall(); // only call in main thread
-ZEXP int zthreadx_procbegin(zthr_t* attr);
-ZEXP int zthreadx_procend(zthr_t* attr, int result);
+ZEXP int zthreadx_procbegin(zthr_t* thr);
+ZEXP int zthreadx_procend(zthr_t* thr, int result);
 #ifdef __cplusplus
 }
 #endif

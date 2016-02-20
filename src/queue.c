@@ -86,6 +86,35 @@ int zqueue_destroy(zque_t** que){
   return ret;
 }
 
+int zqueue_init(zque_t* que){
+  int ret = ZEOK;
+  zchnk_t* chnk = (zchnk_t*)malloc(sizeof(zchnk_t));
+  zatmc_t* atm = zatomic_create();
+
+  if((NULL == que) || (NULL == atm) || (NULL == chnk)){
+    free(atm);
+    free(chnk);
+    ret = ZEMEM_INSUFFICIENT;
+  }else{
+    que->atm = atm;
+    que->chnkfront = que->chnkback = chnk;
+    que->posfront = que->posback = 0;
+    chnk->prev = chnk->next = NULL;
+  }
+  ZERRC(ret);
+  return ret;
+}
+int zqueue_uninit(zque_t* que){
+ int ret = ZEOK;
+  if(NULL != que){
+    void* ptr = zatomic_xchg(que->atm, (void*)NULL);
+    free(ptr);
+    zatomic_destroy(&(que->atm));
+  }
+  ZERRC(ret);
+  return ret;  
+}
+
 int zqueue_pushback(zque_t* que, zvalue_t value){
   int ret = ZEOK;
   que->chnkback->v[que->posback] = value;
