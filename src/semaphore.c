@@ -17,7 +17,9 @@ int zsem_init(zsem_t* sem, int value){
 	  ret = GetLastError();
   }
 #endif
+#if ZTRACE_SEM
   ZERRC(ret);
+#endif
   return ret;
 }
 
@@ -32,7 +34,9 @@ int zsem_uninit(zsem_t* sem){
       ret = GetLastError();
     }
 #endif
+#if ZTRACE_SEM
     ZERRC(ret);
+#endif
     return ret;
 }
 
@@ -53,7 +57,9 @@ zsem_t* zsem_create(int value){
   }else{
     ret = ZEMEM_INSUFFICIENT;
   }
+#if ZTRACE_SEM
   ZERRC(ret);
+#endif
   return sem;
 }
 void zsem_destroy(zsem_t* sem){
@@ -69,7 +75,9 @@ void zsem_destroy(zsem_t* sem){
       ret = GetLastError();
     }
 #endif
+#if ZTRACE_SEM
     ZERRC(ret);  
+#endif
 }
 
 int zsem_post(zsem_t* sem){
@@ -83,7 +91,9 @@ int zsem_post(zsem_t* sem){
     ret = GetLastError();
   }
 #endif
+#if ZTRACE_SEM
   ZERRC(ret);
+#endif
   return ret;
 }
 
@@ -126,9 +136,11 @@ int zsem_wait(zsem_t* sem, int ms){
 #else//ZSYS_WINDOWS
   ret = zobj_wait(*sem, ms);
 #endif
+#if ZTRACE_SEM
   if((ZEOK != ret) && (ZETIMEOUT != ret)){
     ZERRC(ret);
-  }
+   }
+#endif
   //ZDBG("sem_wait end...");
   return ret;
 }

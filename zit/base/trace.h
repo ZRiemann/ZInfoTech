@@ -30,4 +30,7 @@ ZEXP const char*  zstrerr(int code);
 #define ZERRC(x) zerr("[ln:%04d fn:%s]\t%s",__LINE__,__FUNCTION__,zstrerr(x))
 #define ZERRCX(x) if( ZEOK != (x) )ZERRC(x)
 
+#define ZTRACE_MUTEX 0
+#define ZTRACE_SEM 0
+#define ZTRACE_QUE 0
 #endif//_ZBASE_TRACE_H_

@@ -55,7 +55,8 @@
 typedef enum{
   ZINIT = 0,
   ZRUN,
-  ZSTOP,
+  ZSTOPING, // begin stop 
+  ZSTOP,    // end stop
   ZUNINIT
 }zstatus_t;
   
@@ -80,10 +81,13 @@ typedef int (*zcompare)(zvalue_t p1, zvalue_t p2); //return ZGREAT/ZEQUAL/ZLITTL
 typedef int (*zfree)(zvalue_t user, zvalue_t hint);
 typedef int (*zact)(zvalue_t user, zvalue_t hint);
 
+#define ZTSKMD_SEQUENCE 0
+#define ZTSKMD_NORMAL 1
+
 typedef struct ztask_t{
   int priority; ///< 0-low(idel) 1-normal 2-(above normal)hight priority queue
-  int level; ///< 0-sequence ; 1-immediate ; 2-normal
-  int mission; ///< attach mission if sequence level
+  int mode; ///< 0-sequence ; 1-normal
+  int misid; ///< attach mission if sequence level
   zvalue_t user; ///< user data
   zvalue_t hint; ///< user hint
   zact act; ///< action task

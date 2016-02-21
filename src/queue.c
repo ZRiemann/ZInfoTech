@@ -69,7 +69,9 @@ int zqueue_create(zque_t** que){
     pque->posfront = pque->posback = 0;
     chnk->prev = chnk->next = NULL;
   }
+#if ZTRACE_QUE
   ZERRC(ret);
+#endif
   return ret;
 }
 
@@ -82,7 +84,9 @@ int zqueue_destroy(zque_t** que){
     free(*que);
     *que = NULL;
   }
+#if ZTRACE_QUE
   ZERRC(ret);
+#endif
   return ret;
 }
 
@@ -101,9 +105,12 @@ int zqueue_init(zque_t* que){
     que->posfront = que->posback = 0;
     chnk->prev = chnk->next = NULL;
   }
+#if ZTRACE_QUE
   ZERRC(ret);
+#endif
   return ret;
 }
+
 int zqueue_uninit(zque_t* que){
  int ret = ZEOK;
   if(NULL != que){
@@ -111,7 +118,9 @@ int zqueue_uninit(zque_t* que){
     free(ptr);
     zatomic_destroy(&(que->atm));
   }
+#if ZTRACE_QUE
   ZERRC(ret);
+#endif
   return ret;  
 }
 

@@ -15,7 +15,9 @@ int zmutex_init(zmutex_t* pmtx){
 #else//ZSYS_WINDOWS
   InitializeCriticalSection(pmtx);
 #endif
-  ZERRC(ret);
+#if ZTRACE_MUTEX
+  ZERR(ret);
+#endif
   return ret;
 }
 
@@ -29,7 +31,9 @@ int zmutex_uninit(zmutex_t* pmtx){
 #else//ZSYS_WINDOWS
   DeleteCriticalSection(pmtx);
 #endif
+#if ZTRACE_MUTEX
   ZERRC(ret);
+#endif
   return ret;
 }
 
@@ -60,6 +64,7 @@ ZEXP void zmutex_destroy(zmutex_t* mtx){
   DeleteCriticalSection(mtx);
 #endif
 }
+
 int zmutex_lock(zmutex_t* pmtx){
   int ret = ZEOK;
 #ifdef ZSYS_POSIX
@@ -67,7 +72,9 @@ int zmutex_lock(zmutex_t* pmtx){
 #else//ZSYS_WINDOWS
   EnterCriticalSection(pmtx);
 #endif
+#if ZTRACE_MUTEX
   ZERRC(ret);
+#endif
   return ret;
 }
 
@@ -78,7 +85,9 @@ int zmutex_unlock(zmutex_t* pmtx){
 #else//ZSYS_WINDOWS
   LeaveCriticalSection(pmtx);
 #endif
+#if ZTRACE_MUTEX
   ZERRC(ret);
+#endif
   return ret;
 }
 

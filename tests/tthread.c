@@ -18,8 +18,8 @@ void ztst_thread(){
   //ztst_mutex();
   //ztst_thrctl();
   //ztst_thrxctl();
-  ztst_queue();
-  //ztst_jet();
+  //ztst_queue();
+  ztst_jet();
 
 }
 

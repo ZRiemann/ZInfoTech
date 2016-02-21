@@ -13,11 +13,13 @@
 #include <zit/thread/jet.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 
 #define ZJET_MAX_MISSION 128
 
 typedef struct zmission_s{
   int id; ///< mission id
+  int exitmode; ///< 0-drop all task; 1-act task dwon; 2-backup task 
   zsem_t sem; ///< semaphore
   zmtx_t mtx; ///< mutex for push task
   zthr_t thr; ///< thread
@@ -28,9 +30,9 @@ typedef struct zmission_s{
 typedef struct zjet_s{
   int misnum; ///< init missions run
   int misnow; ///< now miss = init miss + extends miss
+  int id; ///< id generator
   zmis_t mis[ZJET_MAX_MISSION]; ///< missions
   zque_t idels; ///< idel task queue
-  zvalue_t id; ///< id generator
   zmtx_t mtx; ///< lock run/stop/push task to idels
   zmtx_t mtxpop; ///< lock pop task from idels
   zsem_t semidel; ///< idel task semaphore
@@ -90,7 +92,7 @@ int zjet_init(){
       zmutex_init(&(zg_jet->mtx));
       zmutex_init(&(zg_jet->mtxpop));
       zqueue_init(&(zg_jet->idels));
-      zsem_init(&(zg_jet->semidels));
+      zsem_init(&(zg_jet->semidel), 0);
       zg_jet->misnum = 8; ///< task delay: cpu*2+2
       for(i=0; i<ZJET_MAX_MISSION; i++){
 	//ZCONVERT(i, zg_jet->mis[i].nod.value);
@@ -112,7 +114,7 @@ int zjet_uninit(){
     zqueue_uninit(&(zg_jet->idels));
     zmutex_uninit(&(zg_jet->mtx));
     zmutex_uninit(&(zg_jet->mtxpop));
-    zsem_uninit(&(zg_jet->semidels));
+    zsem_uninit(&(zg_jet->semidel));
     free(zg_jet);
     zg_jet = NULL;
   }
@@ -127,24 +129,26 @@ static int _zjet_misrun(zmis_t* mis){
     if(NULL == mis){ret = ZEPARAM_INVALID;break;}
     // Init mission.
     //mis->id;  //has inited 
-    zsem_init(&(mis->sem));
+    zsem_init(&(mis->sem), 0);
     zmutex_init(&(mis->mtx));
     zqueue_init(&(mis->tsks));  
     // Set thread attribute.
     sprintf(mis->thr.name, "thr_mis[%d]", mis->id);
     mis->thr.param = (void*)mis;
     // Run thread.
-    if(ZEOK != (ret = zthreadx_create(&(mis->thr), zproc_mission)){break;}
+    if(ZEOK != (ret = zthreadx_create(&(mis->thr), zproc_mission))){break;}
   }while(0);
-  ZERRC(ret);
+  ZERRCX(ret);
   return ret;
 }
-static int _zjet_misstop(zmis_t* mis, int flag){
-  // stop a mission
-  int ret = ZENOT_SUPPORT;
-  flag = flag;
-  // task delay...
-  ZERRC(ret);
+static int _zjet_misstop(zmis_t* mis){
+  // Stop a mission and release resource.
+  int ret = ZEOK;
+  zthreadx_join(&(mis->thr));
+  zsem_uninit(&(mis->sem));
+  zmutex_uninit(&(mis->mtx));
+  zqueue_uninit(&(mis->tsks));
+  ZERRCX(ret);
   return ret;
 }
 int zjet_run(){
@@ -159,11 +163,11 @@ int zjet_run(){
   if((zg_jet->status == ZINIT) || (zg_jet->status == ZSTOP)){
     for(i = 0; i < zg_jet->misnum; i++){
       if( ZEOK != _zjet_misrun(&zg_jet->mis[i]) ){
-	zg_jet->misnum = i+1; // if run mission fail break. and run
-	zg_jet->misnow = i+1;
 	break;
       }
+      zg_jet->misnow = i+1;
     }
+    zg_jet->misnum = zg_jet->misnow;
     zg_jet->status = ZRUN;
   }
   zmutex_unlock(&(zg_jet->mtx));
@@ -175,18 +179,23 @@ int zjet_run(){
 int zjet_stop(int flag){
   int ret = ZEOK;
   int i = 0;
-
+  // NULL!=zg_jet
   // stop all buffered thread
-  if(NULL == zg_jet){
-    ret = ZENOT_INIT;ZERRC(ret);return ret;
-  }
   zmutex_lock(&(zg_jet->mtx));
   if(zg_jet->status == ZRUN){
+    zg_jet->status = ZSTOPING; //Set stoping status for cause zjet_assign() ZESTATUS_INVALID.
+    // cancle all bufferd thread
     for(i = 0; i < zg_jet->misnow; i++){
-      _zjet_misstop(&zg_jet->mis[i], flag);
+      zg_jet->mis[i].exitmode = flag;
+      zthreadx_cancel(&(zg_jet->mis[i].thr));
+    }
+    // join all bufferd thread
+    for(i = 0; i < zg_jet->misnow; i++){
+      _zjet_misstop(&(zg_jet->mis[i]));
     }
     zg_jet->status = ZSTOP;
   }
+  
   zmutex_unlock(&(zg_jet->mtx));
   
   ZERRC(ret);
@@ -194,13 +203,35 @@ int zjet_stop(int flag){
 }
 
 int zjet_assign(ztsk_t* tsk){
-  int ret = ZENOT_SUPPORT;
+  int ret = ZEOK;
+  // NULL != zg_jet && NULL != tsk
+  // assign task to missions, multi thread assign need lock
+  if(ZRUN != zg_jet->status){
+    ret = ZESTATUS_INVALID;
+  }else if(ZTSKMD_SEQUENCE == tsk->mode){
+    // assign sequence mission
+    zmis_t* mis = &(zg_jet->mis[tsk->misid]);
+    zmutex_lock(&(mis->mtx));
+    ret = zqueue_pushback(&(mis->tsks), tsk);
+    zsem_post(&(mis->sem));
+    zmutex_unlock(&(mis->mtx));
+  }else{
+    // normal/immediate
+    zmutex_lock(&(zg_jet->mtx));
+    ret = zqueue_pushback(&(zg_jet->idels), tsk);
+    zsem_post(&(zg_jet->semidel));
+    zmutex_unlock(&(zg_jet->mtx));
+  }
   ZERRC(ret);
   return ret;
 }
 
 int zjet_getid(int* id){
-  int ret = ZENOT_SUPPORT;
+  int ret = ZEOK;
+  // NULL!=zg_jet && NULL!=id
+  zmutex_lock(&(zg_jet->mtx));
+  *id = zg_jet->id++;
+  zmutex_unlock(&(zg_jet->mtx));
   ZERRC(ret);
   return ret;
 }

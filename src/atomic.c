@@ -7,6 +7,7 @@ zatmc_t* zatomic_create(){
   if(NULL != atm){
     zmutex_init(&atm->mtx);
     zatomic_xchg(atm, NULL);
+    atm->value = 0;
   }
   return atm;
 }
@@ -23,6 +24,7 @@ int zatomic_init(zatmc_t* atm){
   if(NULL != atm){
     ret = zmutex_init(&atm->mtx);
     zatomic_xchg(atm, NULL);
+    atm->value = 0;
   }
   ZERRC(ret);
   return ret;
