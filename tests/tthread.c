@@ -6,23 +6,110 @@
 #include <zit/base/time.h>
 #include <zit/base/error.h>
 #include <zit/base/queue.h>
+#include <zit/base/ringbuf.h>
 #include <stdio.h>
 #include <string.h>
 #include "tthread.h"
 
 void ztst_jet();
 void ztst_queue();
-
+void ztst_ring();
 void ztst_thread(){
   //ztst_semaphore();
   //ztst_mutex();
   //ztst_thrctl();
   //ztst_thrxctl();
   //ztst_queue();
-  ztst_jet();
-
+  //ztst_jet();
+  ztst_ring();
 }
 
+int ztsk_dummy(zvalue_t user, zvalue_t hint){
+  return ZEOK; // dummy
+}
+
+int zact_producer(zvalue_t user, zvalue_t hint){
+  zring_t* ring = (zring_t*)user;
+  char* aaa = "aaaa";
+  char* bbb = "bbbb";
+  zring_write(ring, aaa, strlen(aaa));
+  zring_write(ring, bbb, strlen(bbb));
+  zsleepms(500);
+  ZDBG("assign begin...");
+  zjet_assign(hint);
+  ZDBG("assign end.");
+}
+
+int zact_customer(zvalue_t user, zvalue_t hint){
+  zring_t* ring = (zring_t*)user;
+  char buf[9] = {0};
+  int len = 8;
+  zring_read(ring, buf, &len);
+  ZDBG("%s", buf);
+  zsleepms(500);
+  ZDBG("assign begin...");
+  zjet_assign(hint);
+  ZDBG("assign end.");
+}
+void ztst_ring(){
+  zring_t ring;
+  char* aaa = "aaaaaaaaa";
+  char* bbb = "bbbbbbbbb";
+  char rbuf[257] = {0};
+  ztsk_t tskp; // roducer
+  ztsk_t tskc; // customer
+  zring_init(&ring,256);
+  /*int rcnt;
+  while(1){
+    if(ZEOK != zring_write(&ring, aaa, strlen(aaa))){
+      break;
+    }
+    if(ZEOK != zring_write(&ring, bbb, strlen(bbb))){
+      break;
+    }
+    rcnt = 3;
+    memset(rbuf, 0, rcnt);
+    if(ZEOK == zring_read(&ring, rbuf, &rcnt)){
+      ZDBG("read %d bytes: %s", rcnt, rbuf);
+    }else{
+      break;
+    }
+  }
+  while(1){
+    rcnt = 257;
+    memset(rbuf, 0, rcnt);
+    if(ZEOK == zring_read(&ring, rbuf, &rcnt)){
+      ZDBG("read %d bytes: %s", rcnt, rbuf);
+    }else{
+      break;
+    }
+  }
+  */
+  zjet_init();
+  zjet_run();
+
+  tskp.user = &ring;
+  tskp.hint = &tskp;
+  tskp.mode = ZTSKMD_SEQUENCE;
+  tskp.misid = 0;
+  tskp.act = zact_producer;
+  tskp.free = ztsk_dummy;
+  
+  tskc.user = &ring;
+  tskc.hint = &tskc;
+  tskc.mode = ZTSKMD_SEQUENCE;
+  tskc.misid = 1;
+  tskc.act = zact_customer;
+  tskc.free = ztsk_dummy;
+
+  zjet_assign(&tskp);
+  zjet_assign(&tskc);
+  
+  zsleepsec(3);
+  zjet_stop(0);
+  zjet_uninit();
+  zring_uninit(&ring);
+}
 int zcmp_int(zvalue_t v1, zvalue_t v2){
   int ret = ZEQUAL;
   int i1;
@@ -85,7 +172,6 @@ void ztst_queue(){
   zdbg("before ZCONVERT(): data = %d; v = %d", data, v);
   ZCONVERT(data, v);
   zdbg("after ZCONVERT(): data = %d; v = %d", data, v);
-
 }
 
 void ztst_jet(){
