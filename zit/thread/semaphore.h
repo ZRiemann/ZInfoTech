@@ -14,7 +14,7 @@ ZEXP zsem_t* zsem_create(int value);
 ZEXP void zsem_destroy(zsem_t* sem); // Destroy zsem_create() 'sem'
 ZEXP int zsem_post(zsem_t* sem);
 ZEXP int zsem_wait(zsem_t* sem, int ms);// ZINFINIT|0-trywait|>0-timedwait
-
+ZEXP int zsem_getvalue(zsem_t* sem, int* value);
 #ifdef __cplusplus
 }
 #endif

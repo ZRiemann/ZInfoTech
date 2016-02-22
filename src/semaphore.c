@@ -145,6 +145,30 @@ int zsem_wait(zsem_t* sem, int ms){
   return ret;
 }
 
+int zsem_getvalue(zsem_t* sem, int* value){
+  int ret = ZEOK;
+#ifdef ZSYS_POSIX
+  if(0 != sem_getvalue(sem, value)){
+    ret = errno;
+  }
+#else // ZSYS_WINDOWS
+  ret = zobj_wait(*sem, 0);
+  if(ZEOK == ret){
+    if(0 == ReleaseSemaphore(*sem, 1, value)){
+       ret = GetLastError();
+     }
+    (*value)++;
+  }else{
+    *value = 0;
+  }
+#endif
+  
+#if ZTRACE_SEM
+  ZERRC(ret)
+#endif
+  return ret;
+}
+
 #ifdef ZSYS_WINDOWS
 int zobj_wait(HANDLE h, int ms){
   int ret = WaitForSingleObject(h, ms);

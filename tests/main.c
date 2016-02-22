@@ -7,10 +7,21 @@
 //#include "tutility.h"
 #include "tthread.h"
 
+// trace directory
 int ztst_trace(int level, void* user, const char* msg){
   ztrace_console(level, msg);
   //ztrace_log(level, msg);
   return ZEOK;
+}
+// trace at back ground thread pool(zjet)
+int ztst_tracexinit(){
+  
+}
+int ztst_tracexuninit(){
+
+}
+int ztst_tracex(int level, void* user, const char* msg){
+  
 }
 
 int main(int argc, char** argv){
