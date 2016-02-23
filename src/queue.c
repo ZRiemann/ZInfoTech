@@ -137,7 +137,7 @@ int zqueue_pushback(zque_t* que, zvalue_t value){
       chnksqare->prev = que->chnkback;
       que->chnkback = chnksqare;
       que->posback = 0;
-      ZDBG("exchange sqare chunk.");
+      ZDBG("push exchange sqare chunk.");
     }
   }
   ZERRCX(ret);
@@ -157,7 +157,7 @@ int zqueue_pushfront(zque_t* que, zvalue_t value){
       que->chnkfront = chnksqare;
       que->posfront = ZQUEUE_SIZE-1;
       que->chnkfront->v[que->posfront] = value;
-      ZDBG("exchange sqare chunk.");
+      ZDBG("push exchange sqare chunk.");
     }
   }else{
     que->chnkfront->v[que->posfront] = value;
@@ -182,7 +182,7 @@ int zqueue_popback(zque_t* que, zvalue_t* value){
     que->chnkback->next = NULL;
     chnksqare = (zchnk_t*)zatomic_xchg(que->atm, chnkback);
     free(chnksqare);
-    ZDBG("exchange sqare chunk");
+    ZDBG("pop exchange sqare chunk");
   }
   *value = que->chnkback->v[que->posback];
   //ZERRCX(ret);
@@ -195,6 +195,10 @@ int zqueue_popfront(zque_t* que, zvalue_t* value){
   if(que->chnkfront == que->chnkback){
     if(que->posfront < que->posback){
       ++(que->posfront);
+	  // reset position
+	  if(que->posfront == que->posback){
+		  que->posfront = que->posback = 0;
+	  }
     }else{
       ret = ZENOT_EXIST;
     }
@@ -206,7 +210,7 @@ int zqueue_popfront(zque_t* que, zvalue_t* value){
     que->chnkfront->prev = NULL;
     chnksqare = zatomic_xchg(que->atm, chnkfront);
     free(chnksqare);
-    ZDBG("exchange sqare chunk");
+    ZDBG("pop exchange sqare chunk");
   }
   //ZERRCX(ret);
   return ret;

@@ -17,7 +17,7 @@ typedef struct zring_s{
   char* buf; ///< ring buffer pointer
   char* pw; ///< write position
   char* pr; ///< read position
-  zmtx_t mtx; ///< thread safe lock
+  zmtx_t mtx; ///< lock; CAUTION: not thread safe(use rwbuf for parallel read/wrte)
 }zring_t;
 
 ZEXP zring_t* zring_create(int size);
@@ -26,10 +26,10 @@ ZEXP int zring_init(zring_t* ring, int size);
 ZEXP int zring_uninit(zring_t* ring);
 ZEXP int zring_read(zring_t* ring, char* buf, int* len);
 ZEXP int zring_write(zring_t* ring, char* buf, int len);
-// thread safe
+  // parallel wrte/read
 ZEXP int zringt_read(zring_t* ring, char* buf, int* len);
-ZEXP int zringt_write(zring_t* ring, char* buf, int len);
-// extern for 0 copy, operate ring->pw/pr/mtx/... directory
+ZEXP int zringt_write(zring_t* ring, char* buf, int* len);
+
 #if 0
 ZEXP int zring_getread(zring_t* ring, char** buf, int* len);
 ZEXP int zring_getwrite(zring_t* ring, char** buf, int* len):

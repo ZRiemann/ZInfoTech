@@ -16,7 +16,7 @@ int zmutex_init(zmutex_t* pmtx){
   InitializeCriticalSection(pmtx);
 #endif
 #if ZTRACE_MUTEX
-  ZERR(ret);
+  ZERRC(ret);
 #endif
   return ret;
 }

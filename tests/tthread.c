@@ -8,12 +8,18 @@
 #include <zit/base/queue.h>
 #include <zit/base/ringbuf.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
+#include <time.h>
 #include "tthread.h"
+
+static FILE* fw = NULL;
+static FILE* fr = NULL;
 
 void ztst_jet();
 void ztst_queue();
 void ztst_ring();
+void ztst_ring_base();
 void ztst_thread(){
   //ztst_semaphore();
   //ztst_mutex();
@@ -22,67 +28,103 @@ void ztst_thread(){
   //ztst_queue();
   //ztst_jet();
   ztst_ring();
+  //ztst_ring_base();
 }
 
+void ztst_ring_base(){
+  zring_t ring;
+  char wbuf[] = "abcdefghijklmnopqrstuvwxyz";
+  char rbuf[27] = {0};
+  int rlen = 27;
+  zring_init(&ring, 26);
+  zdbg("ring init(000): lenx<%d> restx<%d> len<%d> rest<%d> pw<%p> pr<%p>", ring.lenx, ring.restx, ring.len, ring.rest, ring.pw, ring.pr);
+  // write 26
+  rlen = 26;
+  zring_write(&ring, wbuf, rlen);
+  zdbg("ring write(%02d): lenx<%d> restx<%d> len<%d> rest<%d> pw<%p> pr<%p>", rlen, ring.lenx, ring.restx, ring.len, ring.rest, ring.pw, ring.pr); 
+  // read 26
+  rlen = 27;
+  memset(rbuf, 0, sizeof(rbuf));
+  zring_read(&ring, rbuf, &rlen);
+  zdbg("ring read(%02d): lenx<%d> restx<%d> len<%d> rest<%d> pw<%p> pr<%p>", rlen, ring.lenx, ring.restx, ring.len, ring.rest, ring.pw, ring.pr);
+
+  // write 13
+  rlen = 13;
+  zring_write(&ring, wbuf, rlen);
+  zdbg("ring write(%02d): lenx<%d> restx<%d> len<%d> rest<%d> pw<%p> pr<%p>", rlen, ring.lenx, ring.restx, ring.len, ring.rest, ring.pw, ring.pr);
+
+  // read 8
+  rlen = 8;
+  memset(rbuf, 0, sizeof(rbuf));
+  zring_read(&ring, rbuf, &rlen);
+  zdbg("ring read(%02d): lenx<%d> restx<%d> len<%d> rest<%d> pw<%p> pr<%p>", rlen, ring.lenx, ring.restx, ring.len, ring.rest, ring.pw, ring.pr);
+
+  // write
+  rlen = 20;
+  zring_write(&ring, wbuf, rlen);
+  zdbg("ring write(%02d): lenx<%d> restx<%d> len<%d> rest<%d> pw<%p> pr<%p>", rlen, ring.lenx, ring.restx, ring.len, ring.rest, ring.pw, ring.pr);
+  
+  // read 8
+  rlen = 27;
+  memset(rbuf, 0, sizeof(rbuf));
+  zring_read(&ring, rbuf, &rlen);
+  zdbg("ring read(%02d): lenx<%d> restx<%d> len<%d> rest<%d> pw<%p> pr<%p>", rlen, ring.lenx, ring.restx, ring.len, ring.rest, ring.pw, ring.pr);
+
+  // read 8
+  rlen = 27;
+  memset(rbuf, 0, sizeof(rbuf));
+  zring_read(&ring, rbuf, &rlen);
+  zdbg("ring read(%02d): lenx<%d> restx<%d> len<%d> rest<%d> pw<%p> pr<%p>", rlen, ring.lenx, ring.restx, ring.len, ring.rest, ring.pw, ring.pr);
+
+  // uninit
+  zring_uninit(&ring);
+}
 int ztsk_dummy(zvalue_t user, zvalue_t hint){
   return ZEOK; // dummy
 }
 
 int zact_producer(zvalue_t user, zvalue_t hint){
   zring_t* ring = (zring_t*)user;
-  char* aaa = "aaaa";
-  char* bbb = "bbbb";
-  zring_write(ring, aaa, strlen(aaa));
-  ZDBG("write: %s", aaa);
-  zring_write(ring, bbb, strlen(bbb));
-  ZDBG("write: %s", bbb);
-  zsleepms(500);
+  int i = 0;
+  char aaa[9] = {0};
+  int lena = (rand()%8)+1;
+  int delay = (rand()%500)+500;
+  for(i = 0; i < lena; i++){
+    aaa[i] = (rand()%26)+'a';
+  }
+  if(ZEOK == zring_write(ring, aaa, lena) ){
+    fwrite(aaa, sizeof(char), lena, fw);
+    //ZDBG("write: %s", aaa);
+  }
+  //zsleepms(delay);
   zjet_assign(hint);
+  return ZEOK;
 }
 
 int zact_customer(zvalue_t user, zvalue_t hint){
   zring_t* ring = (zring_t*)user;
-  char buf[9] = {0};
-  int len = 8;
-  zring_read(ring, buf, &len);
-  ZDBG("read: %s", buf);
-  zsleepms(500);
+  char buf[128] = {0};
+  int len = (rand()%16)+1;
+  int delay = (rand()%500)+500;
+  if( ZEOK == zring_read(ring, buf, &len) ){
+    fwrite(buf, sizeof(char), len, fr);
+    //ZDBG("read: %s", buf);
+  }
+  //zsleepms(delay);
   zjet_assign(hint);
+  return ZEOK;
 }
+
 void ztst_ring(){
   zring_t ring;
-  char* aaa = "aaaaaaaaa";
-  char* bbb = "bbbbbbbbb";
-  char rbuf[257] = {0};
   ztsk_t tskp; // roducer
   ztsk_t tskc; // customer
+
+  fw = fopen("ringwrite.txt", "wb");
+  fr = fopen("ringread.txt", "wb");
+  srand(time(NULL));
   zring_init(&ring,256);
-  /*int rcnt;
-  while(1){
-    if(ZEOK != zring_write(&ring, aaa, strlen(aaa))){
-      break;
-    }
-    if(ZEOK != zring_write(&ring, bbb, strlen(bbb))){
-      break;
-    }
-    rcnt = 3;
-    memset(rbuf, 0, rcnt);
-    if(ZEOK == zring_read(&ring, rbuf, &rcnt)){
-      ZDBG("read %d bytes: %s", rcnt, rbuf);
-    }else{
-      break;
-    }
-  }
-  while(1){
-    rcnt = 257;
-    memset(rbuf, 0, rcnt);
-    if(ZEOK == zring_read(&ring, rbuf, &rcnt)){
-      ZDBG("read %d bytes: %s", rcnt, rbuf);
-    }else{
-      break;
-    }
-  }
-  */
+
   zjet_init();
   zjet_run();
 
@@ -102,11 +144,15 @@ void ztst_ring(){
 
   zjet_assign(&tskp);
   zjet_assign(&tskc);
-  
-  zsleepsec(3);
+
+  //zsleepms(50);
+  zsleepsec(5);
   zjet_stop(0);
   zjet_uninit();
   zring_uninit(&ring);
+
+  fclose(fr);
+  fclose(fw);
 }
 int zcmp_int(zvalue_t v1, zvalue_t v2){
   int ret = ZEQUAL;

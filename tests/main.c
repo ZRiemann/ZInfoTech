@@ -15,13 +15,13 @@ int ztst_trace(int level, void* user, const char* msg){
 }
 // trace at back ground thread pool(zjet)
 int ztst_tracexinit(){
-  
+  return ZEOK;
 }
 int ztst_tracexuninit(){
-
+  return ZEOK;
 }
 int ztst_tracex(int level, void* user, const char* msg){
-  
+  return ZEOK;
 }
 
 int main(int argc, char** argv){

@@ -56,6 +56,10 @@ zthr_ret_t ZAPI zproc_mission(void* param){
   zque_t* idels = &(zg_jet->idels);
   zque_t* tsks = &(mis->tsks);
   
+  int b = 0;
+  if(thr->name[8] == '0'){
+	b = 1;
+  }
   if(ZEOK != (ret = zthreadx_procbegin(thr))){
     zthreadx_procend(thr, ret);
     ZCONVERT(ret_, ret);
@@ -127,6 +131,8 @@ int zjet_uninit(){
   if(ZEOK == zsem_getvalue(&(zg_jet->semidel), &cnt)){
     while(ZEOK == zsem_wait(&(zg_jet->semidel), 10)){
       zqueue_popfront(&(zg_jet->idels), (zvalue_t*)&tsk); // not lock because thread pool down
+      tsk->act(tsk->user, tsk->hint);
+      tsk->free(tsk->user, tsk->hint);
       ZDBG("act task %d.", cnt--);
     }
   }
@@ -228,11 +234,7 @@ int zjet_assign(ztsk_t* tsk){
     return ZENOT_INIT; // Like ztrace  may assign task out of zjet life.
   }
   if(ZRUN != zg_jet->status){
-    // push to idels queue for main thread act task, while jet in stoping/stop/init status
-    zmutex_lock(&(zg_jet->mtx));
-    ret = zqueue_pushback(&(zg_jet->idels), tsk);
-    zsem_post(&(zg_jet->semidel));
-    zmutex_unlock(&(zg_jet->mtx));
+    return ZESTATUS_INVALID; // invalid dead loop for tsk->act(){...;zjet_assign(tsk);}
   }else if(ZTSKMD_SEQUENCE == tsk->mode){
     // assign sequence mission
     zmis_t* mis = &(zg_jet->mis[tsk->misid]);

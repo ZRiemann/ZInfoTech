@@ -5,6 +5,7 @@
    @note
    author    date       history
    ZRiemann  2016-02-19 found, one porcessor only one jet!
+   ZRiemann  2016-02-23 fix dead lock/loop bug. 
  */
 #include <zit/base/platform.h>
 #include <zit/base/type.h>
