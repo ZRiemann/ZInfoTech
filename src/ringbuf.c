@@ -104,7 +104,7 @@ int zring_read(zring_t* ring, char* buf, int* len){
     ring->len = ring->restx = ring->lenx = 0;
   }
   *len = read;
-#ifdef ZTRACE_RING
+#if ZTRACE_RING
   ZERRC(ret);
 #endif
   return ret;

@@ -33,11 +33,11 @@ int zact_producer(zvalue_t user, zvalue_t hint){
   char* aaa = "aaaa";
   char* bbb = "bbbb";
   zring_write(ring, aaa, strlen(aaa));
+  ZDBG("write: %s", aaa);
   zring_write(ring, bbb, strlen(bbb));
+  ZDBG("write: %s", bbb);
   zsleepms(500);
-  ZDBG("assign begin...");
   zjet_assign(hint);
-  ZDBG("assign end.");
 }
 
 int zact_customer(zvalue_t user, zvalue_t hint){
@@ -45,11 +45,9 @@ int zact_customer(zvalue_t user, zvalue_t hint){
   char buf[9] = {0};
   int len = 8;
   zring_read(ring, buf, &len);
-  ZDBG("%s", buf);
+  ZDBG("read: %s", buf);
   zsleepms(500);
-  ZDBG("assign begin...");
   zjet_assign(hint);
-  ZDBG("assign end.");
 }
 void ztst_ring(){
   zring_t ring;

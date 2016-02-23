@@ -200,7 +200,7 @@ int zjet_stop(int flag){
   int i = 0;
   // NULL!=zg_jet
   // stop all buffered thread
-  zmutex_lock(&(zg_jet->mtx));
+  //zmutex_lock(&(zg_jet->mtx));
   if(zg_jet->status == ZRUN){
     zg_jet->status = ZSTOPING; //Set stoping status for cause zjet_assign() ZESTATUS_INVALID.
     // cancle all bufferd thread
@@ -214,7 +214,7 @@ int zjet_stop(int flag){
     }
     zg_jet->status = ZSTOP;
   }  
-  zmutex_unlock(&(zg_jet->mtx));
+  //zmutex_unlock(&(zg_jet->mtx));
 
   ZERRC(ret);
   return ret;
@@ -247,7 +247,7 @@ int zjet_assign(ztsk_t* tsk){
     zsem_post(&(zg_jet->semidel));
     zmutex_unlock(&(zg_jet->mtx));
   }
-  ZERRC(ret);
+  //ZERRC(ret);
   return ret;
 }
 
