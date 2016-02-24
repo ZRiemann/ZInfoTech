@@ -16,5 +16,6 @@
 #define ZENOT_EXIST (ZEMASK | 8) // Device/object ot exist
 #define ZENOT_INIT (ZEMASK | 9)  // Device not init
 #define ZESTATUS_INVALID (ZEMASK | 10)  // device status invalid
+#define ZEMEM_OUTOFBOUNDS (ZEMASK | 11) // memory out of bounds
 
 #endif

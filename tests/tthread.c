@@ -93,8 +93,8 @@ int zact_producer(zvalue_t user, zvalue_t hint){
     aaa[i] = (rand()%26)+'a';
   }
   if(ZEOK == zring_write(ring, aaa, lena) ){
-    fwrite(aaa, sizeof(char), lena, fw);
-    //ZDBG("write: %s", aaa);
+    //fwrite(aaa, sizeof(char), lena, fw);
+    ZDBG("write: %s", aaa);
   }
   //zsleepms(delay);
   zjet_assign(hint);
@@ -107,8 +107,8 @@ int zact_customer(zvalue_t user, zvalue_t hint){
   int len = (rand()%16)+1;
   int delay = (rand()%500)+500;
   if( ZEOK == zring_read(ring, buf, &len) ){
-    fwrite(buf, sizeof(char), len, fr);
-    //ZDBG("read: %s", buf);
+    //fwrite(buf, sizeof(char), len, fr);
+    ZDBG("read: %s", buf);
   }
   //zsleepms(delay);
   zjet_assign(hint);

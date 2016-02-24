@@ -189,21 +189,38 @@ int zringt_read(zring_t* ring, char* buf, int* len){
   if(rlen > 0){
     // buf ... pr ... pr' ... pw ... buf[size-1]
     read = (rlen < *len) ? rlen : *len;
-    memcpy(buf, ring->pr, read);
-    ring->pr += read;
   }else if(rlen < 0){
     // buf ... pw ... pr ... buf[size-1]
     rlen = ring->size - (ring->pr - ring->buf);
-    read = (rlen < *len) ? rlen : *len;
-    memcpy(buf, ring->pr, read);
-    ring->pr += read;
-    if(read < *len){
-      // task delay...
+    if( rlen > 0){
+      // buf ... pw ...pr ...pr' ... buf[size-1]
+      read = (rlen < *len) ? rlen : *len;
+    }else if(0 == rlen){
+      rlen = ring->pw - ring->buf;
+      if(rlen > 0){
+	// buf ... pw ...pr==buf[size-1]
+	read = (read < *len) ? read : *len;
+	ring->pr = ring->buf;
+      }else if(rlen == 0){
+	// pw=buf ... pr==buf[size-1] (read empty)
+	ret = ZEMEM_INSUFFICIENT;
+      }else{
+	// pw ... buf ... pr==buf[size-1] (impossible)
+	ret = ZEMEM_OUTOFBOUNDS;
+      }
+    }else{
+      //buf ... pw ... buf[size-1] ... pr(impossible)
+      ret = ZEMEM_OUTOFBOUNDS;
     }
   }else{
-    return ZENOT_EXIST;
+    // buf ... pr==pw ... buf[size-1] read empty
+    return ZEMEM_INSUFFICIENT;
   }
-  
+
+  if(read > 0){
+    memcpy(buf, ring->pr, read);
+    ring->pr += read;
+  }
   *len = read;
   return ret;
 }
@@ -222,25 +239,19 @@ int zringt_write(zring_t* ring, char* buf, int* len){
       // buf ... pr ... pw ...pw'...buf[size -1]
       // buf ... pr ... pw ...pw'==buf[size-1]
       write = (wlen < *len) ? wlen : *len;
-      memcpy(ring->pw, buf, write);
-      ring->pw += write;
     }else if(0 == wlen){
       if(ring->pr > ring->buf){
 	// buf ... pr ... pw==buf[size-1]
 	wlen = ring->pr - ring->buf -1; // pw not reach pr
 	write = (wlen < *len) ? wlen: *len;
 	ring->pw = ring->buf;
-	ring->pw += write;
       }else{
 	// buf==pr ... pw===[size-1]
-	write = 0;
 	ret = ZEMEM_INSUFFICIENT;
       }
     }else{
       // buf ... pr ... buf[size-1] ... pw (impossible)
-      ret = ZENOT_EXIST;
-      ZERRC(ret);
-      write = 0;
+      ret = ZEMEM_OUTOFBOUNDS;
     }
   }else if(rlen < 0){
     wlen = -rlen;
@@ -248,18 +259,21 @@ int zringt_write(zring_t* ring, char* buf, int* len){
     if( wlen > 0){
       // buf ... pw ... pr ... buf[size-1]
       write = (wlen < *len) ? wlen : *len;
-      memcpy(ring->pw, buf, write);
-      ring->pw += write;
     }else{
       // buf ... pw pr ... buf[size-1]
-      write = 0;
       ret = ZEMEM_INSUFFICIENT;
     }
   }else{
-    ret = ZEMEM_INSUFFICIENT;
-    ZERRC(ret);
-    write = 0;
+    // buf ... pw=pr ... buf[size-1] init status or read empty
+    wlen = ring->size - (ring->pw - ring->buf);
+    write = (wlen < *len) ? wlen : *len;
   }
+#if 0
+  if(write > 0){
+    memcpy(ring->pw, buf, write);
+    ring->pw += write;
+  }
+#endif
   *len = write;
   return ZEOK;
 }
