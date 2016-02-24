@@ -25,17 +25,17 @@ ZEXP void zring_destroy(zring_t* ring);
 ZEXP int zring_init(zring_t* ring, int size);
 ZEXP int zring_uninit(zring_t* ring);
   // mtx and ring
-ZEXP int zring_read(zring_t* ring, char* buf, int* len);
-ZEXP int zring_write(zring_t* ring, const char* buf, int len);
-  // no mtx and ring
 ZEXP int zringt_read(zring_t* ring, char* buf, int* len);
-ZEXP int zringt_write(zring_t* ring, const char* buf, int* len);
+ZEXP int zringt_write(zring_t* ring, const char* buf, int len);
+  // no mtx and ring
+ZEXP int zring_read(zring_t* ring, char* buf, int* len);
+ZEXP int zring_write(zring_t* ring, const char* buf, int* len);
   // block read/write
-  //ZEXP int zringtb_read(zring_t* ring, char* buf, int* len);
-  //ZEXP int zringtb_write(zring_t* ring, char* buf, int* len);
+  //ZEXP int zring_blkread(zring_t* ring, char* buf, int* len);
+  //ZEXP int zring_blkwrite(zring_t* ring, char* buf, int* len);
   // string read/write
-ZEXP int zringt_strread(zring_t* ring, char* buf, int* len);
-ZEXP int zringt_strwrite(zring_t* ring, const char* buf, int* len);
+ZEXP int zring_strread(zring_t* ring, char* buf, int* len);
+ZEXP int zring_strwrite(zring_t* ring, const char* buf, int* len);
 
 #if 0
   // for 0 mem copy
@@ -51,7 +51,7 @@ ZEXP int zring_getwrite(zring_t* ring, char** buf, int* len):
    @note
    
    test:   tests/tthread.c:ztst_ring() 5 seconds parallel read and write 
-   fun:    zringt_write/read()       zring_write/read()
+   fun:    zring_write/read()       zringt_write/read()
    round1: 159731400/159731216       114433632/114433632
    round2: 163016456/163016448       120403688/120403480
    round3: 160442568/160442320       116188104/116187848

@@ -77,7 +77,7 @@ int zring_uninit(zring_t* ring){
   return ret;
 }
 
-int zring_read(zring_t* ring, char* buf, int* len){
+int zringt_read(zring_t* ring, char* buf, int* len){
   int ret = ZEOK;
   int read = 0;
   char* pb = buf;
@@ -121,7 +121,7 @@ int zring_read(zring_t* ring, char* buf, int* len){
   return ret;
 }
 
-int zring_write(zring_t* ring, const char* buf, int len){
+int zringt_write(zring_t* ring, const char* buf, int len){
   int ret = ZEOK;
   // NULL != ring/buf/len>0
   zmutex_lock(&(ring->mtx));
@@ -180,7 +180,7 @@ int zring_write(zring_t* ring, const char* buf, int len){
   return ret;
 }
 
-int zringt_read(zring_t* ring, char* buf, int* len){
+int zring_read(zring_t* ring, char* buf, int* len){
   int ret = ZEOK;
   int rlen = ring->pw - ring->pr;
   int read = 0;
@@ -232,7 +232,7 @@ int zringt_read(zring_t* ring, char* buf, int* len){
   return ret;
 }
 
-int zringt_write(zring_t* ring, const char* buf, int* len){
+int zring_write(zring_t* ring, const char* buf, int* len){
   int ret = ZEOK;
   int rlen = ring->pw - ring->pr;
   int wlen = 0;
@@ -300,7 +300,7 @@ int zringt_write(zring_t* ring, const char* buf, int* len){
   return ret;
 }
 
-int zringt_strread(zring_t* ring, char* buf, int* len){
+static inline int _zring_strread(zring_t* ring, char* buf, int* len){
   int ret = ZEOK;
   int rlen = ring->pw - ring->pr;
   int read = 0;
@@ -361,6 +361,37 @@ int zringt_strread(zring_t* ring, char* buf, int* len){
   return ret;
 }
 
-int zringt_strwrite(zring_t* ring, const char* buf, int* len){
-  return zringt_write(ring, buf, len);
+int zring_strread(zring_t* ring, char* buf, int* len){
+  int ret = ZEOK;
+  int lenx = 0;
+  int read = *len;
+  if(ZEOK == (ret = _zring_strread(ring, buf, &read))){
+      if(buf[read-1] != 0){
+	// buf ... pw ... pr'==buf[size]
+	lenx = *len - read;
+	if(ZEOK == (ret = _zring_strread(ring, buf+read, &lenx))){
+	  *len = read + lenx; // buf ... pr' ... pw ... buf[size] 
+	}
+      }else{
+	*len = read;
+      }
+  }
+  return ret;
+}
+int zring_strwrite(zring_t* ring, const char* buf, int* len){
+  int ret = ZEOK;
+  int write = *len;
+  int rest = 0;
+  if( ZEOK == (ret =zring_write(ring, buf, &write))){
+    if(write != *len){
+      rest = *len - write;
+      if(ZEOK == (ret = zring_write(ring, buf+write, &rest))){
+	*len = write + rest;
+      }
+    }else{
+      *len = write;
+    }
+  }
+  //return zringt_write(ring, buf, len);
+  return ret;
 }
