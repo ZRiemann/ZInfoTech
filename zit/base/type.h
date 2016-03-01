@@ -53,11 +53,11 @@
 #endif
 
 typedef enum{
-  ZINIT = 0,
+  ZUNINIT = 0,
+  ZINIT,
   ZRUN,
   ZSTOPING, // begin stop 
-  ZSTOP,    // end stop
-  ZUNINIT
+  ZSTOP    // end stop
 }zstatus_t;
   
 typedef void* zcontainer_t; // for all zit container
@@ -90,8 +90,8 @@ typedef struct ztask_t{
   int misid; ///< attach mission if sequence level
   zvalue_t user; ///< user data
   zvalue_t hint; ///< user hint
-  zact act; ///< action task
-  zfree free; ///< release user data
+  zact act; ///< action task(can not NULL)
+  zfree free; ///< release user data(default NULL)
 }ztsk_t;
 
 ZEXP int zversion();

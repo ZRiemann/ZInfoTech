@@ -199,8 +199,8 @@ void ztst_ring_str(){
 
   zsleepms(50);
   zsleepsec(5);
-  zjet_stop(0);
-  zjet_uninit();
+  //zjet_stop(0);
+  //zjet_uninit();
   
   zring_uninit(&ring);
 }
@@ -286,8 +286,8 @@ void ztst_ring(){
 
   //zsleepms(50);
   zsleepsec(5);
-  zjet_stop(0);
-  zjet_uninit();
+  //zjet_stop(0);
+  //zjet_uninit();
   zring_uninit(&ring);
 #ifdef USE_RINGT
   ZDBG("zring*T* total write<%d> read<%d>", zg_sw, zg_sr);

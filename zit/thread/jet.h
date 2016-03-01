@@ -22,7 +22,7 @@ ZEXP int zjet_stop(int flag); // 0-act all assigned task; 1-drop all task; 2-bac
 
 ZEXP int zjet_assign(ztsk_t* tsk);
 ZEXP int zjet_getid(int* id); // Git mission id for sequence task.
-
+ZEXP zstatus_t zjet_getstatus();
 #ifdef __cplusplus
 }
 #endif

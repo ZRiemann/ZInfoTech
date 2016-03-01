@@ -159,6 +159,9 @@ int zthreadx_join(zthr_t* attr){
 
 int zthreadx_cancel(zthr_t* attr){
   int ret = ZEOK;
+  while( 1 != attr->run){
+    zsleepms(0);
+  }
   ret = zsem_post(&(attr->exit));
   ZMSG("%s cancel %s", attr->name, zstrerr(ret));
   return ret;
@@ -202,9 +205,10 @@ int zthreadx_joinall(){
 }
 
 ZEXP int zthreadx_procbegin(zthr_t* attr){
+  int ret = zsem_init(&(attr->exit), 0); //* init semaphore.
   attr->run = 1;
   ZMSG("%s begin...", attr->name);
-  return zsem_init(&(attr->exit), 0); //* init semaphore.
+  return ret;
 }
 
 ZEXP int zthreadx_procend(zthr_t* attr, int ret){

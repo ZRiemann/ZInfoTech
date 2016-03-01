@@ -77,13 +77,13 @@ zthr_ret_t ZAPI zproc_mission(void* param){
     }
     // act task
     tsk->act(tsk->user, tsk->hint);
-    tsk->free(tsk->user, tsk->hint);
+    if(NULL != tsk->free)tsk->free(tsk->user, tsk->hint);
   }
   // act all rest normal/sequence task
   while(ZEOK == zsem_wait(semtsk, 10)){
     zqueue_popfront(tsks, (zvalue_t*)&tsk);
     tsk->act(tsk->user, tsk->hint);
-    tsk->free(tsk->user, tsk->hint);
+    if(NULL != tsk->free)tsk->free(tsk->user, tsk->hint);
     ZDBG("mis[%d] act task before exit.", mis->id);
   }
   zthreadx_procend(thr, ret);
@@ -261,4 +261,11 @@ int zjet_getid(int* id){
   zmutex_unlock(&(zg_jet->mtx));
   ZERRC(ret);
   return ret;
+}
+
+zstatus_t zjet_getstatus(){
+  zstatus_t s = ZENOT_INIT;
+  if(NULL != zg_jet){
+    s = zg_jet->status;
+  }
 }

@@ -34,6 +34,6 @@ ZEXP const char*  zstrerr(int code);
 #define ZTRACE_MUTEX 0
 #define ZTRACE_SEM 0
 #define ZTRACE_QUE 0
-#define ZTRACE_RING 0
+#define ZTRACE_RING 0 // set 0 if use trace background
 
 #endif//_ZBASE_TRACE_H_
