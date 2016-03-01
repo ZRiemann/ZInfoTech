@@ -136,17 +136,17 @@ int zact_ringstr_producer(zvalue_t user, zvalue_t hint){
   return ret;
 }
 
+ztsk_t tskp; // roducer
+ztsk_t tskc; // customer
+zring_t ring;
+
 void ztst_ring_str(){
   int ret = ZEOK;
   int len = 0;
   int write = 0;
   int lenx = 0;
   int i = 0;
-  ztsk_t tskp; // roducer
-  ztsk_t tskc; // customer
-  zring_t ring;
-  char wbuf[128] = {0};
-  char rbuf[1024];
+  
   
   ZDBG("testing ring string read and write...");
   zring_init(&ring, 32);

@@ -270,4 +270,5 @@ zstatus_t zjet_getstatus(){
   if(NULL != zg_jet){
     s = zg_jet->status;
   }
+  return s;
 }

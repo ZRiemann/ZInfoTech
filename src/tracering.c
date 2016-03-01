@@ -2,6 +2,8 @@
 #include <zit/utility/tracering.h>
 #include <zit/base/type.h>
 #include <zit/base/ringbuf.h>
+#include <zit/thread/jet.h>
+#include <zit/thread/mutex.h>
 #include <stdlib.h>
 #include <string.h>
 

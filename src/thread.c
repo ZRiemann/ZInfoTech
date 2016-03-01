@@ -5,6 +5,7 @@
 #include <zit/thread/mutex.h>
 #include <zit/base/error.h>
 #include <zit/base/trace.h>
+#include <zit/base/time.h>
 #include <stdio.h>
 #include <zit/thread/thread_def.h>
 
