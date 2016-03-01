@@ -16,8 +16,7 @@
 #define ZTRACE_FLAG_MSG 0x02
 #define ZTRACE_FLAG_WAR 0x04
 #define ZTRACE_FLAG_ERR 0X08
-#define ZTRACE_BUF_SIZE 4096
-#define ZTRACE_BUF_SIZE1 4095
+#define ZTRACE_BUF_SIZE1 (ZTRACE_BUF_SIZE-1)
 
 ztrace g_ztrace = NULL;
 void* g_ztrace_user = NULL;

@@ -156,7 +156,7 @@ static int _zjet_misrun(zmis_t* mis){
     //mis->id;  //has inited 
     zsem_init(&(mis->sem), 0);
     zmutex_init(&(mis->mtx));
-    zqueue_init(&(mis->tsks));  
+    zqueue_init(&(mis->tsks));
     // Set thread attribute.
     sprintf(mis->thr.name, "thr_mis[%d]", mis->id);
     mis->thr.param = (void*)mis;
@@ -166,6 +166,7 @@ static int _zjet_misrun(zmis_t* mis){
   ZERRCX(ret);
   return ret;
 }
+
 static int _zjet_misstop(zmis_t* mis){
   // Stop a mission and release resource.
   int ret = ZEOK;
@@ -176,6 +177,7 @@ static int _zjet_misstop(zmis_t* mis){
   ZERRCX(ret);
   return ret;
 }
+
 int zjet_run(){
   // run thread pool
   int ret = ZEOK;

@@ -8,6 +8,7 @@
 #include "platform.h"
 #include <zit/base/error.h>
 
+#define ZTRACE_BUF_SIZE 4096
 #define ZTRACE_LEVEL_DBG 0
 #define ZTRACE_LEVEL_MSG 1
 #define ZTRACE_LEVEL_WAR 2
