@@ -99,10 +99,10 @@ int zact_ringstr_customer(zvalue_t user, zvalue_t hint){
     buf[len] = 0;
     ZDBG("read<%d>: %s",len, buf);
   }
-  zsleepms(delay);
-  printf("(((((((((((((\n");
-  zjet_assign(hint);
-  printf("))))))))))))\n");
+  //zsleepms(delay);
+  if(NULL != hint){
+    zjet_assign(hint);
+  }
   return ZEOK;
 }
 
@@ -129,16 +129,13 @@ int zact_ringstr_producer(zvalue_t user, zvalue_t hint){
     // wait zjet eixt semaphore for exit...
   }while(len);
   ZDBG("write: %s", buf);
-  zsleepms(delay);
-  printf("+++++++++++++++\n");
-  zjet_assign(hint);
-  printf("---------------\n");
+  //zsleepms(delay);
+  if(NULL != hint){
+    zjet_assign(hint);
+  }
+  
   return ret;
 }
-
-ztsk_t tskp; // roducer
-ztsk_t tskc; // customer
-zring_t ring;
 
 void ztst_ring_str(){
   int ret = ZEOK;
@@ -146,7 +143,9 @@ void ztst_ring_str(){
   int write = 0;
   int lenx = 0;
   int i = 0;
-  
+  ztsk_t tskp; // roducer
+  ztsk_t tskc; // customer
+  zring_t ring;
   
   ZDBG("testing ring string read and write...");
   zring_init(&ring, 32);
@@ -170,8 +169,10 @@ void ztst_ring_str(){
   zjet_assign(&tskp);
   zjet_assign(&tskc);
 
-  zsleepms(5000);
+  zsleepms(50000);
   
+  tskc.hint = tskp.hint = NULL; // stop dead loop
+  zsleepms(500); // wait task end
   zring_uninit(&ring);
 }
 
