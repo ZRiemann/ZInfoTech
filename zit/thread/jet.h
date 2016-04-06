@@ -11,20 +11,17 @@
 #include <zit/base/type.h>
 #include <zit/thread/thread_def.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+ZC_BEGIN
 
-ZEXP int zjet_init();
-ZEXP int zjet_uninit();
-ZEXP int zjet_run();
-ZEXP int zjet_stop(int flag); // 0-act all assigned task; 1-drop all task; 2-backup task;
+ZAPI int zjet_init();
+ZAPI int zjet_uninit();
+ZAPI int zjet_run();
+ZAPI int zjet_stop(int flag); // 0-act all assigned task; 1-drop all task; 2-backup task;
 
-ZEXP int zjet_assign(ztsk_t* tsk);
-ZEXP int zjet_getid(int* id); // Git mission id for sequence task.
-ZEXP zstatus_t zjet_getstatus();
-#ifdef __cplusplus
-}
-#endif
+ZAPI int zjet_assign(ztsk_t* tsk);
+ZAPI int zjet_getid(int* id); // Git mission id for sequence task.
+ZAPI zstatus_t zjet_getstatus();
+
+ZC_END
 
 #endif

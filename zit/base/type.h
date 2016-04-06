@@ -5,11 +5,9 @@
 #ifndef _Z_TYPE_H_
 #define _Z_TYPE_H_
 
-#ifdef __cplusplus
-//extern "C" {
-#endif//__cplusplus
-
 #include "platform.h"
+
+ZC_BEGIN
 
 #ifdef ZSYS_WINDOWS
 #include "inttypes.h"
@@ -94,14 +92,11 @@ typedef struct ztask_t{
   zfree free; ///< release user data(default NULL)
 }ztsk_t;
 
-ZEXP int zversion();
-ZEXP const char* zsystem();
-ZEXP const char* zhistory();
+ZAPI int zversion();
+ZAPI const char* zsystem();
+ZAPI const char* zhistory();
 
-#ifdef __cplusplus
-}
-#endif//__cplusplus
-
+ZC_END
 /**@fn int zversion()
  * @brief get ZInfoTech version
  * @return version = 0x[char(major)char(minor)char(patch)] 

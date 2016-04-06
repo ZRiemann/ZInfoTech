@@ -43,7 +43,7 @@ typedef struct zjet_s{
 zjet_t* zg_jet = NULL;
 
 
-zthr_ret_t ZAPI zproc_mission(void* param){
+zthr_ret_t ZCALL zproc_mission(void* param){
   int ret = ZEOK;
   zthr_ret_t ret_ = 0;
   zthr_t* thr = (zthr_t*)param;

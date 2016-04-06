@@ -3,6 +3,8 @@
 
 #include <zit/base/type.h>
 
+ZC_BEGIN
+
 #ifdef ZSYS_WINDOWS
 
 #include <windows.h>
@@ -13,7 +15,7 @@ typedef HANDLE zthr_id_t;
 typedef CRITICAL_SECTION zmutex_t;
 typedef HANDLE zsem_t;
 
-#define ZAPI __stdcall
+#define ZCALL __stdcall
 #define ZINFINITE INFINITE
 
 ZEXP int zobj_wait(HANDLE h, int ms); // WaitForSingleObject(HANDLE, int ms);
@@ -30,12 +32,12 @@ typedef void* zthr_ret_t;
 typedef pthread_mutex_t zmutex_t;
 typedef sem_t zsem_t;
 
-#define ZAPI
+#define ZCALL
 #define ZINFINITE -1
 #endif// SYS_WINDOWS
 
 typedef zmutex_t zmtx_t;
-typedef zthr_ret_t (ZAPI *zproc_thr)(void*);
+typedef zthr_ret_t (ZCALL *zproc_thr)(void*);
 
 typedef struct zthread_t{
   int detach;  ///< 0/1-detach
@@ -51,7 +53,7 @@ typedef struct zthread_t{
 }zthr_t;
 
 #if 0 // sample thread proc using zthr_attr_t normally
-zthr_ret_t ZAPI zproc_mission(void* param){
+zthr_ret_t ZCALL zproc_mission(void* param){
   int ret = ZEOK;
   zthr_t* thr = (zthr_t*)param;
   void* user_param = thr->param; // for user parameter
@@ -71,5 +73,7 @@ zthr_ret_t ZAPI zproc_mission(void* param){
 
 #define ZSEM_MAX 0xffff // specifies the maximum count of the semaphore.
 #define ZNANO_SEC 999999999 // nanoseconds per second
+
+ZC_END
 
 #endif

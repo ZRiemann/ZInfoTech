@@ -4,16 +4,13 @@
 #include <zit/base/platform.h>
 #include <zit/base/trace.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+ZC_BEGIN
 
-ZEXP int ztracering_init(ztrace trace, void* user);
-ZEXP int ztracering_uninit();
+ZAPI int ztracering_init(ztrace trace, void* user);
+ZAPI int ztracering_uninit();
   
-#ifdef __cplusplus
-}
-#endif
+ZC_END
+
 /**@file zit/utility/tracering.h
    @brief trace in back ground by jet and ringbuf
 */

@@ -10,9 +10,7 @@
   queue ptr: 32~95
   queue->pop(queue,int) ;error:overwrite 32~63 bit.
 */
-#ifdef __cplusplus
-extern "C" {
-#endif
+ZC_BEGIN
 
 #define ZQUEUE_SIZE 1024
 typedef struct zchunk_t{
@@ -29,19 +27,17 @@ typedef struct zqueue_t{
   int posback;
 }zque_t;
 
-ZEXP int zqueue_create(zque_t** que);
-ZEXP int zqueue_destroy(zque_t** que);
-ZEXP int zqueue_init(zque_t* que);
-ZEXP int zqueue_uninit(zque_t* que);
+ZAPI int zqueue_create(zque_t** que);
+ZAPI int zqueue_destroy(zque_t** que);
+ZAPI int zqueue_init(zque_t* que);
+ZAPI int zqueue_uninit(zque_t* que);
 // extern queue api
-ZEXP int zqueue_pushback(zque_t* que, zvalue_t value);
-ZEXP int zqueue_pushfront(zque_t* que, zvalue_t value);
-ZEXP int zqueue_popback(zque_t* que, zvalue_t* value);
-ZEXP int zqueue_popfront(zque_t* que, zvalue_t* value);
-ZEXP int zqueue_foreach(zque_t* que, ztsk_t* tsk);
+ZAPI int zqueue_pushback(zque_t* que, zvalue_t value);
+ZAPI int zqueue_pushfront(zque_t* que, zvalue_t value);
+ZAPI int zqueue_popback(zque_t* que, zvalue_t* value);
+ZAPI int zqueue_popfront(zque_t* que, zvalue_t* value);
+ZAPI int zqueue_foreach(zque_t* que, ztsk_t* tsk);
 
-#ifdef __cplusplus
-}
-#endif
+ZC_END
 
 #endif

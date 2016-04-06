@@ -3,16 +3,12 @@
 
 #include <zit/base/platform.h>
 
-#ifdef __cplusplus
-extern "C"{
-#endif
+ZC_BEGIN
 
-ZEXP int ztrace_logctl(const char* fname, int log_size);
-ZEXP int ztrace_log(int level, const char* msg);
+ZAPI int ztrace_logctl(const char* fname, int log_size);
+ZAPI int ztrace_log(int level, const char* msg);
 
-#ifdef __cplusplus
-}
-#endif
+ZC_END
 
 /** @fn int ztrace_logctl(const char* fname, int log_size)
  *  @brief control trace log file name, max size and *close log file*

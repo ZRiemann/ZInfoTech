@@ -4,9 +4,7 @@
 #include <zit/base/platform.h>
 #include <zit/thread/thread_def.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+ZC_BEGIN
   
 typedef struct zring_s{
   int size; ///< ring buf size;
@@ -20,32 +18,30 @@ typedef struct zring_s{
   zmtx_t mtx; ///< lock; CAUTION: not thread safe(use rwbuf for parallel read/wrte)
 }zring_t;
 
-ZEXP zring_t* zring_create(int size);
-ZEXP void zring_destroy(zring_t* ring);
-ZEXP int zring_init(zring_t* ring, int size);
-ZEXP int zring_uninit(zring_t* ring);
+ZAPI zring_t* zring_create(int size);
+ZAPI void zring_destroy(zring_t* ring);
+ZAPI int zring_init(zring_t* ring, int size);
+ZAPI int zring_uninit(zring_t* ring);
   // mtx and ring
-ZEXP int zringt_read(zring_t* ring, char* buf, int* len);
-ZEXP int zringt_write(zring_t* ring, const char* buf, int len);
+ZAPI int zringt_read(zring_t* ring, char* buf, int* len);
+ZAPI int zringt_write(zring_t* ring, const char* buf, int len);
   // no mtx and ring
-ZEXP int zring_read(zring_t* ring, char* buf, int* len);
-ZEXP int zring_write(zring_t* ring, const char* buf, int* len);
+ZAPI int zring_read(zring_t* ring, char* buf, int* len);
+ZAPI int zring_write(zring_t* ring, const char* buf, int* len);
   // block read/write
-  //ZEXP int zring_blkread(zring_t* ring, char* buf, int* len);
-  //ZEXP int zring_blkwrite(zring_t* ring, char* buf, int* len);
+  //ZAPI int zring_blkread(zring_t* ring, char* buf, int* len);
+  //ZAPI int zring_blkwrite(zring_t* ring, char* buf, int* len);
   // string read/write
-ZEXP int zring_strread(zring_t* ring, char* buf, int* len);
-ZEXP int zring_strwrite(zring_t* ring, const char* buf, int* len);
+ZAPI int zring_strread(zring_t* ring, char* buf, int* len);
+ZAPI int zring_strwrite(zring_t* ring, const char* buf, int* len);
 
 #if 0
   // for 0 mem copy
-ZEXP int zring_getread(zring_t* ring, char** buf, int* len);
-ZEXP int zring_getwrite(zring_t* ring, char** buf, int* len):
+ZAPI int zring_getread(zring_t* ring, char** buf, int* len);
+ZAPI int zring_getwrite(zring_t* ring, char** buf, int* len):
 #endif
-  
-#ifdef __cplusplus
-}
-#endif
+
+ZC_END  
 /**@file zit/base/ringbuf.h
    @brief ring buffer milti implements
    @note

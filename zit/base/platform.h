@@ -30,11 +30,11 @@
 #define ZSYS_WINDOWS
 
 #if (ZEXPORT == 0)
-#define ZEXP
+#define ZAPI
 #elif (ZEXPORT == 1)
-#define ZEXP __declspec(dllexport)
+#define ZAPI __declspec(dllexport)
 #elif (ZEXPORT == 2)
-#define ZEXP __declspec(dllimport)
+#define ZAPI __declspec(dllimport)
 #endif
 
 #else
@@ -42,16 +42,21 @@
 #define ZSYS_POSIX
 
 #if defined(__SUNPRO_C)
-#define ZEXP __global
+#define ZAPI __global
 #elif ((defined __GNUC__ && __GNUC__ >= 4) || defined __INTEL_COMPILER || defined __clang__)
-#define ZEXP __attribute__ ((visibility("default")))
+#define ZAPI __attribute__ ((visibility("default")))
 #else
-#define ZEXP
+#define ZAPI
 #endif//__SUNPRO_C
 
-#endif
+#endif // ZSYS_WINDOWS|ZSYS_POSIX
 
-#ifdef ZSYS_WINDOWS
-#pragma warning(disable:4996)
-#endif
+#ifdef __cplusplus
+#define ZC_BEGIN extern "C" {
+#define ZC_END }
+#else
+#define ZC_BEGIN
+#define ZC_END
+#endif //__cplusplus
+
 #endif//_ZBASE_PLATFORM_H_

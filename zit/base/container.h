@@ -3,29 +3,25 @@
 
 #include <zit/base/type.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+ZC_BEGIN
 
 #define ZCONTAINER_LIST 0
 #define ZCONTAINER_QUEUE 1
 #define ZCONTAINER_DEQUEUE 2
  
-ZEXP int zcontainer_create(zcontainer_t* cont, int type);
-ZEXP int zcontainer_destroy(zcontainer_t* cont);
+ZAPI int zcontainer_create(zcontainer_t* cont, int type);
+ZAPI int zcontainer_destroy(zcontainer_t* cont);
 
-ZEXP int zcontainer_push(zcontainer_t cont, int back, zvalue_t data, zcompare cmp);
-ZEXP int zcontainer_pop(zcontainer_t cont, int back, zvalue_t* data, zcompare cmp);
+ZAPI int zcontainer_push(zcontainer_t cont, int back, zvalue_t data, zcompare cmp);
+ZAPI int zcontainer_pop(zcontainer_t cont, int back, zvalue_t* data, zcompare cmp);
 // extern container api
-ZEXP int zcontainer_pushback(zcontainer_t cont, zvalue_t value);
-ZEXP int zcontainer_pushfront(zcontainer_t cont, zvalue_t value);
-ZEXP int zcontainer_popback(zcontainer_t cont, zvalue_t* value);
-ZEXP int zcontainer_popfornt(zcontainer_t cont, zvalue_t* value);
-ZEXP int zcontainer_foreach(zcontainer_t cont, ztsk_t* tsk);
+ZAPI int zcontainer_pushback(zcontainer_t cont, zvalue_t value);
+ZAPI int zcontainer_pushfront(zcontainer_t cont, zvalue_t value);
+ZAPI int zcontainer_popback(zcontainer_t cont, zvalue_t* value);
+ZAPI int zcontainer_popfornt(zcontainer_t cont, zvalue_t* value);
+ZAPI int zcontainer_foreach(zcontainer_t cont, ztsk_t* tsk);
 
-#ifdef __cplusplus
-}
-#endif
+ZC_END
 
 /**@file container.h
    @brief general container

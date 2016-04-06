@@ -1,14 +1,12 @@
 #ifndef _ZTST_BASE_H_
 #define _ZTST_BASE_H_
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+#include <zit/base/platform.h>
+
+ZC_BEGIN
 
 void ztst_base();
 
-#ifdef __cplusplus
-}
-#endif
+ZC_END
 
 #endif// _TST_BASE_H_

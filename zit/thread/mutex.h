@@ -4,17 +4,15 @@
 #include <zit/base/platform.h>
 #include <zit/thread/thread_def.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+ZC_BEGIN
 
-ZEXP int zmutex_init(zmutex_t* mtx);
-ZEXP int zmutex_uninit(zmutex_t* mtx);
-ZEXP zmutex_t* zmutex_create();
-ZEXP void zmutex_destroy(zmutex_t* mtx); // Destroy zmutex_create() 'mtx'. 
-ZEXP int zmutex_lock(zmutex_t* mtx);
-ZEXP int zmutex_unlock(zmutex_t* mtx);
-ZEXP int zmutex_trylock(zmutex_t* mtx);
+ZAPI int zmutex_init(zmutex_t* mtx);
+ZAPI int zmutex_uninit(zmutex_t* mtx);
+ZAPI zmutex_t* zmutex_create();
+ZAPI void zmutex_destroy(zmutex_t* mtx); // Destroy zmutex_create() 'mtx'. 
+ZAPI int zmutex_lock(zmutex_t* mtx);
+ZAPI int zmutex_unlock(zmutex_t* mtx);
+ZAPI int zmutex_trylock(zmutex_t* mtx);
 
 #ifdef ZSYS_POSIX
 #define ZLOCK(x) pthread_mutex_lock(x)
@@ -24,8 +22,6 @@ ZEXP int zmutex_trylock(zmutex_t* mtx);
 #define ZUNLOCK(x) LeaveCriticalSection(x)
 #endif
 
-#ifdef __cplusplus
-}
-#endif
+ZC_END
 
 #endif

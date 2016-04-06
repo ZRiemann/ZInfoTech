@@ -4,16 +4,11 @@
 #include <zit/base/platform.h>
 #include <zit/base/type.h>
 
-#ifdef __cplusplus
-exter "C" {
-#endif
+ZC_BEGIN
 
-ZEXP int zmodule_name(char* path, char* name);
+ZAPI int zmodule_name(char* path, char* name);
 
-#ifdef __cplusplus
-}
-#endif
-
+ZC_END
 /**@fn int zmodule_name(char* path, char* name)
    @brief get the executable module path and name
    @param char* path [out] buffer for path[256]

@@ -4,16 +4,14 @@
 #include <zit/base/type.h>
 #include <time.h>
 
-#ifdef __cplusplus
-extern "C"{
-#endif
+ZC_BEGIN
 
-ZEXP char* zstr_time(time_t* tm, char* buf);
-ZEXP char* zstr_now(char* buf);
-ZEXP time_t ztm2time(struct tm* ptm);
-ZEXP void ztime2tm(const time_t* time, struct tm* ptm);
-ZEXP time_t zstr2time(const char* strTime);
-ZEXP void zconvert_time(uint64_t* time, int flag);
+ZAPI char* zstr_time(time_t* tm, char* buf);
+ZAPI char* zstr_now(char* buf);
+ZAPI time_t ztm2time(struct tm* ptm);
+ZAPI void ztime2tm(const time_t* time, struct tm* ptm);
+ZAPI time_t zstr2time(const char* strTime);
+ZAPI void zconvert_time(uint64_t* time, int flag);
 
 typedef struct _ztime_t{
 int year;
@@ -37,9 +35,9 @@ typedef enum
     ZTP_NANOSEC = 4
 }ztime_precision_t;
 
-ZEXP int zget_localtime(ztime_t* ptm);
-ZEXP char* zstr_systime(ztime_t* ptm, char* buf, ztime_precision_t precision);
-ZEXP char* zstr_systime_now(char* buf, ztime_precision_t precision);
+ZAPI int zget_localtime(ztime_t* ptm);
+ZAPI char* zstr_systime(ztime_t* ptm, char* buf, ztime_precision_t precision);
+ZAPI char* zstr_systime_now(char* buf, ztime_precision_t precision);
 
 #if 0   // high performance clock
 typedef struct _zinterval
@@ -51,15 +49,12 @@ typedef struct _zinterval
 
 
 // Sleep function
-ZEXP void zsleepsec(int sec);
-ZEXP void zsleepms(int ms);
-ZEXP void zsleepus(int us);
+ZAPI void zsleepsec(int sec);
+ZAPI void zsleepms(int ms);
+ZAPI void zsleepus(int us);
 
 
-#ifdef __cplusplus
-}
-#endif
-
+ZC_END
 
 
 /** @file zit/base/time.h

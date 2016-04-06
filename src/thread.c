@@ -205,14 +205,14 @@ int zthreadx_joinall(){
   return ZEOK;
 }
 
-ZEXP int zthreadx_procbegin(zthr_t* attr){
+int zthreadx_procbegin(zthr_t* attr){
   int ret = zsem_init(&(attr->exit), 0); //* init semaphore.
   attr->run = 1;
   ZMSG("%s begin...", attr->name);
   return ret;
 }
 
-ZEXP int zthreadx_procend(zthr_t* attr, int ret){
+int zthreadx_procend(zthr_t* attr, int ret){
   attr->result = ret;
   ZMSG("%s end.", attr->name);
   return zsem_uninit(&attr->exit); //* destroy semaphore.

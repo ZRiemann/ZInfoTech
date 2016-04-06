@@ -1,9 +1,9 @@
 #ifndef _ZTST_THREAD_H_
 #define _ZTST_THREAD_H_
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+#include <zit/base/platform.h>
+
+ZC_BEGIN
 
 void ztst_thread();
 
@@ -12,8 +12,6 @@ void ztst_mutex();
 void ztst_thrctl();
 void ztst_thrxctl(); // testing zthreadx_*()
 
-#ifdef __cplusplus
-}
-#endif
+ZC_END
 
 #endif

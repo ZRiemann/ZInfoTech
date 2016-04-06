@@ -1,14 +1,12 @@
 #ifndef _ZUTILITY_TRACECONSOLE_H_
 #define _ZUTILITY_TRACECONSOLE_H_
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+#include <zit/base/platform.h>
 
-ZEXP int ztrace_console(int level, const char* msg);
+ZC_BEGIN
 
-#ifdef __cplusplus
-}
-#endif
+ZAPI int ztrace_console(int level, const char* msg);
+
+ZC_END
 
 #endif

@@ -37,7 +37,7 @@ int zmutex_uninit(zmutex_t* pmtx){
   return ret;
 }
 
-ZEXP zmutex_t* zmutex_create(){
+zmutex_t* zmutex_create(){
   zmutex_t* mtx;
   if(NULL != (mtx = (zmutex_t*)malloc(sizeof(zmutex_t)))){
 #ifdef ZSYS_POSIX
@@ -53,7 +53,7 @@ ZEXP zmutex_t* zmutex_create(){
   return mtx;
 }
 
-ZEXP void zmutex_destroy(zmutex_t* mtx){
+void zmutex_destroy(zmutex_t* mtx){
   if(NULL == mtx)
     return;
 #ifdef ZSYS_POSIX

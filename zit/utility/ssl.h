@@ -4,8 +4,11 @@
 #include <zit/base/platform.h>
 #include <zit/base/type.h>
 
-ZEXP int zbase64(int is_encrypt, const char* in, int in_len, char* out, int* out_len);
+ZC_BEGIN
 
+ZAPI int zbase64(int is_encrypt, const char* in, int in_len, char* out, int* out_len);
+
+ZC_END
 /**@fn zbase64(int is_encode, const char* in, int in_len, char* out, int* out_len)
    @brief encrypt/decrypt <in> to <out> by base64
    @param int is_encode [in] 0:encrypt 1:decrypt

@@ -4,20 +4,17 @@
 #include <zit/base/platform.h>
 #include <zit/thread/thread_def.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+ZC_BEGIN
 
-ZEXP int zsem_init(zsem_t* sem, int value);
-ZEXP int zsem_uninit(zsem_t* sem);
-ZEXP zsem_t* zsem_create(int value);
-ZEXP void zsem_destroy(zsem_t* sem); // Destroy zsem_create() 'sem'
-ZEXP int zsem_post(zsem_t* sem);
-ZEXP int zsem_wait(zsem_t* sem, int ms);// ZINFINIT|0-trywait|>0-timedwait
-ZEXP int zsem_getvalue(zsem_t* sem, int* value);
-#ifdef __cplusplus
-}
-#endif
+ZAPI int zsem_init(zsem_t* sem, int value);
+ZAPI int zsem_uninit(zsem_t* sem);
+ZAPI zsem_t* zsem_create(int value);
+ZAPI void zsem_destroy(zsem_t* sem); // Destroy zsem_create() 'sem'
+ZAPI int zsem_post(zsem_t* sem);
+ZAPI int zsem_wait(zsem_t* sem, int ms);// ZINFINIT|0-trywait|>0-timedwait
+ZAPI int zsem_getvalue(zsem_t* sem, int* value);
+
+ZC_END
 
 /**@fn int zsem_init(zsem_t* sem, int value)
    @brief initialize semaphore, for local processor
