@@ -368,7 +368,7 @@ void ztst_semaphore(){
   //zsem_wait(&sem1,ZINFINITE);
 }
 
-zthr_ret_t ZAPI zproc_thr1(void* param){
+zthr_ret_t ZCALL zproc_thr1(void* param){
   zthr_t* attr = (zthr_t*)param;
   int i = 0;
   
@@ -382,7 +382,7 @@ zthr_ret_t ZAPI zproc_thr1(void* param){
   return (zthr_ret_t)ZEOK;
 }
 
-zthr_ret_t ZAPI zproc_thr2(void* param){
+zthr_ret_t ZCALL zproc_thr2(void* param){
   int ret = ZEOK;
   zthr_t* attr = (zthr_t*)param;
   void* user_param = attr->param; // for user parameter

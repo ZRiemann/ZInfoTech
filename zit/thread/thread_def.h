@@ -18,7 +18,7 @@ typedef HANDLE zsem_t;
 #define ZCALL __stdcall
 #define ZINFINITE INFINITE
 
-ZEXP int zobj_wait(HANDLE h, int ms); // WaitForSingleObject(HANDLE, int ms);
+int zobj_wait(HANDLE h, int ms); // WaitForSingleObject(HANDLE, int ms);
 #else // ZSYS_POSIX
 
 #include <pthread.h>
