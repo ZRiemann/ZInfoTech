@@ -300,7 +300,7 @@ int zring_write(zring_t* ring, const char* buf, int* len){
   return ret;
 }
 
-static inline int _zring_strread(zring_t* ring, char* buf, int* len){
+static int ZINLINE _zring_strread(zring_t* ring, char* buf, int* len){
   int ret = ZEOK;
   int rlen = ring->pw - ring->pr;
   int read = 0;
@@ -361,7 +361,7 @@ static inline int _zring_strread(zring_t* ring, char* buf, int* len){
   return ret;
 }
 
-int zring_strread(zring_t* ring, char* buf, int* len){
+int ZINLINE zring_strread(zring_t* ring, char* buf, int* len){
   int ret = ZEOK;
   int lenx = 0;
   int read = *len;
@@ -378,6 +378,7 @@ int zring_strread(zring_t* ring, char* buf, int* len){
   }
   return ret;
 }
+
 int zring_strwrite(zring_t* ring, const char* buf, int* len){
   int ret = ZEOK;
   int write = *len;

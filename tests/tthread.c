@@ -271,9 +271,9 @@ void ztst_ring(){
 
 int zcmp_int(zvalue_t v1, zvalue_t v2){
   int ret = ZEQUAL;
-  int i1;
-  int i2;
-  int sub;
+  int i1 = 0;
+  int i2 = 0;
+  int sub = 0;
   ZCONVERT(v1,i1);
   ZCONVERT(v2,i2);
 

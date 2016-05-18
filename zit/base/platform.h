@@ -15,8 +15,8 @@
 #define ZEXPORT 2
 #endif//ZEXPORT
 
-#if(defined(_WIN32) || defined(_WIN64))
-
+//#if(defined(_WIN32) || defined(_WIN64))
+#if(defined(ZSYS_WINDOWS))
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
 #endif
@@ -27,7 +27,7 @@
 //#include <ws2tcpip.h>
 #pragma warning(disable:4996 4047 4022 4244)
 
-#define ZSYS_WINDOWS
+//#define ZSYS_WINDOWS
 
 #if (ZEXPORT == 0)
 #define ZAPI
@@ -36,10 +36,11 @@
 #elif (ZEXPORT == 2)
 #define ZAPI __declspec(dllimport)
 #endif
+#define ZINLINE _inline
 
-#else
+#elif(defined(ZSYS_POSIX))
 
-#define ZSYS_POSIX
+//#define ZSYS_POSIX
 
 #if defined(__SUNPRO_C)
 #define ZAPI __global
@@ -48,7 +49,7 @@
 #else
 #define ZAPI
 #endif//__SUNPRO_C
-
+#define ZINLINE inline
 #endif // ZSYS_WINDOWS|ZSYS_POSIX
 
 #ifdef __cplusplus
