@@ -80,7 +80,7 @@ int zring_uninit(zring_t* ring){
 int zringt_read(zring_t* ring, char* buf, int* len){
   int ret = ZEOK;
   int read = 0;
-  char* pb = buf;
+  //char* pb = buf;
   zmutex_lock(&(ring->mtx));
   // ZDBG("read begin: rest<%d> restx<%d> len<%d> lenx<%d>", ring->rest, ring->restx, ring->len, ring->lenx);
   // read len
@@ -237,7 +237,7 @@ int zring_write(zring_t* ring, const char* buf, int* len){
   int rlen = ring->pw - ring->pr;
   int wlen = 0;
   int write = 0;
-  int rest = 0;
+  //int rest = 0;
 
   if(rlen > 0){
     // buf ... pr ... pw ... buf[size-1]

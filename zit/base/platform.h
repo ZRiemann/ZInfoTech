@@ -1,12 +1,6 @@
-/**@file zutility/platform.h
- * @brief define ZInfoTech platform
- */
 #ifndef _ZBASE_PLATFORM_H_
 #define _ZBASE_PLATFORM_H_
 
-#ifndef ZEXPORT
-#define ZEXPORT 0
-#endif
 /* ZEXPORT = 0 use code directory
  * ZEXPORT = 1 export ZInfoTech API
  * ZEXPORT = 2 import ZInfoTech API
@@ -14,6 +8,12 @@
 #ifndef ZEXPORT
 #define ZEXPORT 2
 #endif//ZEXPORT
+
+#if(defined(_WIN32) || defined(_WIN64))
+#define ZSYS_WINDOWS
+#else
+#define ZSYS_POSIX
+#endif
 
 //#if(defined(_WIN32) || defined(_WIN64))
 #if(defined(ZSYS_WINDOWS))

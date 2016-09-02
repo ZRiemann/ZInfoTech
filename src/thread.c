@@ -179,7 +179,7 @@ int zthreadx_cancelall(){
     pa = pa->next;
   }
   zmutex_unlock(&zg_thr_mtx);
-  return ZEOK;
+  return ret;
 }
 int zthreadx_joinall(){
   int ret = ZEOK;
@@ -202,7 +202,7 @@ int zthreadx_joinall(){
   zmutex_unlock(&zg_thr_mtx);
   
   zmutex_uninit(&zg_thr_mtx);
-  return ZEOK;
+  return ret;
 }
 
 int zthreadx_procbegin(zthr_t* attr){
