@@ -15,8 +15,8 @@
 
 //#define USE_RINGT
 
-static FILE* fw = NULL;
-static FILE* fr = NULL;
+//static FILE* fw = NULL;
+//static FILE* fr = NULL;
 static size_t zg_sw = 0;
 static size_t zg_sr = 0;
 static char zg_wbuf[] = "aaaaaaaa";
@@ -91,7 +91,7 @@ int zact_customer(zvalue_t user, zvalue_t hint){
 
 int zact_ringstr_customer(zvalue_t user, zvalue_t hint){
   zring_t* ring = (zring_t*)user;
-  int delay = (rand()%500)+500;
+  //  int delay = (rand()%500)+500;
   static char buf[128] = {0};
   static int len = 128;
   len = 128;
@@ -112,7 +112,7 @@ int zact_ringstr_producer(zvalue_t user, zvalue_t hint){
   static char buf[128] = {0};
   int len = 0;
   int write = 0;
-  int delay = (rand()%500)+500;
+  //  int delay = (rand()%500)+500;
   zring_t* ring = (zring_t*)user;
 
   sprintf(buf, "string %d", cnt++);
@@ -138,11 +138,11 @@ int zact_ringstr_producer(zvalue_t user, zvalue_t hint){
 }
 
 void ztst_ring_str(){
-  int ret = ZEOK;
-  int len = 0;
-  int write = 0;
-  int lenx = 0;
-  int i = 0;
+  //  int ret = ZEOK;
+  // int len = 0;
+  //int write = 0;
+  //int lenx = 0;
+  //int i = 0;
   ztsk_t tskp; // roducer
   ztsk_t tskc; // customer
   zring_t ring;
@@ -385,7 +385,7 @@ zthr_ret_t ZCALL zproc_thr1(void* param){
 zthr_ret_t ZCALL zproc_thr2(void* param){
   int ret = ZEOK;
   zthr_t* attr = (zthr_t*)param;
-  void* user_param = attr->param; // for user parameter
+  //void* user_param = attr->param; // for user parameter
   //ZDBG("thread[%s] running...");
   if(ZEOK != zthreadx_procbegin(attr)){
     zthreadx_procend(attr, ret);
