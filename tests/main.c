@@ -5,9 +5,9 @@
 #include <zit/utility/traceconsole.h>
 #include <zit/utility/tracering.h>
 #include <zit/thread/jet.h>
-//#include "tbase.h"
+#include "tbase.h"
 //#include "tutility.h"
-#include "tthread.h"
+//#include "tthread.h"
 
 int ztst_trace(int level, void* user, const char* msg){
   ztrace_console(level, msg);
@@ -19,8 +19,8 @@ int main(int argc, char** argv){
   ztrace_logctl("ztest.log",0);
   ztracering_init(ztst_trace, NULL);
   
-  zjet_init();
-  zjet_run();
+  //zjet_init();
+  //  zjet_run();
 
 #ifdef _ZTST_BASE_H_
   ztst_base();
@@ -32,8 +32,8 @@ int main(int argc, char** argv){
     ztst_thread();
 #endif
 
-  zjet_stop(0);
-  zjet_uninit();
+    //zjet_stop(0);
+    //zjet_uninit();
 
   ztracering_uninit();
   ztrace_logctl(NULL,0); // close the log file.

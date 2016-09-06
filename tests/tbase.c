@@ -4,6 +4,7 @@
 #include "tbase.h"
 
 void ztst_base(){
+  int i,j;
   char buf[256];
   int v = zversion();
   zmsg("=====================================\ntesting base...\n");
@@ -26,6 +27,10 @@ void ztst_base(){
   zdbg("now precision second:\t %s", zstr_systime_now(buf, ZTP_SEC));
   zdbg("now precision millisecond:%s", zstr_systime_now(buf, ZTP_MILLISEC));
   zdbg("now precision microsecond:%s", zstr_systime_now(buf, ZTP_MICROSEC));
-  
+
+  for(i=1; i<=ZE_END; i++){
+    j = i | ZEMASK;
+    ZERRCX(j);
+  }
   zmsg("\ntest base end.\n");
 }

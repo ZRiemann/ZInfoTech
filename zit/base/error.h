@@ -17,5 +17,6 @@
 #define ZENOT_INIT (ZEMASK | 9)  // Device not init
 #define ZESTATUS_INVALID (ZEMASK | 10)  // device status invalid
 #define ZEMEM_OUTOFBOUNDS (ZEMASK | 11) // memory out of bounds
-
+#define ZECMD_STOP (ZEMASK | 12) // return stop command
+#define ZE_END (12)
 #endif

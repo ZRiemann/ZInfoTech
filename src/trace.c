@@ -111,33 +111,33 @@ static int zwin_lasterror(int code, char* buf, int buflen) {
 }
 #endif
 
+const char *errmap[] = {
+  "ZE0-ok",
+  "ZE1-normall-error",
+  "ZE2-memory-insufficient",
+  "ZE3-call-function-fail",
+  "ZE4-not-support",
+  "ZE5-parameter-invalid",
+  "ZE6-try-again",
+  "ZE7-time-out",
+  "ZE8-not-exist",
+  "ZE9-not-init",
+  "ZE10-status-invalid",
+  "ZE11-memory-outofbounds",
+  "ZE12-command-stop"
+};
+
 const char*  zstrerr(int code) {
   const char* msg = "unknownd error";
   static char lasterr[ZTRACE_BUF_SIZE] = { 0 };
 
-  if (((code & ZEMASK) == ZEMASK) || (ZEOK == code)) {
-    switch (code) {
-    case ZEOK:
-      msg = "ZE0-ok"; break;
-    case ZEFAIL:
-      msg = "ZE1-normal-error"; break;
-    case ZEMEM_INSUFFICIENT:
-      msg = "ZE2-memory-insufficient:";break;
-    case ZEFUN_FAIL:
-      msg = "ZE3-call-funciton-fail";break;
-    case ZENOT_SUPPORT:
-      msg = "ZE4-not-support";break;
-    case ZEPARAM_INVALID:
-      msg = "ZE5-parameter-invalid";break;
-    case ZEAGAIN:
-      msg = "ZE6-try-again";break;
-    case ZETIMEOUT:
-      msg = "ZE7-timedout";break;
-    case ZENOT_EXIST:
-      msg = "ZE8-not-exist";break;
-    default:
-      break;
-    }
+  if ((code & ZEMASK) == ZEMASK) {
+    code ^= ZEMASK;
+    if(code <= ZE_END){
+      msg = errmap[code];
+    }//else unknown error
+  }else if(ZEOK == code){
+    msg = errmap[0];
   }else {
     lasterr[ZTRACE_BUF_SIZE1] = 0;
 #ifdef ZSYS_POSIX
