@@ -25,7 +25,8 @@ define make_obj
 endef
 
 define install_zit
-	@cp $(BIN_DIR)/$(ZIT_VER) $(INST_DIR) &&\
+	@rm -f $(INST_DIR)/$(ZIT_NAME)* &&\
+	cp $(BIN_DIR)/$(ZIT_VER) $(INST_DIR) &&\
 	ldconfig &&\
 	cd $(INST_DIR) &&\
 	ldconfig &&\

@@ -69,6 +69,12 @@ typedef void* zvalue_t;
 // include <string.h> before use ZI2V()/ZV2I()
 #define ZCONVERT(dest, src) do{memset(&(dest),0,sizeof(dest));memcpy(&(dest),&(src),(sizeof(src)<sizeof(dest)?sizeof(src):sizeof(dest)));}while(0)
 
+typedef union{
+  void *p;
+  int i;
+  double d;
+}any_t;// any type
+
 typedef struct znode_t{
   zvalue_t value;
   struct znode_t* next;
@@ -78,6 +84,7 @@ typedef struct znode_t{
 typedef int (*zcompare)(zvalue_t p1, zvalue_t p2); //return ZGREAT/ZEQUAL/ZLITTLE
 typedef int (*zfree)(zvalue_t user, zvalue_t hint);
 typedef int (*zact)(zvalue_t user, zvalue_t hint);
+typedef int (*zoperate)(zvalue_t in, zvalue_t *out, zvalue_t hint); // any operate
 
 #define ZTSKMD_SEQUENCE 0
 #define ZTSKMD_NORMAL 1
