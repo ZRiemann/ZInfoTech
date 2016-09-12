@@ -85,6 +85,10 @@ typedef int (*zcompare)(zvalue_t p1, zvalue_t p2); //return ZGREAT/ZEQUAL/ZLITTL
 typedef int (*zfree)(zvalue_t user, zvalue_t hint);
 typedef int (*zact)(zvalue_t user, zvalue_t hint);
 typedef int (*zoperate)(zvalue_t in, zvalue_t *out, zvalue_t hint); // any operate
+#define OPARG zvalue_t in,zvalue_t *out,zvalue_t hint
+#define OPNULL NULL,NULL,NULL
+#define OPIN(in) in,NULL,NULL
+#define OPHINT(hint) NULL,NULL,hint
 
 #define ZTSKMD_SEQUENCE 0
 #define ZTSKMD_NORMAL 1
@@ -99,22 +103,7 @@ typedef struct ztask_t{
   zfree free; ///< release user data(default NULL)
 }ztsk_t;
 
-ZAPI int zversion();
-ZAPI const char* zsystem();
-ZAPI const char* zhistory();
 
 ZC_END
-/**@fn int zversion()
- * @brief get ZInfoTech version
- * @return version = 0x[char(major)char(minor)char(patch)] 
-*/
-/**@fn const char* system()
- * @brief get the system type description
- * @return system type descrition
- */
-/**@fn const char* zhistory()
- * @brief get ZInfoTech version history
- * @return history string
- */
 
 #endif//_Z_TYPE_H_

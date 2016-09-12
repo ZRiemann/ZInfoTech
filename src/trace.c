@@ -16,7 +16,6 @@
 #define ZTRACE_FLAG_MSG 0x02
 #define ZTRACE_FLAG_WAR 0x04
 #define ZTRACE_FLAG_ERR 0X08
-#define ZTRACE_BUF_SIZE1 (ZTRACE_BUF_SIZE-1)
 
 ztrace g_ztrace = NULL;
 void* g_ztrace_user = NULL;
@@ -37,9 +36,8 @@ int zdbg(const char* msg, ...) {
   if (g_ztrace && (g_ztrace_flag & ZTRACE_FLAG_DBG)) {
     va_list arglist;
     char buf[ZTRACE_BUF_SIZE];
-    buf[ZTRACE_BUF_SIZE1] = 0;
     va_start(arglist, msg);
-    vsnprintf(buf, ZTRACE_BUF_SIZE1, msg, arglist);
+    vsnprintf(buf, ZTRACE_BUF_SIZE, msg, arglist);
     va_end(arglist);
     g_ztrace(ZTRACE_LEVEL_DBG, g_ztrace_user, buf);
   }
@@ -50,9 +48,8 @@ int zmsg(const char* msg, ...) {
   if (g_ztrace && (g_ztrace_flag & ZTRACE_FLAG_DBG)) {
     va_list arglist;
     char buf[ZTRACE_BUF_SIZE];
-    buf[ZTRACE_BUF_SIZE1] = 0;
     va_start(arglist, msg);
-    vsnprintf(buf, ZTRACE_BUF_SIZE1, msg, arglist);
+    vsnprintf(buf, ZTRACE_BUF_SIZE, msg, arglist);
     va_end(arglist);
     g_ztrace(ZTRACE_LEVEL_MSG, g_ztrace_user, buf);
   }
@@ -63,9 +60,8 @@ int zwar(const char* msg, ...) {
   if (g_ztrace && (g_ztrace_flag & ZTRACE_FLAG_DBG)) {
     va_list arglist;
     char buf[ZTRACE_BUF_SIZE];
-    buf[ZTRACE_BUF_SIZE1] = 0;
     va_start(arglist, msg);
-    vsnprintf(buf, ZTRACE_BUF_SIZE1, msg, arglist);
+    vsnprintf(buf, ZTRACE_BUF_SIZE, msg, arglist);
     va_end(arglist);
     g_ztrace(ZTRACE_LEVEL_WAR, g_ztrace_user, buf);
   }
@@ -76,9 +72,8 @@ int zerr(const char* msg, ...) {
   if (g_ztrace && (g_ztrace_flag & ZTRACE_FLAG_DBG)) {
     va_list arglist;
     char buf[ZTRACE_BUF_SIZE];
-    buf[ZTRACE_BUF_SIZE1] = 0;
     va_start(arglist, msg);
-    vsnprintf(buf, ZTRACE_BUF_SIZE1, msg, arglist);
+    vsnprintf(buf, ZTRACE_BUF_SIZE, msg, arglist);
     va_end(arglist);
     g_ztrace(ZTRACE_LEVEL_ERR, g_ztrace_user, buf);
   }
@@ -139,9 +134,8 @@ const char*  zstrerr(int code) {
   }else if(ZEOK == code){
     msg = errmap[0];
   }else {
-    lasterr[ZTRACE_BUF_SIZE1] = 0;
 #ifdef ZSYS_POSIX
-    snprintf(lasterr, ZTRACE_BUF_SIZE1, strerror(code));
+    snprintf(lasterr, ZTRACE_BUF_SIZE, strerror(code));
 #else//ZSYS_WINDOWS
     zwin_lasterror(code, lasterr, ZTRACE_BUF_SIZE);
 #endif

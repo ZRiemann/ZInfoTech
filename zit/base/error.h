@@ -19,4 +19,8 @@
 #define ZEMEM_OUTOFBOUNDS (ZEMASK | 11) // memory out of bounds
 #define ZECMD_STOP (ZEMASK | 12) // return stop command
 #define ZE_END (12)
+
+#define ZASSERT(x) if(x){return(ZEPARAM_INVALID);}
+#define ZASSERTX(x) if(x){return;}
+
 #endif

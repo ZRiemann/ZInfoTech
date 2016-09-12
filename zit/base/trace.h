@@ -10,6 +10,10 @@
 
 ZC_BEGIN
 
+ZAPI int zversion();
+ZAPI const char* zsystem();
+ZAPI const char* zhistory();
+
 #define ZTRACE_BUF_SIZE 4096
 #define ZTRACE_LEVEL_DBG 0
 #define ZTRACE_LEVEL_MSG 1
@@ -40,4 +44,18 @@ ZAPI const char*  zstrerr(int code);
 #define ZTRACE_RING 0 // set 0 if use trace background
 
 ZC_END
+
+/**@fn int zversion()
+ * @brief get ZInfoTech version
+ * @return version = 0x[char(major)char(minor)char(patch)] 
+*/
+/**@fn const char* system()
+ * @brief get the system type description
+ * @return system type descrition
+ */
+/**@fn const char* zhistory()
+ * @brief get ZInfoTech version history
+ * @return history string
+ */
+
 #endif//_ZBASE_TRACE_H_
