@@ -13,7 +13,7 @@
 #define ZEPARAM_INVALID (ZEMASK | 5) // parameter invalid
 #define ZEAGAIN (ZEMASK |6) // try again
 #define ZETIMEOUT (ZEMASK | 7) // operation time out
-#define ZENOT_EXIST (ZEMASK | 8) // Device/object ot exist
+#define ZENOT_EXIST (ZEMASK | 8) // Device/object not exist
 #define ZENOT_INIT (ZEMASK | 9)  // Device not init
 #define ZESTATUS_INVALID (ZEMASK | 10)  // device status invalid
 #define ZEMEM_OUTOFBOUNDS (ZEMASK | 11) // memory out of bounds

@@ -1,8 +1,10 @@
 #include <zit/base/type.h>
 #include <zit/base/trace.h>
 #include <zit/base/time.h>
+#include <zit/base/list.h>
 #include "tbase.h"
 
+static void ztst_list();
 void ztst_base(){
   int i,j;
   char buf[256];
@@ -33,4 +35,15 @@ void ztst_base(){
     ZERRCX(j);
   }
   zmsg("\ntest base end.\n");
+
+  ztst_list();
+}
+
+static void ztst_list(){
+  zmsg("\n test zit list container...\n");
+  zcontainer_t list;
+  //  ZERRC(zlist_create(&list));
+  zmsg("zlist_create(&list<%p>) %s", list, zstrerr(zlist_create(&list)));
+  zmsg("zlist_destroy(list<%p>) %s", list, zstrerr(zlist_destroy(list, NULL)));
+  zmsg("\n test zit list container end\n");
 }

@@ -77,7 +77,10 @@ void zsem_destroy(zsem_t* sem){
 #endif
 #if ZTRACE_SEM
     ZERRC(ret);  
+#else
+    ZERRCX(ret);
 #endif
+    
 }
 
 int zsem_post(zsem_t* sem){

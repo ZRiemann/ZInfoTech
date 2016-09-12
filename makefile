@@ -27,8 +27,8 @@ endef
 define install_zit
 	@rm -f $(INST_DIR)/$(ZIT_NAME)* &&\
 	cp $(BIN_DIR)/$(ZIT_VER) $(INST_DIR) &&\
-	ldconfig &&\
 	cd $(INST_DIR) &&\
+	ldconfig -n ./ &&\
 	ldconfig &&\
 	ln -s $(ZIT_NAME).0 $(ZIT_NAME) &&\
 	cd -

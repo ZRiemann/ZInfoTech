@@ -56,10 +56,10 @@ zthr_ret_t ZCALL zproc_mission(void* param){
   zque_t* idels = &(zg_jet->idels);
   zque_t* tsks = &(mis->tsks);
   
-  int b = 0;
-  if(thr->name[8] == '0'){
-	b = 1;
-  }
+  //  int b = 0;
+  //if(thr->name[8] == '0'){
+    //b = 1;
+  //}
   if(ZEOK != (ret = zthreadx_procbegin(thr))){
     zthreadx_procend(thr, ret);
     ZCONVERT(ret_, ret);
