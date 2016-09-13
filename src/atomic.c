@@ -109,11 +109,11 @@ int ziatm_destroy(zatm_t atm){
 }
 
 zspin_t ziatm_cas(zatm_t atm, zspin_t cmp, zspin_t val){
-  ziatm_t *iatm = (ziatm_t*)atm;
 #ifdef ZSYS_WINDOWS
   return (zspin_t)InterlockedCompareExchange(&iatm->spin, val, cmp);
-#elif (defined ZATM_MUTEX || defined ZATM_X86 || ZATM_ARM)
+#elif (defined ZATM_MUTEX || defined ZATM_X86 || defined ZATM_ARM)
   zspin_t old = 0;
+  ziatm_t *iatm = (ziatm_t*)atm;
   ZLOCK(&iatm->mtx);
   old = iatm->spin;
   if(cmp == old){
@@ -142,14 +142,21 @@ zspin_t ziatm_inc(zatm_t atm){
 #elif (defined ZATM_X86)
   zspin_t old = 0;
   zspin_t inc = 1;
-  volatile integer_t *val = &iatm->spin;
+  ziatm_t *iatm = (ziatm_t*)atm;
+  volatile zspin_t *val = &iatm->spin;
   __asm__ volatile (
 		    "lock; xadd %0, %1 \n\t"
 		    : "=r" (old), "=m" (*val)
 		    : "0" (inc), "m" (*val)
 		    : "cc", "memory");
+  return old;
 #elif (defined ZATM_ARM)
-  integer_t flag, tmp;
+  zspin_t flag, tmp;
+  zspin_t old,inc;
+  ziatm_t *iatm = (ziatm_t*)atm;
+  volatile zspin_t *val = &iatm->spin;
+  inc = 1;
+  old = 0;
   __asm__ volatile (
 		    "       dmb     sy\n\t"
 		    "1:     ldrex   %0, [%5]\n\t"
@@ -158,9 +165,10 @@ zspin_t ziatm_inc(zatm_t atm){
 		    "       teq     %1, #0\n\t"
 		    "       bne     1b\n\t"
 		    "       dmb     sy\n\t"
-		    : "=&r"(old_value), "=&r"(flag), "=&r"(tmp), "+Qo"(value)
-		    : "Ir"(increment_), "r"(&value)
+		    : "=&r"(old), "=&r"(flag), "=&r"(tmp), "+Qo"(*val)
+		    : "Ir"(inc), "r"(val)
 		    : "cc");
+  return old;
 #else
 #error atomic is not implemented for this platform  
 #endif
@@ -171,33 +179,131 @@ zspin_t ziatm_dec(zatm_t atm){
 #ifdef ZSYS_WINDOWS
   return (zspin_t)InterlockedDecrement(&iatm->spin);
 #elif (defined ZATM_MUTEX)
+  zspin_t old = 0;
+  ziatm_t *iatm = (ziatm_t*)atm;
+  ZLOCK(&iatm->mtx);
+  old = --iatm->spin;
+  ZUNLOCK(&iatm->mtx);
+  return old;
 #elif (defined ZATM_X86)
+  zspin_t inc = -1;
+  ziatm_t *iatm = (ziatm_t*)atm;
+  volatile zspin_t *val = &iatm->spin;
+  __asm__ volatile (
+		    "lock; xaddl %0, %1 \n\t"
+		    : "=r" (inc), "=m" (*val)
+		    : "0" (inc), "m" (*val)
+		    : "cc", "memory");
+  return *val;
 #elif (defined ZATM_ARM)
+  zspin_t flag, tmp;
+  zspin_t old,dec;
+  ziatm_t *iatm = (ziatm_t*)atm;
+  volatile zspin_t *val = &iatm->spin;
+  dec = 1;
+  old = 0;
+  __asm__ volatile (
+		    "       dmb     sy\n\t"
+		    "1:     ldrex   %0, [%5]\n\t"
+		    "       sub     %2, %0, %4\n\t"
+		    "       strex   %1, %2, [%5]\n\t"
+		    "       teq     %1, #0\n\t"
+		    "       bne     1b\n\t"
+		    "       dmb     sy\n\t"
+		    : "=&r"(old), "=&r"(flag), "=&r"(tmp), "+Qo"(*val)
+		    : "Ir"(dec), "r"(val)
+		    : "cc");
+  return old;
 #else
 #error atomic is not implemented for this platform  
 #endif
 
   return(ZOK);
 }
-zspin_t ziatm_add(zatm_t atm, zspin_t val){
+zspin_t ziatm_add(zatm_t atm, zspin_t inc){
 #ifdef ZSYS_WINDOWS
   return (zpin_t)InterlockedExchangeAdd (&iatm->spin, val);
 #elif (defined ZATM_MUTEX)
+  zspin_t old = 0;
+  ziatm_t *iatm = (ziatm_t*)atm;
+  ZLOCK(&iatm->mtx);
+  old = iatm->spin;
+  iatm->spin += inc;
+  ZUNLOCK(&iatm->mtx);
+  return old;
 #elif (defined ZATM_X86)
+  zspin_t old = 0;
+  ziatm_t *iatm = (ziatm_t*)atm;
+  volatile zspin_t *val = &iatm->spin;
+  __asm__ volatile (
+		    "lock; xadd %0, %1 \n\t"
+		    : "=r" (old), "=m" (*val)
+		    : "0" (inc), "m" (*val)
+		    : "cc", "memory");
+  return old;
 #elif (defined ZATM_ARM)
+  zspin_t flag, tmp;
+  zspin_t old;
+  ziatm_t *iatm = (ziatm_t*)atm;
+  volatile zspin_t *val = &iatm->spin;
+  old = 0;
+  __asm__ volatile (
+		    "       dmb     sy\n\t"
+		    "1:     ldrex   %0, [%5]\n\t"
+		    "       add     %2, %0, %4\n\t"
+		    "       strex   %1, %2, [%5]\n\t"
+		    "       teq     %1, #0\n\t"
+		    "       bne     1b\n\t"
+		    "       dmb     sy\n\t"
+		    : "=&r"(old), "=&r"(flag), "=&r"(tmp), "+Qo"(*val)
+		    : "Ir"(inc), "r"(val)
+		    : "cc");
+  return old;
 #else
 #error atomic is not implemented for this platform  
 #endif
 
   return(ZOK);
 }
-zspin_t ziatm_sub(zatm_t atm, zspin_t val){
+zspin_t ziatm_sub(zatm_t atm, zspin_t dec){
 #ifdef ZSYS_WINDOWS
   return (zspin_t)InterlockedExchangeAdd (&iatm->spin, -val);
 #elif (defined ZATM_MUTEX)
-  
+  zspin_t old = 0;
+  ziatm_t *iatm = (ziatm_t*)atm;
+  ZLOCK(&iatm->mtx);
+  old = iatm->spin;
+  iatm->spin -= dec;
+  ZUNLOCK(&iatm->mtx);
+  return old;
 #elif (defined ZATM_X86)
+  zspin_t inc = -dec;
+  ziatm_t *iatm = (ziatm_t*)atm;
+  volatile zspin_t *val = &iatm->spin;
+  __asm__ volatile (
+		    "lock; xaddl %0, %1 \n\t"
+		    : "=r" (inc), "=m" (*val)
+		    : "0" (inc), "m" (*val)
+		    : "cc", "memory");
+  return *val;
 #elif (defined ZATM_ARM)
+  zspin_t flag, tmp;
+  zspin_t old;
+  ziatm_t *iatm = (ziatm_t*)atm;
+  volatile zspin_t *val = &iatm->spin;
+  old = 0;
+  __asm__ volatile (
+		    "       dmb     sy\n\t"
+		    "1:     ldrex   %0, [%5]\n\t"
+		    "       sub     %2, %0, %4\n\t"
+		    "       strex   %1, %2, [%5]\n\t"
+		    "       teq     %1, #0\n\t"
+		    "       bne     1b\n\t"
+		    "       dmb     sy\n\t"
+		    : "=&r"(old), "=&r"(flag), "=&r"(tmp), "+Qo"(*val)
+		    : "Ir"(dec), "r"(val)
+		    : "cc");
+  return old;
 #else
 #error atomic is not implemented for this platform  
 #endif
@@ -205,34 +311,35 @@ zspin_t ziatm_sub(zatm_t atm, zspin_t val){
   return(ZOK);
 }
 
-
+//=================================================
+// zpatm_t
 typedef struct zpatm_s{
   volatile zptr_t ptr;
-#ifdef ZATM_MUTEX
+#ifdef ZSYS_POSIX //ZATM_MUTEX
   zmtx_t mtx;
 #endif
 }zpatm_t;
 
 int zpatm_create(zatm_t *atm){
-#ifdef ZSYS_WINDOWS
-#elif (defined ZATM_MUTEX)
-#elif (defined ZATM_X86)
-#elif (defined ZATM_ARM)
-#else
-#error atomic is not implemented for this platform  
+  int ret = ZOK;
+  zpatm_t *patm;
+  ZASSERT(!atm);
+  *atm = malloc(sizeof(ziatm_t));
+  if(!*atm)return(ZMEM_INSUFFICIENT);
+  patm = (zpatm_t*)*atm;
+  patm->ptr = NULL;
+#ifdef ZSYS_POSIX //ZATM_MUTEX
+  ret = zmutex_init(&patm->mtx);
+  ZERRCX(ret);
 #endif
-
-  return(ZOK);
+  return(ret);
 }
 int zpatm_destroy(zatm_t atm){
-#ifdef ZSYS_WINDOWS
-#elif (defined ZATM_MUTEX)
-#elif (defined ZATM_X86)
-#elif (defined ZATM_ARM)
-#else
-#error atomic is not implemented for this platform  
+  zpatm_t *patm = (zpatm_t*)atm;
+#ifdef ZSYS_POSIX //ZATM_MUTEX
+  if(patm)zmutex_uninit(&patm->mtx);
 #endif
-
+  free(atm);
   return(ZOK);
 }
 zptr_t zpatm_cas(zatm_t atm, zptr_t cmp, zptr_t ptr){
@@ -248,9 +355,40 @@ zptr_t zpatm_cas(zatm_t atm, zptr_t cmp, zptr_t ptr){
 }
 zptr_t zpatm_xchg(zatm_t atm, zptr_t ptr){
 #ifdef ZSYS_WINDOWS
+  return (zptr_t)InterlockedExchangePointer(&patm->ptr, ptr);
 #elif (defined ZATM_MUTEX)
+  zptr_t p;
+  zpatm_t *patm = (zpatm_t*)atm;
+  ZLOCK(&patm->mtx);
+  p = patm->ptr;
+  patm->ptr = ptr;
+  ZUNLOCK(&patm->mtx);
+  return p;
 #elif (defined ZATM_X86)
+  zptr_t old;
+  zpatm_t *patm = (zpatm_t*)atm;
+  volatile zptr_t *org = &patm->ptr;
+  __asm__ volatile (
+     "lock; xchg %0, %2"
+     : "=r" (old), "=m" (*org)
+     : "m" (*org), "0" (ptr));
+  return old;
 #elif (defined ZATM_ARM)
+  zptr_t old;
+  unsigned int flag;
+  zpatm_t *patm = (zpatm_t*)atm;
+  volatile zptr_t *org = &patm->ptr;
+  __asm__ volatile (
+    "       dmb     sy\n\t"
+    "1:     ldrex   %1, [%3]\n\t"
+    "       strex   %0, %4, [%3]\n\t"
+    "       teq     %0, #0\n\t"
+    "       bne     1b\n\t"
+    "       dmb     sy\n\t"
+    : "=&r"(flag), "=&r"(old), "+Qo"(*org)
+    : "r"(org), "r"(ptr)
+    : "cc");
+    return old;
 #else
 #error atomic is not implemented for this platform  
 #endif

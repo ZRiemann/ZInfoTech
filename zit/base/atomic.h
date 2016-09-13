@@ -26,10 +26,10 @@ ZAPI void* zatomic_cmpswap(zatmc_t* atm, void* cmp, void* v);
 //==============================================================
 // reimplement zit automic
 #ifdef ZSYS_POSIX
-#define ZATM_MUTEX // use mutex for hardware independent for linux
-//#define ZATM_X86 // use x86 asm for linux
+//#define ZATM_MUTEX // use mutex for hardware independent for linux
+#define ZATM_X86 // use x86 asm for linux
 //#define ZATM_ARM // use ARM asm for linux
- #endif
+#endif
 
 ZAPI int ziatm_create(zatm_t *atm);
 ZAPI int ziatm_destroy(zatm_t atm);
