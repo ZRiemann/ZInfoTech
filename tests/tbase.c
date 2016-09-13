@@ -2,11 +2,15 @@
 #include <zit/base/trace.h>
 #include <zit/base/time.h>
 #include <zit/base/list.h>
+#include <zit/base/queue.h>
+#include <zit/base/container.h>
 #include "tbase.h"
 #include <stdlib.h>
 #include <string.h>
 
 static void ztst_list();
+static void ztst_que();
+static void ztst_container();
 void ztst_base(){
   int i,j;
   char buf[256];
@@ -39,6 +43,8 @@ void ztst_base(){
   zmsg("\ntest base end.\n");
 
   ztst_list();
+  ztst_que();
+  ztst_container();
 }
 
 
@@ -48,7 +54,73 @@ static int zprint(OPARG){
 
   ZCONVERT(d,in);
   zdbg("[%03d] %d", ++*i, d);
-  return(ZEOK);
+  return(ZOK);
+}
+
+static void ztst_container(){
+  zcontainer_t cont;
+  int i;
+  zvalue_t v;
+  zmsg("\n test zit container...\n");
+  ZDUMP(zcontainer_create(&cont, ZCONTAINER_LIST));
+  i=1; ZCONVERT(v,i); ZDUMP(zcontainer_push(cont,v));
+  i = 2; ZCONVERT(v,i); ZDUMP(zcontainer_push(cont,v));
+  i = 3; ZCONVERT(v,i); ZDUMP(zcontainer_pushfront(cont,v));
+  i = 0; zcontainer_foreach((zcontainer_t*)cont, zprint,(zvalue_t)&i);
+  ZDUMP(zcontainer_pop(cont, &v)); ZCONVERT(i,v); zdbg("pop<%d>", i);
+  ZDUMP(zcontainer_popback(cont, &v)); ZCONVERT(i,v); zdbg("pop<%d>", i);
+  i = 0; zcontainer_foreach((zcontainer_t*)cont, zprint,(zvalue_t)&i);
+  ZDUMP(zcontainer_pop(cont, &v));
+  i=0; zcontainer_foreach((zcontainer_t*)cont, zprint,(zvalue_t)&i);
+  ZDUMP(zcontainer_pop(cont, &v));
+  i = 1; ZCONVERT(v,i); ZDUMP(zcontainer_push(cont,v));
+  i = 2; ZCONVERT(v,i); ZDUMP(zcontainer_push(cont,v));
+  i = 3; ZCONVERT(v,i); ZDUMP(zcontainer_push(cont,v));
+  i=0; zcontainer_foreach((zcontainer_t*)cont, zprint,(zvalue_t)&i);
+  ZDUMP(zcontainer_destroy(cont,NULL));
+
+  ZDUMP(zcontainer_create(&cont, ZCONTAINER_CKQUEUE));
+  i=1; ZCONVERT(v,i); ZDUMP(zcontainer_push(cont,v));
+  i = 2; ZCONVERT(v,i); ZDUMP(zcontainer_push(cont,v));
+  i = 3; ZCONVERT(v,i); ZDUMP(zcontainer_pushfront(cont,v));
+  i = 0; zcontainer_foreach((zcontainer_t*)cont, zprint,(zvalue_t)&i);
+  ZDUMP(zcontainer_pop(cont, &v)); ZCONVERT(i,v); zdbg("pop<%d>", i);
+  ZDUMP(zcontainer_popback(cont, &v)); ZCONVERT(i,v); zdbg("pop<%d>", i);
+  i = 0; zcontainer_foreach((zcontainer_t*)cont, zprint,(zvalue_t)&i);
+  ZDUMP(zcontainer_pop(cont, &v));
+  i=0; zcontainer_foreach((zcontainer_t*)cont, zprint,(zvalue_t)&i);
+  ZDUMP(zcontainer_pop(cont, &v));
+  i = 1; ZCONVERT(v,i); ZDUMP(zcontainer_push(cont,v));
+  i = 2; ZCONVERT(v,i); ZDUMP(zcontainer_push(cont,v));
+  i = 3; ZCONVERT(v,i); ZDUMP(zcontainer_push(cont,v));
+  i=0; zcontainer_foreach((zcontainer_t*)cont, zprint,(zvalue_t)&i);
+  ZDUMP(zcontainer_destroy(cont,NULL));
+  
+  zmsg("\n test zit container end\n");
+}
+static void ztst_que(){
+  zcontainer_t list;
+  int i;
+  zvalue_t v;
+  zmsg("\n test zit que container...\n");
+  ZDUMP(zque_create(&list));
+  i=1; ZCONVERT(v,i); ZDUMP(zque_push(list,v));
+  i = 2; ZCONVERT(v,i); ZDUMP(zque_push(list,v));
+  i = 3; ZCONVERT(v,i); ZDUMP(zque_pushfront(list,v));
+  i = 0; zque_foreach((zcontainer_t*)list, zprint,(zvalue_t)&i);
+  ZDUMP(zque_pop(list, &v)); ZCONVERT(i,v); zdbg("pop<%d>", i);
+  ZDUMP(zque_popback(list, &v)); ZCONVERT(i,v); zdbg("pop<%d>", i);
+  i = 0; zque_foreach((zcontainer_t*)list, zprint,(zvalue_t)&i);
+  ZDUMP(zque_pop(list, &v));
+  i=0; zque_foreach((zcontainer_t*)list, zprint,(zvalue_t)&i);
+  ZDUMP(zque_pop(list, &v));
+  i = 1; ZCONVERT(v,i); ZDUMP(zque_push(list,v));
+  i = 2; ZCONVERT(v,i); ZDUMP(zque_push(list,v));
+  i = 3; ZCONVERT(v,i); ZDUMP(zque_push(list,v));
+  i=0; zque_foreach((zcontainer_t*)list, zprint,(zvalue_t)&i);
+
+  ZDUMP(zque_destroy(list,NULL));
+  zmsg("\n test zit que container end\n");
 }
 static void ztst_list(){
   zcontainer_t list;

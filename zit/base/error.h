@@ -23,4 +23,18 @@
 #define ZASSERT(x) if(x){return(ZEPARAM_INVALID);}
 #define ZASSERTX(x) if(x){return;}
 
+extern const int ZOK; // = ZEOK;// 0 // ZError OK
+extern const int ZFAIL;// = ZEFAIL;// (ZEMASK | 1) // ZError FAILED
+extern const int ZMEM_INSUFFICIENT;// = ZEMEM_INSUFFICIENT;// (ZEMASK | 2) // memory insufficient
+extern const int ZFUN_FAIL;// = ZEFUN_FAIL; // (ZEMASK | 3) // call function fail
+extern const int ZNOT_SUPPORT;// = ZENOT_SUPPORT;// (ZEMASK | 4) // not support
+extern const int ZPARAM_INVALID;// = ZEPARAM_INVALID; // (ZEMASK | 5) // parameter invalid
+extern const int ZAGAIN;// = ZEAGAIN;// (ZEMASK |6) // try again
+extern const int ZTIMEOUT;// = ZETIMEOUT;// (ZEMASK | 7) // operation time out
+extern const int ZNOT_EXIST;// = ZENOT_EXIST; // (ZEMASK | 8) // Device/object ot exist
+extern const int ZNOT_INIT;// = ZENOT_INIT;// (ZEMASK | 9)  // Device not init
+extern const int ZSTATUS_INVALID;// = ZESTATUS_INVALID;// (ZEMASK | 10)  // device status invalid
+extern const int ZMEM_OUTOFBOUNDS;// = ZEMEM_OUTOFBOUNDS;// (ZEMASK | 11) // memory out of bounds
+extern const int ZCMD_STOP;// = ZECMD_STOP;// (ZEMASK | 12) // return stop command
+
 #endif

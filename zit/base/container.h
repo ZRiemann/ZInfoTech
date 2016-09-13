@@ -6,19 +6,19 @@
 ZC_BEGIN
 
 #define ZCONTAINER_LIST 0
-#define ZCONTAINER_QUEUE 1
-#define ZCONTAINER_DEQUEUE 2
+#define ZCONTAINER_CKQUEUE 1
+//#define ZCONTAINER_DEQUEUE 2
 
 
-ZAPI int zcontainer_create(zcontainer_t *list, int type);
-ZAPI int zcontainer_destroy(zcontainer_t list, zoperate release);
-ZAPI int zcontainer_push(zcontainer_t list, zvalue_t in); // push back
-ZAPI int zcontainer_pop(zcontainer_t list, zvalue_t *out); // pop front
-ZAPI int zcontainer_pushfront(zcontainer_t list, zvalue_t in);
-ZAPI int zcontainer_popback(zcontainer_t list, zvalue_t *out);
-ZAPI int zcontainer_insert(zcontainer_t list, zvalue_t in, zoperate compare);
-ZAPI int zcontainer_erase(zcontainer_t list, zvalue_t in, zoperate compare);
-ZAPI int zcontainer_foreach(zcontainer_t list, zoperate op, zvalue_t hint);
+ZAPI int zcontainer_create(zcontainer_t *cont, int type);
+ZAPI int zcontainer_destroy(zcontainer_t cont, zoperate release);
+ZAPI int zcontainer_push(zcontainer_t cont, zvalue_t in); // push back
+ZAPI int zcontainer_pop(zcontainer_t cont, zvalue_t *out); // pop front
+ZAPI int zcontainer_pushfront(zcontainer_t cont, zvalue_t in);
+ZAPI int zcontainer_popback(zcontainer_t cont, zvalue_t *out);
+ZAPI int zcontainer_insert(zcontainer_t cont, zvalue_t in, zoperate compare);
+ZAPI int zcontainer_erase(zcontainer_t cont, zvalue_t in, zoperate compare);
+ZAPI int zcontainer_foreach(zcontainer_t cont, zoperate op, zvalue_t hint);
 
 /*
 ZAPI int zcontainer_create(zcontainer_t* cont, int type);

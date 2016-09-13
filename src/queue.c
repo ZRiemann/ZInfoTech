@@ -194,11 +194,7 @@ int zqueue_popfront(zque_t* que, zvalue_t* value){
   *value = que->chnkfront->v[que->posfront];
   if(que->chnkfront == que->chnkback){
     if(que->posfront < que->posback){
-      ++(que->posfront);
-	  // reset position
-	  if(que->posfront == que->posback){
-		  que->posfront = que->posback = 0;
-	  }
+      ++(que->posfront);// reset position ** desable for push and pop not thread safe
     }else{
       ret = ZENOT_EXIST;
     }
@@ -244,4 +240,175 @@ int zqueue_foreach(zque_t* que, ztsk_t* tsk){
   }
   //ZERRC(ret);
   return ret;
+}
+
+
+
+int zque_create(zcontainer_t *cont){
+  int ret = ZOK;
+  zchnk_t* chnk = (zchnk_t*)malloc(sizeof(zchnk_t));
+  zque_t* pque = (zque_t*)malloc(sizeof(zque_t));
+  zatmc_t* atm = zatomic_create();
+
+  if((NULL == pque) || (NULL == atm) || (NULL == chnk)){
+    *cont = NULL;
+    free(pque);
+    free(atm);
+    free(chnk);
+    ret = ZMEM_INSUFFICIENT;
+  }else{
+    *cont = (zcontainer_t)pque;
+    pque->atm = atm;
+    pque->chnkfront = pque->chnkback = chnk;
+    pque->posfront = pque->posback = 0;
+    chnk->prev = chnk->next = NULL;
+  }
+#if ZTRACE_QUE
+  ZERRC(ret);
+#endif
+  return(ret);
+}
+
+int zque_destroy(zcontainer_t cont, zoperate release){
+  zque_t *que = (zque_t*)cont;
+  if(NULL != que){
+    void* ptr = zatomic_xchg(que->atm, (void*)NULL);
+    free(ptr);
+    zatomic_destroy(&que->atm);
+    free(que);
+  }
+#if ZTRACE_QUE
+  ZERRC(ZOK);
+#endif
+  return(ZOK);
+}
+
+int zque_push(zcontainer_t cont, zvalue_t in){
+  zque_t *que = (zque_t*)cont;
+  int ret = ZOK;
+  que->chnkback->v[que->posback] = in;
+  if(++(que->posback) == ZQUEUE_SIZE){
+    zchnk_t* chnksqare = zatomic_xchg(que->atm, NULL);
+    if((NULL == chnksqare) && (NULL ==(chnksqare = (zchnk_t*)malloc(sizeof(zchnk_t))))){
+      --(que->posback);
+      ret = ZEMEM_INSUFFICIENT;
+    }else{
+      que->chnkback->next = chnksqare;
+      chnksqare->prev = que->chnkback;
+      que->chnkback = chnksqare;
+      que->posback = 0;
+      ZDBG("push exchange sqare chunk.");
+    }
+  }
+  ZERRCX(ret);
+  return(ret);
+}
+int zque_pop(zcontainer_t cont, zvalue_t *out){
+  zque_t *que = (zque_t*)cont;
+  int ret = ZEOK;
+  //ZASSERT(!cont || !out)
+  *out = que->chnkfront->v[que->posfront];
+  if(que->chnkfront == que->chnkback){
+    if(que->posfront < que->posback){
+      ++(que->posfront);// reset position ** disable for push pop not thread save
+    }else{
+      ret = ZNOT_EXIST;
+    }
+  }else if(++(que->posfront) == ZQUEUE_SIZE){
+    zchnk_t* chnkfront = que->chnkfront;
+    zchnk_t* chnksqare = NULL;
+    que->posfront = 0;
+    que->chnkfront = que->chnkfront->next;
+    que->chnkfront->prev = NULL;
+    chnksqare = zatomic_xchg(que->atm, chnkfront);
+    free(chnksqare);
+    ZDBG("pop exchange sqare chunk");
+  }
+  //ZERRCX(ret);
+  return(ret);
+}
+
+int zque_pushfront(zcontainer_t cont, zvalue_t in){
+  zque_t *que = (zque_t*)cont;
+  int ret = ZEOK;
+  if(--(que->posfront) < 0){
+    zchnk_t* chnksqare = zatomic_xchg(que->atm, NULL);
+    if((NULL == chnksqare) && (NULL ==(chnksqare = (zchnk_t*)malloc(sizeof(zchnk_t))))){
+      ++(que->posback);
+      ret = ZEMEM_INSUFFICIENT;
+    }else{
+      que->chnkfront->prev = chnksqare;
+      chnksqare->next = que->chnkfront;
+      que->chnkfront = chnksqare;
+      que->posfront = ZQUEUE_SIZE-1;
+      que->chnkfront->v[que->posfront] = in;
+      ZDBG("push exchange sqare chunk.");
+    }
+  }else{
+    que->chnkfront->v[que->posfront] = in;
+  }
+  //ZERRCX(ret);
+  return ret;
+
+}
+
+int zque_popback(zcontainer_t cont, zvalue_t *out){
+  zque_t *que = (zque_t*)cont;
+  int ret = ZEOK;
+  if(que->chnkfront == que->chnkback){
+    if(que->posfront < que->posback){
+      --(que->posback);
+    }else{
+      ret = ZNOT_EXIST;
+    }
+  }else if(--(que->posback) < 0){
+    zchnk_t* chnkback = que->chnkback;
+    zchnk_t* chnksqare = NULL;
+    que->posback = ZQUEUE_SIZE-1;
+    que->chnkback = que->chnkback->prev;
+    que->chnkback->next = NULL;
+    chnksqare = (zchnk_t*)zatomic_xchg(que->atm, chnkback);
+    free(chnksqare);
+    ZDBG("pop exchange sqare chunk");
+  }
+  *out = que->chnkback->v[que->posback];
+  //ZERRCX(ret);
+  return ret;
+}
+int zque_insert(zcontainer_t cont, zvalue_t in, zoperate compare){
+  return(ZNOT_SUPPORT);
+}
+int zque_erase(zcontainer_t cont, zvalue_t in, zoperate compare){
+  return(ZNOT_SUPPORT);
+}
+
+int zque_foreach(zcontainer_t cont, zoperate op, zvalue_t hint){
+  zque_t *que = (zque_t*)cont;
+  int ret = ZOK;
+  zchnk_t* visitor = que->chnkfront;
+  int posend = 0;
+  int posbegin = que->posfront;
+  int end = 0;
+  while(1){
+    if(visitor == que->chnkback){
+      posend = que->posback;
+      end = 1;
+    }else{
+      posend = ZQUEUE_SIZE;
+    }
+    
+    while(posbegin < posend){
+      op(visitor->v[posbegin], NULL, hint);
+      ++posbegin;
+    }
+    
+    if(1 == end){
+      break;
+    }else{
+      posbegin = 0;
+      visitor = visitor->next;
+    }
+  }
+  //ZERRC(ret);
+  return(ret);
 }

@@ -66,6 +66,10 @@ typedef void* zcontainer_t; // for all zit container
  * ZCONVERT(v,i); //use memcpy(&i, v, sizeof(int)) instand of i = v;(warning)
  */
 typedef void* zvalue_t;
+typedef zvalue_t zatm_t;
+typedef int32_t zspin_t;
+typedef zvalue_t zptr_t;
+
 // include <string.h> before use ZI2V()/ZV2I()
 #define ZCONVERT(dest, src) do{memset(&(dest),0,sizeof(dest));memcpy(&(dest),&(src),(sizeof(src)<sizeof(dest)?sizeof(src):sizeof(dest)));}while(0)
 

@@ -23,6 +23,26 @@ ZAPI void* zatomic_xchg(zatmc_t* atm, void* v);
 ZAPI void* zatomic_cmpswap(zatmc_t* atm, void* cmp, void* v);
 // Increment value
 // Decrement value
+//==============================================================
+// reimplement zit automic
+#ifdef ZSYS_POSIX
+#define ZATM_MUTEX // use mutex for hardware independent for linux
+//#define ZATM_X86 // use x86 asm for linux
+//#define ZATM_ARM // use ARM asm for linux
+ #endif
+
+ZAPI int ziatm_create(zatm_t *atm);
+ZAPI int ziatm_destroy(zatm_t atm);
+ZAPI zspin_t ziatm_cas(zatm_t atm, zspin_t cmp, zspin_t val);
+ZAPI zspin_t ziatm_inc(zatm_t atm);
+ZAPI zspin_t ziatm_dec(zatm_t atm);
+ZAPI zspin_t ziatm_add(zatm_t atm, zspin_t val);
+ZAPI zspin_t ziatm_sub(zatm_t atm, zspin_t val);
+
+ZAPI int zpatm_create(zatm_t *atm);
+ZAPI int zpatm_destroy(zatm_t atm);
+ZAPI zptr_t zpatm_cas(zatm_t atm, zptr_t cmp, zptr_t ptr);
+ZAPI zptr_t zpatm_xchg(zatm_t atm, zptr_t ptr);
 
 ZC_END
 

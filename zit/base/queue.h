@@ -38,6 +38,16 @@ ZAPI int zqueue_popback(zque_t* que, zvalue_t* value);
 ZAPI int zqueue_popfront(zque_t* que, zvalue_t* value);
 ZAPI int zqueue_foreach(zque_t* que, ztsk_t* tsk);
 
+ZAPI int zque_create(zcontainer_t *list);
+ZAPI int zque_destroy(zcontainer_t list, zoperate release);
+ZAPI int zque_push(zcontainer_t list, zvalue_t in); // push back
+ZAPI int zque_pop(zcontainer_t list, zvalue_t *out); // pop front
+ZAPI int zque_pushfront(zcontainer_t list, zvalue_t in);
+ZAPI int zque_popback(zcontainer_t list, zvalue_t *out);
+ZAPI int zque_insert(zcontainer_t list, zvalue_t in, zoperate compare);
+ZAPI int zque_erase(zcontainer_t list, zvalue_t in, zoperate compare);
+ZAPI int zque_foreach(zcontainer_t list, zoperate op, zvalue_t hint);
+
 ZC_END
 
 #endif
