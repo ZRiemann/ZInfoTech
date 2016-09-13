@@ -3,6 +3,8 @@
 #include <zit/base/time.h>
 #include <zit/base/list.h>
 #include "tbase.h"
+#include <stdlib.h>
+#include <string.h>
 
 static void ztst_list();
 void ztst_base(){
@@ -39,11 +41,51 @@ void ztst_base(){
   ztst_list();
 }
 
+
+static int zprint(OPARG){
+  int* i = (int*)hint;
+  int d;
+
+  ZCONVERT(d,in);
+  zdbg("[%03d] %d", ++*i, d);
+  return(ZEOK);
+}
 static void ztst_list(){
-  zmsg("\n test zit list container...\n");
   zcontainer_t list;
-  //  ZERRC(zlist_create(&list));
-  zmsg("zlist_create(&list<%p>) %s", list, zstrerr(zlist_create(&list)));
-  zmsg("zlist_destroy(list<%p>) %s", list, zstrerr(zlist_destroy(list, NULL)));
+  int i;
+  zvalue_t v;
+  
+  zmsg("\n test zit list container...\n");
+  ZDUMP(zlist_create(&list));
+  i=1;
+  ZCONVERT(v,i);
+  ZDUMP(zlist_push(list,v));
+  i = 2;
+  ZCONVERT(v,i);
+  ZDUMP(zlist_push(list,v));
+  i = 3;
+  ZCONVERT(v,i);
+  ZDUMP(zlist_pushfront(list,v));
+  i = 0;
+  zlist_foreach((zcontainer_t*)list, zprint,(zvalue_t)&i);
+  ZDUMP(zlist_pop(list, &v));
+  ZCONVERT(i,v);
+  zdbg("pop<%d>", i);
+  ZDUMP(zlist_popback(list, &v));
+  ZCONVERT(i,v);
+  zdbg("pop<%d>", i);
+  i = 0;
+  zlist_foreach((zcontainer_t*)list, zprint,(zvalue_t)&i);
+
+  ZDUMP(zlist_pop(list, &v));
+  i=0; zlist_foreach((zcontainer_t*)list, zprint,(zvalue_t)&i);
+  ZDUMP(zlist_pop(list, &v));
+
+  i = 1; ZCONVERT(v,i); ZDUMP(zlist_push(list,v));
+  i = 2; ZCONVERT(v,i); ZDUMP(zlist_push(list,v));
+  i = 3; ZCONVERT(v,i); ZDUMP(zlist_push(list,v));
+  i=0; zlist_foreach((zcontainer_t*)list, zprint,(zvalue_t)&i);
+
+  ZDUMP(zlist_destroy(list,NULL));
   zmsg("\n test zit list container end\n");
 }

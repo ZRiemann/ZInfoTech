@@ -36,6 +36,7 @@ ZAPI const char*  zstrerr(int code);
 
 #define ZERRC(x) zerr("[ln:%04d fn:%s]\t%s",__LINE__,__FUNCTION__,zstrerr(x))
 #define ZERRCX(x) if( ZEOK != (x) )ZERRC(x)
+#define ZDUMP(x) zdbg("%s %s", #x, zstrerr(x))
 
 // control module trace
 #define ZTRACE_MUTEX 0
