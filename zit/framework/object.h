@@ -32,17 +32,24 @@ ZAPI int zobj_init(zobj_t *obj, zobj_t *parent, zobj_type_t type,\
 #define zobj_initx(obj, type, op) zobj_init(obj, NULL, type, op, NULL, zobj_free, NULL)
 
 // inherit from zobj_t
+/*
+  level0
+  level1
+  level2
+*/
 typedef struct zdevict_s{
   zobj_t obj;
-  // device operates
-  zoperate open;
-  zoperate close;
-  // server operates
-  zoperate init;
-  zoperate fini;
+  zcontainer_t *owner; // parents
+  zcontainer_t *mount; // childrens
+  zstatus_t status;
+  // server/device operates
+  zoperate init;  // dev open()
+  zoperate fini;  // dev close()
   zoperate run;
   zoperate stop;
 }zdev_t;
+typedef zdev_t zsvr_t; // server is device
+
 #define dev_type obj.type
 #define dev_parent obj.parent
 #define dev_release obj.release
@@ -51,7 +58,13 @@ typedef struct zdevict_s{
 #define dev_serialize obj.serialize
 
 ZAPI int zdev_init(zdev_t *dev, zobj_type_t type,  zoperate init, zoperate fini, zoperate run, zoperate stop);
-
+ZAPI int zdev_attach(zdev_t *self, zdev_t *mount);
+ZAPI int zdev_detach(zdev_t *self, zdev_t *mount);
+// operate all mounts
+ZAPI int zdev_mount_init(zdev_t *dev, OPARG);
+ZAPI int zdev_mount_fini(zdev_t *dev, OPARG);
+ZAPI int zdev_mount_run(zdev_t *dev, OPARG);
+ZAPI int zdev_mount_stop(zdev_t *dev, OPARG);
 ZC_END
 
 #endif

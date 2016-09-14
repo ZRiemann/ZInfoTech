@@ -293,34 +293,28 @@ int zact_intque(zvalue_t user, zvalue_t hint){
   return ZEOK;
 }
 void ztst_queue(){
-  ztsk_t tsk;
-  zque_t* que = NULL;
+  zcontainer_t que = NULL;
   int data = 0;
   zvalue_t v;
   int ret = ZEOK;
   int cnt = 0;
-  if(ZEOK != (ret = zqueue_create(&que))){
+  if(ZEOK != (ret = zque_create(&que))){
     ZERRC(ret);
     return;
   }
   ZCONVERT(v, data);data++;
-  zqueue_pushback(que, v);
+  zque_push(que, v);
   ZCONVERT(v, data);data++;
-  zqueue_pushfront(que, v);
+  zque_pushfront(que, v);
   ZCONVERT(v, data);data++;
-  zqueue_pushback(que, v);
+  zque_push(que, v);
   ZCONVERT(v, data);data++;
-  zqueue_pushfront(que, v);
+  zque_pushfront(que, v);
   
-  tsk.hint = (void*)&cnt;
-  tsk.act = zact_intque;
-  zqueue_foreach(que, &tsk);
-
-  zqueue_popfront(que, &v); //CAUTION: *_pop*(que, (zvalue_t*)&data); CAUSE FLAGMENT FAULT. 
-  zqueue_popback(que, &v);
+  zque_popback(que, &v); //CAUTION: *_pop*(que, (zvalue_t*)&data); CAUSE FLAGMENT FAULT. 
+  zque_pop(que, &v);
   cnt = 0;
-  zqueue_foreach(que, &tsk);
-  zqueue_destroy(&que);
+  zque_destroy(que,NULL);
 
   zdbg("test ZCONVERT(dest, src) convert 'src' data to 'dest' data...");
   data = 987654321;

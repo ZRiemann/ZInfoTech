@@ -24,7 +24,7 @@ typedef struct zmission_s{
   zsem_t sem; ///< semaphore
   zmtx_t mtx; ///< mutex for push task
   zthr_t thr; ///< thread
-  zque_t tsks; ///< task queue
+  zcontainer_t tsks; ///< task queue
   //znod_t nod; ///< nod.value = mission id
 }zmis_t;
 
@@ -33,7 +33,7 @@ typedef struct zjet_s{
   int misnow; ///< now miss = init miss + extends miss
   int id; ///< id generator
   zmis_t mis[ZJET_MAX_MISSION]; ///< missions
-  zque_t idels; ///< idel task queue
+  zcontainer_t idels; ///< idel task queue
   zmtx_t mtx; ///< lock run/stop/push task to idels
   zmtx_t mtxpop; ///< lock pop task from idels
   zsem_t semidel; ///< idel task semaphore
@@ -53,8 +53,8 @@ zthr_ret_t ZCALL zproc_mission(void* param){
   zsem_t* semtsk = &(mis->sem);
   zsem_t* semidel = &(zg_jet->semidel);
   zmutex_t* mtxidel = &(zg_jet->mtxpop);
-  zque_t* idels = &(zg_jet->idels);
-  zque_t* tsks = &(mis->tsks);
+  zcontainer_t idels = zg_jet->idels;
+  zcontainer_t tsks = mis->tsks;
   
   //  int b = 0;
   //if(thr->name[8] == '0'){
@@ -67,10 +67,10 @@ zthr_ret_t ZCALL zproc_mission(void* param){
   }
   while(ZETIMEOUT == zsem_wait(exit, 0)){
     if(ZEOK == zsem_wait(semtsk, 300)){ // get normal/sequence task
-      zqueue_popfront(tsks, (zvalue_t*)&tsk);
+      zque_pop(tsks, (zvalue_t*)&tsk);
     }else if(ZEOK == zsem_wait(semidel, 0)){ // get idel task
       zmutex_lock(mtxidel);
-      zqueue_popfront(idels, (zvalue_t*)&tsk);
+      zque_pop(idels, (zvalue_t*)&tsk);
       zmutex_unlock(mtxidel);
     }else{
       continue; // do nothing
@@ -81,7 +81,7 @@ zthr_ret_t ZCALL zproc_mission(void* param){
   }
   // act all rest normal/sequence task
   while(ZEOK == zsem_wait(semtsk, 10)){
-    zqueue_popfront(tsks, (zvalue_t*)&tsk);
+    zque_pop(tsks, (zvalue_t*)&tsk);
     tsk->act(tsk->user, tsk->hint);
     if(NULL != tsk->free)tsk->free(tsk->user, tsk->hint);
     ZDBG("mis[%d] act task before exit.", mis->id);
@@ -103,7 +103,7 @@ int zjet_init(){
       zg_jet->id = 0;
       zmutex_init(&(zg_jet->mtx));
       zmutex_init(&(zg_jet->mtxpop));
-      zqueue_init(&(zg_jet->idels));
+      zque_create(&(zg_jet->idels));
       zsem_init(&(zg_jet->semidel), 0);
       zg_jet->misnum = 8; ///< task delay: cpu*2+2
       for(i=0; i<ZJET_MAX_MISSION; i++){
@@ -130,14 +130,14 @@ int zjet_uninit(){
   // Act all rest idels task.
   if(ZEOK == zsem_getvalue(&(zg_jet->semidel), &cnt)){
     while(ZEOK == zsem_wait(&(zg_jet->semidel), 10)){
-      zqueue_popfront(&(zg_jet->idels), (zvalue_t*)&tsk); // not lock because thread pool down
+      zque_pop(zg_jet->idels, (zvalue_t*)&tsk); // not lock because thread pool down
       tsk->act(tsk->user, tsk->hint);
       tsk->free(tsk->user, tsk->hint);
       ZDBG("act task %d.", cnt--);
     }
   }
   // Release jet.
-  zqueue_uninit(&(zg_jet->idels));
+  zque_destroy(zg_jet->idels, NULL);
   zmutex_uninit(&(zg_jet->mtx));
   zmutex_uninit(&(zg_jet->mtxpop));
   zsem_uninit(&(zg_jet->semidel));
@@ -156,7 +156,7 @@ static int _zjet_misrun(zmis_t* mis){
     //mis->id;  //has inited 
     zsem_init(&(mis->sem), 0);
     zmutex_init(&(mis->mtx));
-    zqueue_init(&(mis->tsks));
+    zque_create(&(mis->tsks));
     // Set thread attribute.
     sprintf(mis->thr.name, "thr_mis[%d]", mis->id);
     mis->thr.param = (void*)mis;
@@ -173,7 +173,7 @@ static int _zjet_misstop(zmis_t* mis){
   zthreadx_join(&(mis->thr));
   zsem_uninit(&(mis->sem));
   zmutex_uninit(&(mis->mtx));
-  zqueue_uninit(&(mis->tsks));
+  zque_destroy(mis->tsks, NULL);
   ZERRCX(ret);
   return ret;
 }
@@ -241,13 +241,13 @@ int zjet_assign(ztsk_t* tsk){
     // assign sequence mission
     zmis_t* mis = &(zg_jet->mis[tsk->misid]);
     zmutex_lock(&(mis->mtx));
-    ret = zqueue_pushback(&(mis->tsks), tsk);
+    ret = zque_push(mis->tsks, tsk);
     zsem_post(&(mis->sem));
     zmutex_unlock(&(mis->mtx));
   }else{
     // normal/immediate
     zmutex_lock(&(zg_jet->mtx));
-    ret = zqueue_pushback(&(zg_jet->idels), tsk);
+    ret = zque_push(zg_jet->idels, tsk);
     zsem_post(&(zg_jet->semidel));
     zmutex_unlock(&(zg_jet->mtx));
   }

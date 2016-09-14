@@ -311,6 +311,13 @@ zspin_t ziatm_sub(zatm_t atm, zspin_t dec){
   return(ZOK);
 }
 
+int ziatm_lock(zatm_t atm){
+  return zmutex_lock(&((ziatm_t*)atm)->mtx);
+}
+int ziatm_unlock(zatm_t atm){
+  return zmutex_unlock(&((ziatm_t*)atm)->mtx);
+}
+
 //=================================================
 // zpatm_t
 typedef struct zpatm_s{

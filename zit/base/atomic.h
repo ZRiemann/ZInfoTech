@@ -38,11 +38,16 @@ ZAPI zspin_t ziatm_inc(zatm_t atm);
 ZAPI zspin_t ziatm_dec(zatm_t atm);
 ZAPI zspin_t ziatm_add(zatm_t atm, zspin_t val);
 ZAPI zspin_t ziatm_sub(zatm_t atm, zspin_t val);
+ZAPI int ziatm_lock(zatm_t atm);
+ZAPI int ziatm_unlock(zatm_t atm);
 
 ZAPI int zpatm_create(zatm_t *atm);
 ZAPI int zpatm_destroy(zatm_t atm);
 ZAPI zptr_t zpatm_cas(zatm_t atm, zptr_t cmp, zptr_t ptr);
 ZAPI zptr_t zpatm_xchg(zatm_t atm, zptr_t ptr);
+
+//=============================================================
+// 3rd edition
 
 ZC_END
 

@@ -30,8 +30,9 @@ int zobj_init(zobj_t *obj, zobj_t *parent, zobj_type_t type,\
 ZAPI int zdev_init(zdev_t *dev,zobj_type_t type,  zoperate init, zoperate fini, zoperate run, zoperate stop){
   ZASSERT(!dev);
   zobj_initx((zobj_t*)dev, type, NULL);
-  dev->open = NULL;
-  dev->close = NULL;
+  dev->owner = NULL;
+  dev->mount = NULL;
+  dev->status = ZUNINIT;
   dev->init = init;
   dev->fini = fini;
   dev->run = run;

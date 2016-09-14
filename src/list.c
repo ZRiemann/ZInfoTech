@@ -5,6 +5,7 @@
 #include "export.h"
 #include <zit/base/list.h>
 #include <zit/base/error.h>
+#include <zit/base/atomic.h>
 #include <stdlib.h>
 
 /*
@@ -18,6 +19,7 @@ typedef struct zlist_s{
   uint32_t cnt_recycle;
   uint32_t max_recycle;
   size_t num;  // list size
+  zatm_t atm;
 }zlist_t;
 
 int zlist_create(zcontainer_t *cont){
@@ -30,6 +32,7 @@ int zlist_create(zcontainer_t *cont){
   list->max_recycle = 1024;
   list->cnt_recycle = 0;
   list->num = 0;
+  ziatm_create(&list->atm);
   return(ZOK);
 }
 
@@ -52,6 +55,7 @@ int zlist_destroy(zcontainer_t cont, zoperate release){
     }
     free(nod);
   }
+  ziatm_destroy(list->atm);
   // list->cnt_recycle = 0;
   free(list);
   return(ZOK);
@@ -60,9 +64,13 @@ int zlist_destroy(zcontainer_t cont, zoperate release){
 int zlist_push(zcontainer_t cont, zvalue_t in){//push back
   znod_t *nod;
   zlist_t *list;
-
+  int ret;
   ZASSERT(!cont);
   list = (zlist_t*)cont;
+  ret = ziatm_lock(list->atm);
+  if(ZOK != ret){
+    return ret;
+  }
   nod = list->recycle;
   if(nod){
     list->recycle = nod->next;
@@ -70,7 +78,10 @@ int zlist_push(zcontainer_t cont, zvalue_t in){//push back
   }else{
     nod = (znod_t*)malloc(sizeof(znod_t));
   }
-  if(!nod)return(ZMEM_INSUFFICIENT);
+  if(!nod){
+    ziatm_unlock(list->atm);
+    return(ZMEM_INSUFFICIENT);
+  }
   nod->value = in;
   
   if(list->head){
@@ -83,15 +94,20 @@ int zlist_push(zcontainer_t cont, zvalue_t in){//push back
     nod->prev = nod->next = NULL;
   }
   ++list->num;
+  ziatm_unlock(list->atm);
   return(ZOK);
 }
 
 int zlist_pop(zcontainer_t cont, zvalue_t *out){
   znod_t *nod;
   zlist_t *list;
-
+  int ret;
   ZASSERT(!cont);
   list = (zlist_t*)cont;
+  ret = ziatm_lock(list->atm);
+  if(ZOK != ret){
+    return ret;
+  }
   if(list->head){
     nod = list->head;
     *out = nod->value;
@@ -113,17 +129,23 @@ int zlist_pop(zcontainer_t cont, zvalue_t *out){
     }
   }else{
     *out = NULL;
-    return(ZNOT_EXIST);
+    ret = ZNOT_EXIST;
   }
-  return(ZOK);
+  ziatm_unlock(list->atm);
+  return ret;
 }
 
 int zlist_pushfront(zcontainer_t cont, zvalue_t in){
   znod_t *nod;
   zlist_t *list;
+  int ret;
 
   ZASSERT(!cont);
   list = (zlist_t*)cont;
+  ret = ziatm_lock(list->atm);
+  if(ZOK != ret){
+    return ret;
+  }
   nod = list->recycle;
   if(nod){
     list->recycle = nod->next;
@@ -131,7 +153,10 @@ int zlist_pushfront(zcontainer_t cont, zvalue_t in){
   }else{
     nod = (znod_t*)malloc(sizeof(znod_t));
   }
-  if(!nod)return(ZMEM_INSUFFICIENT);
+  if(!nod){
+    ziatm_unlock(list->atm);
+    return(ZMEM_INSUFFICIENT);
+  }
   nod->value = in;
   
   if(list->head){
@@ -144,14 +169,20 @@ int zlist_pushfront(zcontainer_t cont, zvalue_t in){
     nod->prev = nod->next = NULL;
   }
   ++list->num;
+  ziatm_unlock(list->atm);
   return(ZOK);
 }
 
 int zlist_popback(zcontainer_t cont, zvalue_t *out){
   znod_t *nod;
   zlist_t *list;
+  int ret;
   ZASSERT(!cont);
   list = (zlist_t*)cont;
+  ret = ziatm_lock(list->atm);
+  if(ZOK != ret){
+    return ret;
+  }
   if(list->tail){
     nod = list->tail;
     *out = nod->value;
@@ -173,9 +204,10 @@ int zlist_popback(zcontainer_t cont, zvalue_t *out){
     }
   }else{
     *out = NULL;
-    return(ZNOT_EXIST);
+    ret = ZNOT_EXIST;
   }
-  return(ZOK);
+  ziatm_unlock(list->atm);
+  return ret;
 }
 
 int zlist_insert(zcontainer_t list, zvalue_t in, zoperate compare){
@@ -189,12 +221,18 @@ int zlist_erase(zcontainer_t list, zvalue_t in, zoperate compare){
 int zlist_foreach(zcontainer_t cont, zoperate op, zvalue_t hint){
   znod_t *nod;
   zlist_t *list;
+  int ret;
   ZASSERT(!cont || !op);
   list = (zlist_t*)cont;
+  ret = ziatm_lock(list->atm);
+  if(ZOK != ret){
+    return ret;
+  }
   nod = list->head;
   while(nod){
     op(nod->value, NULL, hint);
     nod = nod->next;
   }
+  ziatm_unlock(list->atm);
   return(ZOK);
 }
