@@ -32,7 +32,8 @@ int zcontainer_create(zcontainer_t *cont, int type){
   zcont_t *cnt;
   ZASSERT(!cont);
   *cont = malloc(sizeof(zcont_t));
-  if(!*cont)return(ZMEM_INSUFFICIENT);
+  //if(!*cont)return(ZMEM_INSUFFICIENT);
+  ZASSERTC(!*cont, ZEMEM_INSUFFICIENT);
   cnt = (zcont_t*)(*cont);
   if(type == ZCONTAINER_LIST){
     ret = zlist_create(&cnt->cont);
@@ -65,7 +66,7 @@ int zcontainer_create(zcontainer_t *cont, int type){
       *cont = NULL;
     }
   }
-  return(ZEOK);
+  return(ZOK);
 }
 int zcontainer_destroy(zcontainer_t cont, zoperate release){
   zcont_t *cnt = (zcont_t*)cont;

@@ -119,7 +119,10 @@ const char *errmap[] = {
   "ZE9-not-init",
   "ZE10-status-invalid",
   "ZE11-memory-outofbounds",
-  "ZE12-command-stop"
+  "ZE12-command-stop",
+  "ZE13-compare-equal",
+  "ZE14-compare-great",
+  "ZE15-compare-little"
 };
 
 const char*  zstrerr(int code) {

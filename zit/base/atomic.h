@@ -33,6 +33,7 @@ ZAPI void* zatomic_cmpswap(zatmc_t* atm, void* cmp, void* v);
 
 ZAPI int ziatm_create(zatm_t *atm);
 ZAPI int ziatm_destroy(zatm_t atm);
+ZAPI zspin_t ziatm_xchg(zatm_t atm, zspin_t val);
 ZAPI zspin_t ziatm_cas(zatm_t atm, zspin_t cmp, zspin_t val);
 ZAPI zspin_t ziatm_inc(zatm_t atm);
 ZAPI zspin_t ziatm_dec(zatm_t atm);

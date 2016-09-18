@@ -29,7 +29,7 @@ typedef struct zobject_s{
 ZAPI int zobj_free(OPARG);
 ZAPI int zobj_init(zobj_t *obj, zobj_t *parent, zobj_type_t type,\
 	       zoperate op, zoperate cl, zoperate re, zoperate se);
-#define zobj_initx(obj, type, op) zobj_init(obj, NULL, type, op, NULL, zobj_free, NULL)
+#define zobj_initx(obj, type, op) zobj_init(obj, NULL, type, op, NULL, NULL, NULL)
 
 // inherit from zobj_t
 /*
@@ -37,7 +37,7 @@ ZAPI int zobj_init(zobj_t *obj, zobj_t *parent, zobj_type_t type,\
   level1
   level2
 */
-typedef struct zdevict_s{
+typedef struct zdevice_s{
   zobj_t obj;
   zcontainer_t *owner; // parents
   zcontainer_t *mount; // childrens

@@ -18,10 +18,10 @@
 #define ZESTATUS_INVALID (ZEMASK | 10)  // device status invalid
 #define ZEMEM_OUTOFBOUNDS (ZEMASK | 11) // memory out of bounds
 #define ZECMD_STOP (ZEMASK | 12) // return stop command
-#define ZE_END (12)
-
-#define ZASSERT(x) if(x){return(ZEPARAM_INVALID);}
-#define ZASSERTX(x) if(x){return;}
+#define ZECMP_EQUAL (ZEMASK | 13) // compare equal
+#define ZECMP_GREAT (ZEMASK | 14) // compare great
+#define ZECMP_LITTLE (ZEMASK | 15) // compare little
+#define ZE_END (15)
 
 extern const int ZOK; // = ZEOK;// 0 // ZError OK
 extern const int ZFAIL;// = ZEFAIL;// (ZEMASK | 1) // ZError FAILED
@@ -36,5 +36,16 @@ extern const int ZNOT_INIT;// = ZENOT_INIT;// (ZEMASK | 9)  // Device not init
 extern const int ZSTATUS_INVALID;// = ZESTATUS_INVALID;// (ZEMASK | 10)  // device status invalid
 extern const int ZMEM_OUTOFBOUNDS;// = ZEMEM_OUTOFBOUNDS;// (ZEMASK | 11) // memory out of bounds
 extern const int ZCMD_STOP;// = ZECMD_STOP;// (ZEMASK | 12) // return stop command
+extern const int ZCMP_EQUAL;// (ZEMASK | 13) // compare equal
+extern const int ZCMP_GREAT;// (ZEMASK | 14) // compare great
+extern const int ZCMP_LITTLE;// (ZEMASK | 15) // compare little
+
+
+#define ZASSERTR(x) if(ZOK != (x))return(x)
+#define ZASSERTB(x) if(x)break
+#define ZASSERTBC(x,c) if(x){ret = c; break;}
+#define ZASSERTC(x,c) if(x)return(c)
+#define ZASSERT(x) if(x)return(ZEPARAM_INVALID)
+#define ZASSERTX(x) if(x)return
 
 #endif

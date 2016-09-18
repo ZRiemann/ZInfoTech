@@ -20,6 +20,9 @@ const int ZNOT_INIT = ZENOT_INIT;// (ZEMASK | 9)  // Device not init
 const int ZSTATUS_INVALID = ZESTATUS_INVALID;// (ZEMASK | 10)  // device status invalid
 const int ZMEM_OUTOFBOUNDS = ZEMEM_OUTOFBOUNDS;// (ZEMASK | 11) // memory out of bounds
 const int ZCMD_STOP = ZECMD_STOP;// (ZEMASK | 12) // return stop command
+const int ZCMP_EQUAL = ZECMP_EQUAL;// (ZEMASK | 13) // compare equal
+const int ZCMP_GREAT = ZECMP_GREAT;// (ZEMASK | 14) // compare great
+const int ZCMP_LITTLE = ZECMP_LITTLE;// (ZEMASK | 15) // compare little
 
 
 int zversion(){

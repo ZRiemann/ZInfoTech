@@ -49,7 +49,7 @@ int zlist_destroy(zcontainer_t cont, zoperate release){
   }
   while(list->tail){
     nod = list->tail;
-    list->tail = list->tail->next;
+    list->tail = list->tail->prev;
     if(release){
       release(OPIN(nod->value));
     }
@@ -59,6 +59,16 @@ int zlist_destroy(zcontainer_t cont, zoperate release){
   // list->cnt_recycle = 0;
   free(list);
   return(ZOK);
+}
+
+ZINLINE void zlist_getnode(zlist_t *list, znod_t **nod){
+  *nod = list->recycle;
+  if(*nod){
+    list->recycle = (*nod)->next;
+    --list->cnt_recycle;
+  }else{
+    *nod = (znod_t*)malloc(sizeof(znod_t));
+  }
 }
 
 int zlist_push(zcontainer_t cont, zvalue_t in){//push back
@@ -71,13 +81,7 @@ int zlist_push(zcontainer_t cont, zvalue_t in){//push back
   if(ZOK != ret){
     return ret;
   }
-  nod = list->recycle;
-  if(nod){
-    list->recycle = nod->next;
-    --list->cnt_recycle;
-  }else{
-    nod = (znod_t*)malloc(sizeof(znod_t));
-  }
+  zlist_getnode(list, &nod);
   if(!nod){
     ziatm_unlock(list->atm);
     return(ZMEM_INSUFFICIENT);
@@ -97,6 +101,15 @@ int zlist_push(zcontainer_t cont, zvalue_t in){//push back
   ziatm_unlock(list->atm);
   return(ZOK);
 }
+ZINLINE void zlist_recycle(zlist_t *list, znod_t *nod){
+  if(list->cnt_recycle < list->max_recycle){
+    nod->next = list->recycle;
+    list->recycle = nod;
+    ++list->cnt_recycle;
+  }else{
+    free(nod);
+  }
+}
 
 int zlist_pop(zcontainer_t cont, zvalue_t *out){
   znod_t *nod;
@@ -113,14 +126,7 @@ int zlist_pop(zcontainer_t cont, zvalue_t *out){
     *out = nod->value;
     list->head = nod->next;
     --list->num;
-    //recycle node
-    if(list->cnt_recycle < list->max_recycle){
-      nod->next = list->recycle;
-      list->recycle = nod;
-      ++list->cnt_recycle;
-    }else{
-      free(nod);
-    }
+    zlist_recycle(list, nod);
     // adapt tail
     if(list->head){
       list->head->prev = NULL;
@@ -142,17 +148,9 @@ int zlist_pushfront(zcontainer_t cont, zvalue_t in){
 
   ZASSERT(!cont);
   list = (zlist_t*)cont;
-  ret = ziatm_lock(list->atm);
-  if(ZOK != ret){
-    return ret;
-  }
-  nod = list->recycle;
-  if(nod){
-    list->recycle = nod->next;
-    --list->cnt_recycle;
-  }else{
-    nod = (znod_t*)malloc(sizeof(znod_t));
-  }
+  ret = ziatm_lock(list->atm); ZASSERTR(ret);
+
+  zlist_getnode(list, &nod);
   if(!nod){
     ziatm_unlock(list->atm);
     return(ZMEM_INSUFFICIENT);
@@ -189,13 +187,7 @@ int zlist_popback(zcontainer_t cont, zvalue_t *out){
     list->tail = nod->prev;
     --list->num;
     //recycle node
-    if(list->cnt_recycle < list->max_recycle){
-      nod->next = list->recycle;
-      list->recycle = nod;
-      ++list->cnt_recycle;
-    }else{
-      free(nod);
-    }
+    zlist_recycle(list, nod);
     // adapt tail
     if(list->tail){
       list->tail->next = NULL;
@@ -210,12 +202,48 @@ int zlist_popback(zcontainer_t cont, zvalue_t *out){
   return ret;
 }
 
-int zlist_insert(zcontainer_t list, zvalue_t in, zoperate compare){
-  return(ZNOT_SUPPORT);
+int zlist_insert(zcontainer_t cont, zvalue_t in, zoperate compare){
+  return zlist_push(cont, in);
 }
 
-int zlist_erase(zcontainer_t list, zvalue_t in, zoperate compare){
-  return(ZNOT_SUPPORT);
+int zlist_erase(zcontainer_t cont, zvalue_t in, zoperate compare){
+  zlist_t *list;
+  znod_t *nod;
+  znod_t *nod1;
+  int ret;
+  
+  ZASSERT(!cont);
+  list = (zlist_t*)cont;
+  ret = ziatm_lock(list->atm); ZASSERTR(ret);
+  
+  nod = list->head;
+  while(nod){
+    if(compare){
+      ret = compare(nod->value, NULL, in);
+    }else if(nod->value == in){
+      ret = ZCMP_EQUAL;
+    }else{
+      ret = ZEFAIL;
+    }
+    if(ZECMP_EQUAL == ret){
+      // NULL<->head<->nod1<->nod2...nodn<->tail->NULL
+      nod1 = nod;
+      if(list->head == nod){
+	list->head = nod->next;
+	if(!list->head){
+	  list->tail = NULL;
+	}
+      }
+      if(list->tail == nod){
+	list->tail = nod->prev;
+	list->tail->next = NULL;
+      }
+      nod = nod->next;
+      zlist_recycle(list, nod1);
+    }
+  }
+  ziatm_unlock(list->atm);
+  return(ZOK);
 }
 
 int zlist_foreach(zcontainer_t cont, zoperate op, zvalue_t hint){
@@ -225,12 +253,13 @@ int zlist_foreach(zcontainer_t cont, zoperate op, zvalue_t hint){
   ZASSERT(!cont || !op);
   list = (zlist_t*)cont;
   ret = ziatm_lock(list->atm);
-  if(ZOK != ret){
-    return ret;
-  }
+  ZASSERTR(ret);
   nod = list->head;
   while(nod){
-    op(nod->value, NULL, hint);
+    ret = op(nod->value, NULL, hint);
+    if(ret == ZCMD_STOP){
+      break;
+    }
     nod = nod->next;
   }
   ziatm_unlock(list->atm);

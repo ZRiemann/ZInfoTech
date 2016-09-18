@@ -74,20 +74,27 @@ typedef zvalue_t zptr_t;
 #define ZCONVERT(dest, src) do{memset(&(dest),0,sizeof(dest));memcpy(&(dest),&(src),(sizeof(src)<sizeof(dest)?sizeof(src):sizeof(dest)));}while(0)
 
 typedef union{
-  void *p;
+  zptr_t p;
   int i;
-  double d;
-}any_t;// any type
+  //  double d;
+}zany_t;// any type
 
-typedef struct znode_t{
+typedef struct zpair_s{
+  zany_t key;
   zvalue_t value;
-  struct znode_t* next;
-  struct znode_t* prev;
+  //zvalue_t hint;
+}zpair_t;
+// zany_t param[5]; // for param list
+typedef struct znode_s{
+  zvalue_t value;
+  struct znode_s* next;
+  struct znode_s* prev;
 }znod_t;
-
+/*
 typedef int (*zcompare)(zvalue_t p1, zvalue_t p2); //return ZGREAT/ZEQUAL/ZLITTLE
 typedef int (*zfree)(zvalue_t user, zvalue_t hint);
 typedef int (*zact)(zvalue_t user, zvalue_t hint);
+*/
 typedef int (*zoperate)(zvalue_t in, zvalue_t *out, zvalue_t hint); // any operate
 #define OPARG zvalue_t in,zvalue_t *out,zvalue_t hint
 #define OPNULL NULL,NULL,NULL
@@ -96,7 +103,7 @@ typedef int (*zoperate)(zvalue_t in, zvalue_t *out, zvalue_t hint); // any opera
 
 #define ZTSKMD_SEQUENCE 0
 #define ZTSKMD_NORMAL 1
-
+/*
 typedef struct ztask_t{
   int priority; ///< 0-low(idel) 1-normal 2-(above normal)hight priority queue
   int mode; ///< 0-sequence ; 1-normal
@@ -106,7 +113,7 @@ typedef struct ztask_t{
   zact act; ///< action task(can not NULL)
   zfree free; ///< release user data(default NULL)
 }ztsk_t;
-
+*/
 
 ZC_END
 

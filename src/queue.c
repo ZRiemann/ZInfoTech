@@ -255,7 +255,10 @@ int zque_foreach(zcontainer_t cont, zoperate op, zvalue_t hint){
     }
     
     while(posbegin < posend){
-      op(visitor->v[posbegin], NULL, hint);
+      ret = op(visitor->v[posbegin], NULL, hint);
+      if(ZCMD_STOP == ret){
+	break;
+      }
       ++posbegin;
     }
     

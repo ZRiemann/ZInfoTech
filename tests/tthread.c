@@ -297,7 +297,7 @@ void ztst_queue(){
   int data = 0;
   zvalue_t v;
   int ret = ZEOK;
-  int cnt = 0;
+  //int cnt = 0;
   if(ZEOK != (ret = zque_create(&que))){
     ZERRC(ret);
     return;
@@ -313,7 +313,7 @@ void ztst_queue(){
   
   zque_popback(que, &v); //CAUTION: *_pop*(que, (zvalue_t*)&data); CAUSE FLAGMENT FAULT. 
   zque_pop(que, &v);
-  cnt = 0;
+  //cnt = 0;
   zque_destroy(que,NULL);
 
   zdbg("test ZCONVERT(dest, src) convert 'src' data to 'dest' data...");

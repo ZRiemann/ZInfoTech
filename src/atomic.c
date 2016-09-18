@@ -108,9 +108,24 @@ int ziatm_destroy(zatm_t atm){
   return(ZOK);
 }
 
+ZAPI zspin_t ziatm_xchg(zatm_t atm, zspin_t val){
+#ifdef ZSYS_WINDOWS
+  return (zspin_t)InterlockedExchange(&iatm->spin, val);
+#elif (defined ZATM_MUTEX || defined ZATM_X86 || defined ZATM_ARM)
+  zspin_t old = 0;
+  ziatm_t *iatm = (ziatm_t*)atm;
+  ZLOCK(&iatm->mtx);
+  old = iatm->spin;
+  iatm->spin = val;
+  ZUNLOCK(&iatm->mtx);
+  return old;
+#else
+#error atomic is not implemented for this platform  
+#endif
+}
 zspin_t ziatm_cas(zatm_t atm, zspin_t cmp, zspin_t val){
 #ifdef ZSYS_WINDOWS
-  return (zspin_t)InterlockedCompareExchange(&iatm->spin, val, cmp);
+  return (val == (zspin_t)InterlockedCompareExchange(&iatm->spin, val, cmp));
 #elif (defined ZATM_MUTEX || defined ZATM_X86 || defined ZATM_ARM)
   zspin_t old = 0;
   ziatm_t *iatm = (ziatm_t*)atm;
@@ -120,7 +135,7 @@ zspin_t ziatm_cas(zatm_t atm, zspin_t cmp, zspin_t val){
     iatm->spin = val;
   }
   ZUNLOCK(&iatm->mtx);
-  return old;
+  return (old == val);
   //#elif (defined ZATM_X86)
     //#elif (defined ZATM_ARM)
 #else
@@ -149,7 +164,7 @@ zspin_t ziatm_inc(zatm_t atm){
 		    : "=r" (old), "=m" (*val)
 		    : "0" (inc), "m" (*val)
 		    : "cc", "memory");
-  return old;
+  return *val;
 #elif (defined ZATM_ARM)
   zspin_t flag, tmp;
   zspin_t old,inc;
@@ -168,7 +183,7 @@ zspin_t ziatm_inc(zatm_t atm){
 		    : "=&r"(old), "=&r"(flag), "=&r"(tmp), "+Qo"(*val)
 		    : "Ir"(inc), "r"(val)
 		    : "cc");
-  return old;
+  return *val;
 #else
 #error atomic is not implemented for this platform  
 #endif
@@ -213,13 +228,14 @@ zspin_t ziatm_dec(zatm_t atm){
 		    : "=&r"(old), "=&r"(flag), "=&r"(tmp), "+Qo"(*val)
 		    : "Ir"(dec), "r"(val)
 		    : "cc");
-  return old;
+  return *val;
 #else
 #error atomic is not implemented for this platform  
 #endif
 
   return(ZOK);
 }
+
 zspin_t ziatm_add(zatm_t atm, zspin_t inc){
 #ifdef ZSYS_WINDOWS
   return (zpin_t)InterlockedExchangeAdd (&iatm->spin, val);
@@ -357,7 +373,6 @@ zptr_t zpatm_cas(zatm_t atm, zptr_t cmp, zptr_t ptr){
 #else
 #error atomic is not implemented for this platform  
 #endif
-
   return(NULL);
 }
 zptr_t zpatm_xchg(zatm_t atm, zptr_t ptr){
