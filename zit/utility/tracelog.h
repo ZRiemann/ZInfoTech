@@ -6,7 +6,7 @@
 ZC_BEGIN
 
 ZAPI int ztrace_logctl(const char* fname, int log_size);
-ZAPI int ztrace_log(int level, const char* msg);
+ZAPI int ztrace_log(int level, void *user, const char* msg);
 
 ZC_END
 

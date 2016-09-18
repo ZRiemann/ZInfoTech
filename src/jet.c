@@ -4,6 +4,7 @@
    mission: 1        2         3        4        5 ...     misnum
             ^id=++id%misnum
 */
+#if 0
 #include "export.h"
 #include <zit/base/trace.h>
 #include <zit/base/queue.h>
@@ -272,3 +273,4 @@ zstatus_t zjet_getstatus(){
   }
   return s;
 }
+#endif

@@ -8,7 +8,9 @@
 #include <zit/framework/object.h>
 #include <zit/framework/task.h>
 #include <zit/base/error.h>
+#include <zit/base/trace.h>
 #include <zit/base/container.h>
+#include <zit/thread/thread.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -66,7 +68,14 @@ int ztsk_svr_create(ztsk_svr_t **tsk_svr){
       ret = zcontainer_create(&svr->mis_wait, ZCONTAINER_CKQUEUE);
       ZASSERTB(ZOK != ret);
       ret = zcontainer_create(&svr->tsk_recycle, ZCONTAINER_CKQUEUE);
-      ret = zsem_init(&svr->sem_wait, 0);
+      ZASSERTB(ZOK != ret);
+      ret = zcontainer_create(&svr->works, ZCONTAINER_LIST);
+      //ret = zsem_init(&svr->sem_wait, 0);
+
+      svr->dev.init = ztsk_svr_init;
+      svr->dev.fini = ztsk_svr_fini;
+      svr->dev.run = ztsk_svr_run;
+      svr->dev.stop = ztsk_svr_stop;
   }while(0);  
   if(ZOK != ret && svr){
     ztsk_svr_destroy(svr);
@@ -79,15 +88,19 @@ static int zobserver_destroy(OPARG){
   zcontainer_destroy(((zpair_t*)in)->value, NULL); // free list<zmis_t*>
   return ZOK;
 }
+/*
 static int zrecycle_destroy(OPARG){
   free(((zpair_t*)in)->value); // free task
+  return ZOK;
 }
+*/
 int ztsk_svr_destroy(ztsk_svr_t *tsk_svr){
   ZASSERT(!tsk_svr);
   zcontainer_destroy(tsk_svr->observers, zobserver_destroy);
   zcontainer_destroy(tsk_svr->mis_wait, NULL);
-  zcontainer_destroy(tsk_svr->tsk_recycle, zrecycle_destroy);
-  zsem_uninit(&tsk_svr->sem_wait);
+  zcontainer_destroy(tsk_svr->tsk_recycle, zobj_free);
+  zcontainer_destroy(tsk_svr->works, zobj_free);
+  //zsem_uninit(&tsk_svr->sem_wait);
   free(tsk_svr);
   return ZOK;
 }
@@ -143,7 +156,7 @@ int ztsk_svr_observer(ztsk_svr_t *svr, zmis_t *mis, zobj_type_t task_type){
   hint[2].i = task_type;
   zcontainer_foreach(svr->observers, foreach_observer, (zvalue_t)hint);
   if(ZFALSE == find){
-    pair = (zpair_t*)malloc(sizeof(pair_t));
+    pair = (zpair_t*)malloc(sizeof(zpair_t));
     ZASSERTC(!pair, ZMEM_INSUFFICIENT);
     ret = zcontainer_create(&cont, ZCONTAINER_LIST);
     if(ZOK != ret){
@@ -162,26 +175,25 @@ static int foreach_erase(OPARG){
   zpair_t *pair1 = (zpair_t*)in;
   if(pair1->key.i == pair->key.i){
     zcontainer_erase(pair1->value, pair->value, NULL);
-    return ZCMP_STOP;
+    return ZCMD_STOP;
   }
   return ZOK;
 }
 
 int ztsk_svr_unobserver(ztsk_svr_t *svr, zmis_t *mis, zobj_type_t task_type){
-  pair_t pair;
+  zpair_t pair;
 
-  ret = ZOK;
-  pair->key.i = task_type;
-  pair->value = mis;
-  zcontainer_foreach(svr->observers, foreach_ease, (zvalue_t)&pair);
+  pair.key.i = task_type;
+  pair.value = mis;
+  zcontainer_foreach(svr->observers, foreach_erase, (zvalue_t)&pair);
   return ZOK;
 }
 
 static int foreach_task(OPARG){
-  zany_t *param = (zpair_t*)hint;
+  zany_t *param = (zany_t*)hint;
   zpair_t *pair = (zpair_t*)in;
   
-  if(pair->key.i == param[0].key.i){
+  if(pair->key.i == param[0].i){
     *(((ztsk_t*)param[1].p)->observers) = (zcontainer_t)pair->value;
     *((int*)param[2].p) = ZOK;
   }
@@ -189,7 +201,7 @@ static int foreach_task(OPARG){
 }
 
 ZAPI int ztsk_svr_unref(zvalue_t tsk, zvalue_t *out, zvalue_t ref){
-  *((int*)ref) = ziatm->dec(((ztsk_t*)tsk)->atm);
+  *((int*)ref) = ziatm_dec(((ztsk_t*)tsk)->atm);
   return ZOK;
 }
 
@@ -210,7 +222,7 @@ ZINLINE int zget_task(ztsk_svr_t *svr, ztsk_t **tsk){
   int ret;
   ret = zcontainer_pop(svr->tsk_recycle, (zvalue_t*)tsk);
   if(ZOK != ret){
-    *tsk = (ztsk_t*)malloc(ztsk_t);
+    *tsk = (ztsk_t*)malloc(sizeof(ztsk_t));
     if(!*tsk){
       ret = ZMEM_INSUFFICIENT;
     }
@@ -227,10 +239,11 @@ ZINLINE int zget_task(ztsk_svr_t *svr, ztsk_t **tsk){
 
 int ztsk_svr_gettask(ztsk_svr_t *svr, ztsk_t **tsk, zobj_type_t task_type){
   int ret;
-  zany_t[3] param;
+  zany_t param[3];
 
   ZASSERT(!svr || !tsk);
-  ret = zget_tsk(svr, tsk); ZASSERTR(x);
+  ret = zget_task(svr, tsk); 
+  ZASSERTR(ret);
   param[0].i = task_type;
   param[1].p = (zptr_t)*tsk;
   param[2].p = (zptr_t)&ret;
@@ -243,12 +256,13 @@ int ztsk_svr_gettask(ztsk_svr_t *svr, ztsk_t **tsk, zobj_type_t task_type){
   return ret;
 }
 
-static int foreach_operate(OPRG){
+static int foreach_operate(OPARG){
   zpair_t *pair = in;
   ztsk_t *tsk = (ztsk_t*)hint;
   if(tsk->obj.type == pair->key.i){
     tsk->obj.operate = (zoperate)pair->value;
   }
+  return ZOK;
 }
 
 static int foreach_post(OPARG){
@@ -272,24 +286,24 @@ static int foreach_post(OPARG){
     tsk->mission = (zvalue_t)mis;
     tsk->obj.operate = NULL;
     zcontainer_foreach(mis->operates, foreach_operate, (zvalue_t)tsk);
-    zconainer_push(mis->tasks, tsk);
+    zcontainer_push(mis->tasks, tsk);
     // !busy push mis_wait
     if(ZTRUE == ziatm_cas(mis->atm, ZFALSE, ZTRUE)){
       zcontainer_push(svr->mis_wait, mis);
-      zsem_post(sem_wait);
+      //zsem_post(sem_wait);
     }
   }else{
     // multi send
-    ret = tsk->obj.clone(tsk, &tsk_clone, NULL);
+    ret = tsk->obj.clone(tsk, (zvalue_t*)&tsk_clone, NULL);
     if(ZOK == ret){
       tsk_clone->mission = (zvalue_t)mis;
       tsk_clone->obj.operate = NULL;
-      zcontainer_foreach(mis_operates, foreach_operate, (zvalue_t)tsk_clone);
+      zcontainer_foreach(mis->operates, foreach_operate, (zvalue_t)tsk_clone);
       zcontainer_push(mis->tasks, tsk_clone);
       // !busy push mis_wait
       if(ZTRUE == ziatm_cas(mis->atm, ZFALSE, ZTRUE)){
 	zcontainer_push(svr->mis_wait, mis);
-	zsem_post(sem_wait);
+	//zsem_post(sem_wait);
       }
     }else{
       // ZERRC(ret);
@@ -321,22 +335,22 @@ static zthr_ret_t ZCALL zproc_tsk_svr(void* param){
   zmis_t *mis;
   ztsk_t *tsk;
   int cnt;
-
-  svr = thr->param; // for user parameter
+  
   thr = (zthr_t*)param;
+  svr = (ztsk_svr_t*)thr->param; // for user parameter
   ret = ZEOK;
   cnt = 0;
 
   ZDBG("thread[%s] running...", thr->name);
   if(ZEOK != zthreadx_procbegin(thr)){
     zthreadx_procend(thr, ret);
-    return (zthr_ret_t)ret;
+    return 0;
   }
-  while( ZTIMEOUT == zsem_wait(&(thr->sem_exit), 0)){
+  while( ZTIMEOUT == zsem_wait(&(thr->exit), 0)){
     //if(ZOK != zsem_wait(&(svr->sem_wait), 200)){
     //  continue;
     //}
-    ret = zcontainer_pop(svr->mis_wait, &mis);
+    ret = zcontainer_pop(svr->mis_wait, (zvalue_t)&mis);
     if(ZOK != ret){
       ZERRC(ret);
       continue;
@@ -344,7 +358,7 @@ static zthr_ret_t ZCALL zproc_tsk_svr(void* param){
 
     // do tasks in mission, max 16 tasks
     cnt = 0;
-    while(ZOK == zcontainer_pop(mis->tasks, &tsk)){
+    while(ZOK == zcontainer_pop(mis->tasks, (zvalue_t)&tsk)){
       tsk->obj.operate((zvalue_t)tsk, NULL, (zvalue_t)svr);
       //tsk->obj.release((zvalue_t)tsk, NULL, (zvalue_t)svr);
       zrecycle_task(svr, tsk);
@@ -357,10 +371,15 @@ static zthr_ret_t ZCALL zproc_tsk_svr(void* param){
   }
   zthreadx_procend(thr, ret);
   ZDBG("thread[%s] exit now.", thr->name);
-  return (zthr_ret_t)ret;
+  return 0;
 }
 
+
 static int ztsk_svr_init(OPARG){
+  ztsk_svr_t *svr;
+
+  svr = (ztsk_svr_t*)in;
+  svr->worknum = *((int*)hint);
   return ZOK;
 }
 
@@ -369,9 +388,38 @@ static int ztsk_svr_fini(OPARG){
 }
 
 static int ztsk_svr_run(OPARG){
+  int ret;
+  ztsk_svr_t *svr;
+  zthr_t *thr;
+  int i;
+
+  svr = (ztsk_svr_t*)in;
+  ret = ZOK;
+  
+  for(i=0; i<svr->worknum; i++){
+    thr = (zthr_t*)malloc(sizeof(zthr_t)); if(!thr)break;
+    ret = zthreadx_create(thr, zproc_tsk_svr);
+    if(ZOK != ret){
+      free(thr);
+      break;
+    }
+    zcontainer_push(svr->works, (zvalue_t)thr);
+  }
+  svr->worknum = i;
   return ZOK;
 }
 
 static int ztsk_svr_stop(OPARG){
+  ztsk_svr_t *svr;
+  zthr_t *thr;
+
+  svr = (ztsk_svr_t*)in;
+  
+  while(zcontainer_pop(svr->works, (zvalue_t*)&thr)){
+    zthreadx_cancel(thr);
+    zthreadx_join(thr);
+    free(thr);
+  }
+  
   return ZOK;
 }

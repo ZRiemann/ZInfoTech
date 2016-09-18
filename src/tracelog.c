@@ -86,7 +86,8 @@ int ztrace_logctl(const char* fname, int logsize){
   }
   return ZEOK;
 }
-int ztrace_log(int level, const char* msg){
+
+int ztrace_log(int level, void* usr, const char* msg){
   int ret = ZEOK;
  
   const char* szLevel = " DBG:";

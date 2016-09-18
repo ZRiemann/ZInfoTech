@@ -26,6 +26,8 @@ endef
 
 define install_zit
 	@rm -f $(INST_DIR)/$(ZIT_NAME)* &&\
+	rm -fr /usr/local/include/zit && \
+	cp -r zit /usr/local/include/ && \
 	cp $(BIN_DIR)/$(ZIT_VER) $(INST_DIR) &&\
 	cd $(INST_DIR) &&\
 	ldconfig -n ./ &&\
@@ -57,4 +59,4 @@ install :
 
 .PHONY:uninstall
 uninstall:
-	@rm -f $(INST_DIR)/$(ZIT_NAME)* && ldconfig
+	@rm -f $(INST_DIR)/$(ZIT_NAME)* && ldconfig && rm -fr /usr/local/include/zit

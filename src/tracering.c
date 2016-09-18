@@ -1,3 +1,4 @@
+#if 0
 #include "export.h"
 #include <zit/utility/tracering.h>
 #include <zit/base/type.h>
@@ -74,3 +75,4 @@ int ztracering_uninit(){
   return ZEOK;
 }
 
+#endif

@@ -11,6 +11,8 @@
 #include <zit/base/type.h>
 #include <zit/thread/semaphore.h>
 #include <zit/base/atomic.h>
+#include <zit/thread/thread.h>
+
 // general task definition 
 typedef struct ztask_s{
   zobj_t obj;
@@ -23,23 +25,18 @@ typedef struct ztask_s{
 
 typedef struct zmission_s{
   zdev_t dev;
-  //uint16_t workers;
   zcontainer_t tasks;    // queue<ztsk_t*>
   zcontainer_t operates; // list< zpair_t< zobj_type_t, zoperate >* >
   zatm_t atm;             // ZFALSE - no task; ZTRUE - wait task
-  //zoperate push;
-  //zoperate pop;
 }zmis_t;
-
-//ZAPI int zmis_push(OPARG);
-//ZAPI int zmis_pop(OPARG);
 
 typedef struct ztsk_server_s{
   zdev_t dev;
   zcontainer_t observers;// list< zpair_t< zobj_type_t, list<zmis_t*> >* > observer()/gettask()
   zcontainer_t mis_wait; // queue<mis_t*>
   zcontainer_t tsk_recycle; // tsk buffer
-  zsem_t sem_wait;
+  zcontainer_t works;    // list<zthr_t*>
+  int worknum;           // work numbers
 }ztsk_svr_t;
 
 ZAPI int ztsk_svr_create(ztsk_svr_t **tsk_svr);

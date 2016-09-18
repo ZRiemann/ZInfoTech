@@ -5,7 +5,7 @@
 #include <zit/base/trace.h>
 #include <zit/utility/traceconsole.h>
 
-int ztrace_console(int level, const char* msg){
+int ztrace_console(int level, void *user, const char* msg){
   const char* szlevel;
   char now[64] = {0};
 

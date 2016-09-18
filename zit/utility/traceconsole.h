@@ -5,7 +5,7 @@
 
 ZC_BEGIN
 
-ZAPI int ztrace_console(int level, const char* msg);
+ZAPI int ztrace_console(int level, void* user, const char* msg);
 
 ZC_END
 
