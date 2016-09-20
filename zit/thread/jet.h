@@ -10,7 +10,7 @@
 #include <zit/base/platform.h>
 #include <zit/base/type.h>
 #include <zit/thread/thread_def.h>
-
+#include <zit/framework/task.h>
 ZC_BEGIN
 
 ZAPI int zjet_init();

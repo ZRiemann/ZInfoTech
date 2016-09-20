@@ -12,7 +12,7 @@
 #include <string.h>
 #include <time.h>
 #include "tthread.h"
-
+#if 0
 //#define USE_RINGT
 
 //static FILE* fw = NULL;
@@ -428,3 +428,4 @@ void ztst_thrxctl(){
   //zthreadx_cancel(&zthr);
   //zthreadx_join(&zthr);
 }
+#endif//#if 0

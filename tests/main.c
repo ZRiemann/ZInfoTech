@@ -10,15 +10,15 @@
 //#include "tthread.h"
 
 int ztst_trace(int level, void* user, const char* msg){
-  ztrace_console(level, msg);
-  //ztrace_log(level, msg);
+  ztrace_console(level, user, msg);
+  //ztrace_log(level, user, msg);
   return ZEOK;
 }
 
 int main(int argc, char** argv){  
   ztrace_logctl("ztest.log",0);
-  ztracering_init(ztst_trace, NULL);
-  
+  //ztracering_init(ztst_trace, NULL);
+  ztrace_reg(ztst_trace, NULL);
   //zjet_init();
   //  zjet_run();
 
@@ -35,7 +35,7 @@ int main(int argc, char** argv){
     //zjet_stop(0);
     //zjet_uninit();
 
-  ztracering_uninit();
+    //  ztracering_uninit();
   ztrace_logctl(NULL,0); // close the log file.
   return 0;
 }
