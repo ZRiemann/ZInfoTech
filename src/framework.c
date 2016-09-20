@@ -362,7 +362,8 @@ static zthr_ret_t ZCALL zproc_tsk_svr(void* param){
       tsk->obj.operate((zvalue_t)tsk, NULL, (zvalue_t)svr);
       //tsk->obj.release((zvalue_t)tsk, NULL, (zvalue_t)svr);
       zrecycle_task(svr, tsk);
-      if(++cnt >= 16)break;
+      if(ZMIS_MODE_CONCURRENT == mis->mode)break;
+      if(++cnt >= 16 && ZMIS_MODE_SERIAL)break;
     }
 
     zcontainer_push(svr->mis_wait, mis);

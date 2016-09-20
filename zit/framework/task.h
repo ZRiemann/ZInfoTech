@@ -23,8 +23,12 @@ typedef struct ztask_s{
   zatm_t atm; /// reference
 }ztsk_t;
 
+#define ZMIS_MODE_SERIAL 0
+#define ZMIS_MODE_CONCURRENT 1
+
 typedef struct zmission_s{
   zdev_t dev;
+  int mode;              // 0- serial mode 1- concurrent mode
   zcontainer_t tasks;    // queue<ztsk_t*>
   zcontainer_t operates; // list< zpair_t< zobj_type_t, zoperate >* >
   zatm_t atm;             // ZFALSE - no task; ZTRUE - wait task
