@@ -21,7 +21,7 @@ ZAPI int zque_popback(zcontainer_t cont, zvalue_t *out);
 ZAPI int zque_insert(zcontainer_t cont, zvalue_t in, zoperate compare);
 ZAPI int zque_erase(zcontainer_t cont, zvalue_t in, zoperate compare);
 ZAPI int zque_foreach(zcontainer_t cont, zoperate op, zvalue_t hint);
-
+ZAPI zsize_t zque_size(zcontainer_t cont);
 ZC_END
 
 #endif

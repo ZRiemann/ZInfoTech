@@ -18,7 +18,7 @@ typedef struct zlist_s{
   znod_t *recycle;
   uint32_t cnt_recycle;
   uint32_t max_recycle;
-  size_t num;  // list size
+  zsize_t num;  // list size
   zatm_t atm;
 }zlist_t;
 
@@ -71,6 +71,9 @@ ZINLINE void zlist_getnode(zlist_t *list, znod_t **nod){
   }
 }
 
+zsize_t zlist_size(zcontainer_t cont){
+  return ((zlist_t*)cont)->num;
+}
 int zlist_push(zcontainer_t cont, zvalue_t in){//push back
   znod_t *nod;
   zlist_t *list;

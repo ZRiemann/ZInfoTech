@@ -14,6 +14,7 @@ typedef int (*zcont_popback)(zcontainer_t cont, zvalue_t *out);
 typedef int (*zcont_insert)(zcontainer_t cont, zvalue_t in, zoperate compare);
 typedef int (*zcont_erase)(zcontainer_t cont, zvalue_t in, zoperate compare);
 typedef int (*zcont_foreach)(zcontainer_t cont, zoperate op, zvalue_t hint);
+typedef zsize_t (*zcont_size)(zcontainer_t cont);
 
 typedef struct zcontainer_s{
   zcontainer_t cont;
@@ -25,6 +26,7 @@ typedef struct zcontainer_s{
   zcont_insert insert;
   zcont_erase erase;
   zcont_foreach foreach;
+  zcont_size size;
 }zcont_t;
 
 int zcontainer_create(zcontainer_t *cont, int type){
@@ -107,4 +109,10 @@ int zcontainer_foreach(zcontainer_t cont, zoperate op, zvalue_t hint){
   zcont_t *cnt = (zcont_t*)cont;
   ZASSERT(!cnt);
   return(cnt->foreach(cnt->cont, op, hint));
+}
+
+zsize_t zcontainer_size(zcontainer_t cont){
+  zcont_t *cnt = (zcont_t*)cont;
+  ZASSERT(!cnt);
+  return(cnt->size(cnt->cont));
 }

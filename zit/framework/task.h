@@ -19,7 +19,7 @@ typedef struct ztask_s{
   zvalue_t mission;
   zvalue_t hint;
   zany_t param[3];
-  zcontainer_t* observers; ///< list<mis_t*>*
+  zcontainer_t observers; ///< list<mis_t*>*
   zatm_t atm; /// reference
 }ztsk_t;
 
@@ -34,13 +34,19 @@ typedef struct zmission_s{
   zatm_t atm;             // ZFALSE - no task; ZTRUE - wait task
 }zmis_t;
 
+ZAPI int zmis_init(OPARG);
+ZAPI int zmis_fini(OPARG);
+ZAPI int zmis_attach_op(zmis_t *mis, zobj_type_t type, zoperate op);
+
 typedef struct ztsk_server_s{
   zdev_t dev;
   zcontainer_t observers;// list< zpair_t< zobj_type_t, list<zmis_t*> >* > observer()/gettask()
   zcontainer_t mis_wait; // queue<mis_t*>
+  zcontainer_t mis_pending; // queue<mis_t*> avoid zombie task
   zcontainer_t tsk_recycle; // tsk buffer
   zcontainer_t works;    // list<zthr_t*>
   int worknum;           // work numbers
+  zsem_t sem_wait;
 }ztsk_svr_t;
 
 ZAPI int ztsk_svr_create(ztsk_svr_t **tsk_svr);

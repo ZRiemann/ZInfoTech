@@ -69,6 +69,7 @@ typedef void* zvalue_t;
 typedef zvalue_t zatm_t;
 typedef int32_t zspin_t;
 typedef zvalue_t zptr_t;
+typedef uint32_t zsize_t;
 
 // include <string.h> before use ZI2V()/ZV2I()
 #define ZCONVERT(dest, src) do{memset(&(dest),0,sizeof(dest));memcpy(&(dest),&(src),(sizeof(src)<sizeof(dest)?sizeof(src):sizeof(dest)));}while(0)
@@ -98,8 +99,8 @@ typedef int (*zact)(zvalue_t user, zvalue_t hint);
 typedef int (*zoperate)(zvalue_t in, zvalue_t *out, zvalue_t hint); // any operate
 #define OPARG zvalue_t in,zvalue_t *out,zvalue_t hint
 #define OPNULL NULL,NULL,NULL
-#define OPIN(in) in,NULL,NULL
-#define OPHINT(hint) NULL,NULL,hint
+#define OPIN(in) (zvalue_t)in,NULL,NULL
+#define OPHINT(hint) NULL,NULL,(zvalue_t)hint
 
 #define ZTSKMD_SEQUENCE 0
 #define ZTSKMD_NORMAL 1

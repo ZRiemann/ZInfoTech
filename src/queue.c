@@ -65,6 +65,7 @@ typedef struct zqueue_t{
   zatm_t atm_lock;
   int posfront;
   int posback;
+  zsize_t size;
 }zque_t;
 
 int zque_create(zcontainer_t *cont){
@@ -84,6 +85,7 @@ int zque_create(zcontainer_t *cont){
     pque->chnkfront = pque->chnkback = chnk;
     pque->posfront = pque->posback = 0;
     chnk->prev = chnk->next = NULL;
+    pque->size = 0;
   }
 #if ZTRACE_QUE
   ZERRC(ret);
@@ -116,6 +118,9 @@ int zque_destroy(zcontainer_t cont, zoperate release){
   return(ZOK);
 }
 
+zsize_t zque_size(zcontainer_t cont){
+  return ((zque_t*)cont)->size;
+}
 int zque_push(zcontainer_t cont, zvalue_t in){
   zque_t *que;
   int ret;
@@ -138,6 +143,7 @@ int zque_push(zcontainer_t cont, zvalue_t in){
     }
   }
   //  ZERRCX(ret);
+  if(ZOK == ret)++que->size;
   ziatm_unlock(que->atm_lock);
   return(ret);
 }
@@ -165,6 +171,7 @@ int zque_pop(zcontainer_t cont, zvalue_t *out){
     ZDBG("pop exchange sqare chunk");
   }
   //ZERRCX(ret);
+  if(ZOK == ret)--que->size;
   ziatm_unlock(que->atm_lock);
   return(ret);
 }
@@ -191,6 +198,7 @@ int zque_pushfront(zcontainer_t cont, zvalue_t in){
     que->chnkfront->v[que->posfront] = in;
   }
   //ZERRCX(ret);
+  if(ZOK == ret)++que->size;
   ziatm_unlock(que->atm_lock);
   return ret;
 
@@ -219,6 +227,7 @@ int zque_popback(zcontainer_t cont, zvalue_t *out){
   }
   *out = que->chnkback->v[que->posback];
   //ZERRCX(ret);
+  if(ZOK == ret)--que->size;
   ziatm_unlock(que->atm_lock);
   return ret;
 }
