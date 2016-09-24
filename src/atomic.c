@@ -135,7 +135,7 @@ zspin_t ziatm_cas(zatm_t atm, zspin_t cmp, zspin_t val){
     iatm->spin = val;
   }
   ZUNLOCK(&iatm->mtx);
-  return (old == val);
+  return (old == cmp);
   //#elif (defined ZATM_X86)
     //#elif (defined ZATM_ARM)
 #else

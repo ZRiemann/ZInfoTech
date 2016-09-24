@@ -64,6 +64,8 @@ static int op_counter(OPARG){
     if(i >= tsk->param[1].i){
       zsem_post((zsem_t*)tsk->hint);
     } 
+  }else{
+    //zdbg("tsk[%d] down.", i);
   }
   return(ZOK);
 }
@@ -81,15 +83,17 @@ static void ztst_framework(){
   max_task = 0x100000;
   mis = (zmis_t*)malloc(sizeof(zmis_t));
   ZDUMP(zmis_init(OPIN(mis)));
-  mis->mode = ZMIS_MODE_CONCURRENT;
+  mis->mode = ZMIS_MODE_CONCURRENT; //574000 task per seconds
+  //mis->mode = ZMIS_MODE_SERIAL;
   zmis_attach_op(mis, ZTSK_TYPE_COUNTER, op_counter);
  
   ZDUMP(ztsk_svr_create(&svr));
   ZDUMP(svr->dev.init(OPIN(svr)));
+  svr->worknum = 4;
   ZDUMP(svr->dev.run(OPIN(svr)));
   ZDUMP(ztsk_svr_observer(svr, mis, ZTSK_TYPE_COUNTER));
   // post max_task tasks
-  for(i=0; i<max_task; i++){
+  for(i=0; i<=max_task; i++){
     ret = ztsk_svr_gettask(svr, &tsk, ZTSK_TYPE_COUNTER);
     if(ZOK != ret){
       zerr("get task[%d] failed<%s>", i, zstrerr(ret));
@@ -99,13 +103,17 @@ static void ztst_framework(){
     tsk->param[1].i = max_task;
     tsk->hint = (zvalue_t*)&sem_down;
     ztsk_svr_post(svr, tsk);
+    //if((i & 0X000003FF) == 0){
+    //  zdbg("%d task posted", i);
+    //}
   }
+  zdbg("all task post down...");
   // wait all task down
   zsem_wait(&sem_down, ZINFINITE);
-  zdbg("all task down.");
+  zdbg("all task working down.");
   ZDUMP(svr->dev.stop(OPIN(svr)));
   ZDUMP(svr->dev.fini(OPIN(svr)));
-  ZDUMP(ztsk_svr_destroy(svr));
+  //ZDUMP(ztsk_svr_destroy(svr));
   ZDUMP(zmis_fini((zvalue_t)mis, NULL, NULL));
   free(mis);
   zsem_uninit(&sem_down);

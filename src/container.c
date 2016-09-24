@@ -48,6 +48,7 @@ int zcontainer_create(zcontainer_t *cont, int type){
       cnt->insert = zlist_insert;
       cnt->erase = zlist_erase;
       cnt->foreach = zlist_foreach;
+      cnt->size = zlist_size;
     }else{
       free(cnt);
       *cont = NULL;
@@ -63,6 +64,7 @@ int zcontainer_create(zcontainer_t *cont, int type){
       cnt->insert = zque_insert;
       cnt->erase = zque_erase;
       cnt->foreach = zque_foreach;
+      cnt->size = zque_size;
     }else{
       free(cnt);
       *cont = NULL;
