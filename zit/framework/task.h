@@ -47,6 +47,7 @@ typedef struct ztsk_server_s{
   zcontainer_t works;    // list<zthr_t*>
   int worknum;           // work numbers
   zsem_t sem_wait;
+  //  zatm_t atm;            // lock
 }ztsk_svr_t;
 
 ZAPI int ztsk_svr_create(ztsk_svr_t **tsk_svr);
