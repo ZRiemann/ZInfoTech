@@ -23,7 +23,7 @@ const int ZCMD_STOP = ZECMD_STOP;// (ZEMASK | 12) // return stop command
 const int ZCMP_EQUAL = ZECMP_EQUAL;// (ZEMASK | 13) // compare equal
 const int ZCMP_GREAT = ZECMP_GREAT;// (ZEMASK | 14) // compare great
 const int ZCMP_LITTLE = ZECMP_LITTLE;// (ZEMASK | 15) // compare little
-
+const int ZCMD_RESTART = ZECMD_RESTART;
 
 int zversion(){
   return 0x010101;

@@ -51,7 +51,7 @@ pre_chnkback 0 1 2 3 ... ZQUEUE_SIZE-1
 # push/pop front similer push/pop back.
 */
 
-#define ZQUEUE_SIZE 1024
+#define ZQUEUE_SIZE 4090
 typedef struct zchunk_t{
   zvalue_t v[ZQUEUE_SIZE];
   struct zchunk_t* next;
@@ -96,16 +96,19 @@ int zque_create(zcontainer_t *cont){
 int zque_destroy(zcontainer_t cont, zoperate release){
   zque_t *que = (zque_t*)cont;
   zchnk_t* chnkfront;
+  void* ptr;
+
   if(NULL != que){
     // release data
     if(release)zque_foreach(cont, release, NULL);
     while(que->chnkfront){
       chnkfront = que->chnkfront;
       que->chnkfront = que->chnkfront->next;
+      zdbg("free queue chunk<%p>", chnkfront);
       free(chnkfront);
     }
     
-    void* ptr = zpatm_xchg(que->atm_spare, (void*)NULL);
+    ptr = zpatm_xchg(que->atm_spare, (void*)NULL);
     free(ptr);
     // destroy
     zpatm_destroy(que->atm_spare);
@@ -121,32 +124,34 @@ int zque_destroy(zcontainer_t cont, zoperate release){
 zsize_t zque_size(zcontainer_t cont){
   return ((zque_t*)cont)->size;
 }
+
 int zque_push(zcontainer_t cont, zvalue_t in){
   zque_t *que;
   int ret;
 
   que = (zque_t*)cont;
-  ret = ziatm_lock(que->atm_lock); if(ZOK != ret){return ret;}
-  
+  ret = ziatm_lock(que->atm_lock); if(ZOK != ret){ZERRC(ret);return ret;}
+  ++que->size;
   que->chnkback->v[que->posback] = in;
   if(++(que->posback) == ZQUEUE_SIZE){
     zchnk_t* chnksqare = zpatm_xchg(que->atm_spare, NULL);
     if((NULL == chnksqare) && (NULL ==(chnksqare = (zchnk_t*)malloc(sizeof(zchnk_t))))){
       --(que->posback);
+      --que->size;
       ret = ZEMEM_INSUFFICIENT;
     }else{
       que->chnkback->next = chnksqare;
       chnksqare->prev = que->chnkback;
+      chnksqare->next = NULL;
       que->chnkback = chnksqare;
       que->posback = 0;
       //  ZDBG("push exchange sqare chunk.");
     }
   }
-  //  ZERRCX(ret);
-  if(ZOK == ret)++que->size;
   ziatm_unlock(que->atm_lock);
   return(ret);
 }
+
 int zque_pop(zcontainer_t cont, zvalue_t *out){
   zque_t *que;
   int ret = ZOK;
@@ -154,10 +159,13 @@ int zque_pop(zcontainer_t cont, zvalue_t *out){
   que  = (zque_t*)cont;
   ret = ziatm_lock(que->atm_lock);if(ZOK != ret){return ret;}
   *out = que->chnkfront->v[que->posfront];
+  --que->size;
   if(que->chnkfront == que->chnkback){
     if(que->posfront < que->posback){
       ++(que->posfront);// reset position ** disable for push pop not thread save
     }else{
+      ++que->size;
+      *out = NULL;
       ret = ZNOT_EXIST;
     }
   }else if(++(que->posfront) == ZQUEUE_SIZE){
@@ -168,10 +176,10 @@ int zque_pop(zcontainer_t cont, zvalue_t *out){
     que->chnkfront->prev = NULL;
     chnksqare = zpatm_xchg(que->atm_spare, chnkfront);
     free(chnksqare);
-    ZDBG("pop exchange sqare chunk");
+    //    ZDBG("pop exchange sqare chunk");
   }
   //ZERRCX(ret);
-  if(ZOK == ret)--que->size;
+  //if(ZOK == ret)--que->size;
   ziatm_unlock(que->atm_lock);
   return(ret);
 }
@@ -181,14 +189,17 @@ int zque_pushfront(zcontainer_t cont, zvalue_t in){
   int ret = ZEOK;
   que = (zque_t*)cont;
   ret = ziatm_lock(que->atm_lock); if(ZOK != ret){return ret;}
+  ++que->size;
   if(--(que->posfront) < 0){
     zchnk_t* chnksqare = zpatm_xchg(que->atm_spare, NULL);
     if((NULL == chnksqare) && (NULL ==(chnksqare = (zchnk_t*)malloc(sizeof(zchnk_t))))){
       ++(que->posfront);
       ret = ZEMEM_INSUFFICIENT;
+      --que->size;
     }else{
       que->chnkfront->prev = chnksqare;
       chnksqare->next = que->chnkfront;
+      chnksqare->prev = NULL;
       que->chnkfront = chnksqare;
       que->posfront = ZQUEUE_SIZE-1;
       que->chnkfront->v[que->posfront] = in;
@@ -198,7 +209,6 @@ int zque_pushfront(zcontainer_t cont, zvalue_t in){
     que->chnkfront->v[que->posfront] = in;
   }
   //ZERRCX(ret);
-  if(ZOK == ret)++que->size;
   ziatm_unlock(que->atm_lock);
   return ret;
 
@@ -209,10 +219,13 @@ int zque_popback(zcontainer_t cont, zvalue_t *out){
   int ret = ZEOK;
   que = (zque_t*)cont;
   ret = ziatm_lock(que->atm_lock); if(ZOK != ret){return ret;}
+  --que->size;
   if(que->chnkfront == que->chnkback){
     if(que->posfront < que->posback){
       --(que->posback);
     }else{
+      ++que->size;
+      *out = NULL;
       ret = ZNOT_EXIST;
     }
   }else if(--(que->posback) < 0){
@@ -223,11 +236,10 @@ int zque_popback(zcontainer_t cont, zvalue_t *out){
     que->chnkback->next = NULL;
     chnksqare = (zchnk_t*)zpatm_xchg(que->atm_spare, chnkback);
     free(chnksqare);
-    ZDBG("pop exchange sqare chunk");
+    //ZDBG("pop exchange sqare chunk");
   }
   *out = que->chnkback->v[que->posback];
   //ZERRCX(ret);
-  if(ZOK == ret)--que->size;
   ziatm_unlock(que->atm_lock);
   return ret;
 }

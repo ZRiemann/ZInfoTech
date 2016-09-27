@@ -10,12 +10,12 @@
 #include <stdlib.h>
 #include <string.h>
 
-static void ztst_list();
-static void ztst_que();
-static void ztst_container();
+//static void ztst_list();
+//static void ztst_que();
+//static void ztst_container();
 static void ztst_framework();
 void ztst_base(){
-  int i,j;
+  /* int i,j;
   char buf[256];
   int v = zversion();
   zmsg("=====================================\ntesting base...\n");
@@ -44,28 +44,24 @@ void ztst_base(){
     ZERRCX(j);
   }
   zmsg("\ntest base end.\n");
-
-  ztst_list();
-  ztst_que();
-  ztst_container();
+*/
+  //ztst_list();
+  //ztst_que();
+  //  ztst_container();
   ztst_framework();
 }
 
 //====================================================
 #define ZTSK_TYPE_COUNTER (ZOBJ_TYPE_USER + 1)
-
+static int  check[0x100000];
 static int op_counter(OPARG){
   ztsk_t *tsk;
   int i;
   tsk = (ztsk_t*)in;
   i = tsk->param[0].i;
-  if((i & 0X000003FF) == 0){
-    zdbg("task[%d] down.",i);
-    if(i >= tsk->param[1].i){
-      zsem_post((zsem_t*)tsk->hint);
-    } 
-  }else{
-    //zdbg("tsk[%d] down.", i);
+  ++(check[i]);
+  if(i >= tsk->param[1].i){
+    zsem_post((zsem_t*)tsk->hint);
   }
   return(ZOK);
 }
@@ -78,13 +74,14 @@ static void ztst_framework(){
   zsem_t sem_down;
   int ret;
   ztsk_t *tsk;
-
+  int check_ok;
+  int check_fail;
   zsem_init(&sem_down,0);
   max_task = 0x100000;
   mis = (zmis_t*)malloc(sizeof(zmis_t));
   ZDUMP(zmis_init(OPIN(mis)));
-  mis->mode = ZMIS_MODE_CONCURRENT; //574000 task per seconds
-  //mis->mode = ZMIS_MODE_SERIAL;
+  //mis->mode = ZMIS_MODE_CONCURRENT; //1M/1220ms/4thread  1050ms/1thread
+  mis->mode = ZMIS_MODE_SERIAL; // 1M/970ms/4thread 1280ms/1thread
   zmis_attach_op(mis, ZTSK_TYPE_COUNTER, op_counter);
  
   ZDUMP(ztsk_svr_create(&svr));
@@ -110,15 +107,29 @@ static void ztst_framework(){
   zdbg("all task post down...");
   // wait all task down
   zsem_wait(&sem_down, ZINFINITE);
-  zdbg("all task working down.");
+  zdbg("all task down.");
+  check_ok = 0;
+  check_fail = 0;
+  for(i = 0; i<=max_task; i++){
+    if(check[i]!=1){
+      //zdbg("check[%d]=%d", i, check[i]);
+      check_fail++;
+    }else{
+      //zdbg("%d check ok", i);
+      check_ok++;
+    }
+  }
+  
+  zdbg("all task working down. <ok:%d, fail:%d>", check_ok, check_fail);
+  
   ZDUMP(svr->dev.stop(OPIN(svr)));
   ZDUMP(svr->dev.fini(OPIN(svr)));
-  //ZDUMP(ztsk_svr_destroy(svr));
+  ZDUMP(ztsk_svr_destroy(svr));
   ZDUMP(zmis_fini((zvalue_t)mis, NULL, NULL));
   free(mis);
   zsem_uninit(&sem_down);
 }
-
+#if 0
 //=====================================================
 static int zprint(OPARG){
   int* i = (int*)hint;
@@ -233,3 +244,4 @@ static void ztst_list(){
   ZDUMP(zlist_destroy(list,NULL));
   zmsg("\n test zit list container end\n");
 }
+#endif
