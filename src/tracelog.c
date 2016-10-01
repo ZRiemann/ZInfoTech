@@ -77,7 +77,7 @@ int ztrace_logctl(const char* fname, int logsize){
   }
   if(fname && (strlen(fname) < ((size_t)ZLOG_NAME_SIZE-4)) )
   {
-    sprintf(zg_logname,fname);
+    sprintf(zg_logname,"%s",fname);
     sprintf(zg_logname_backup, "%s.log",fname);
   }
   if( (logsize > 1023) && (logsize < 512*1024*1024) )

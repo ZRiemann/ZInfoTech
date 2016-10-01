@@ -139,7 +139,7 @@ const char*  zstrerr(int code) {
     msg = errmap[0];
   }else {
 #ifdef ZSYS_POSIX
-    snprintf(lasterr, ZTRACE_BUF_SIZE, strerror(code));
+    snprintf(lasterr, ZTRACE_BUF_SIZE, "%s", strerror(code));
 #else//ZSYS_WINDOWS
     zwin_lasterror(code, lasterr, ZTRACE_BUF_SIZE);
 #endif

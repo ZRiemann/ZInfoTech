@@ -56,7 +56,7 @@ time_t zstr2time(const char* strTime){
   char* szBegin;
   char szTime[32];
   //%d-%d-%d %d:%d:%d
-  sprintf(szTime,strTime);
+  sprintf(szTime,"%s", strTime);
   
   szBegin = szTime;
   szEnd = strstr(szBegin,"-");
