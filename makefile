@@ -20,7 +20,7 @@ define make_obj
 	@mkdir -p $(OBJS_DIR)
 	@mkdir -p $(BIN_DIR)
 	@cp -u makeout.mk $(OBJS_DIR)/makefile
-	@chmod 755 ./makeworker
+	@gcc makeworker.c -o makeworker
 	@./makeworker src $(OBJS_DIR) .c $(CC) $(CFLAGS)
 endef
 
