@@ -11,7 +11,7 @@ INST_DIR=/usr/local/lib
 ZIT_NAME=libzit.so
 ZIT_VER=$(ZIT_NAME).0.0.0
 CFLAGS='$(GDB) -fPIC -Wall -Werror -I$(ROOT_DIR)'
-
+CFLAGST = '$(GDB) -Wall -Werror'
 # **** export variable to sub makefiles ***
 export CC CFLAGS OBJS_DIR BIN_DIR GDB
 
@@ -46,7 +46,7 @@ makeout:
 
 .PHONY : test
 test :
-	@./makeworker tests $(OBJS_DIR) .c $(CC) $(CFLAGS) &&\
+	@./makeworker tests $(OBJS_DIR) .c $(CC) $(CFLAGST) &&\
 	make -C $(OBJS_DIR) test
 
 .PHONY:clean

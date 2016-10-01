@@ -28,8 +28,11 @@ ZIT_TST=tutility.o main.o tbase.o tthread.o
 .PHONY : all
 all : $(BIN_DIR)/libzit.so.0.0.0
 $(BIN_DIR)/libzit.so.0.0.0 : $(ZIT_LIB)
-	$(CC) $(GDB) -shared -Wl,-soname,libzit.so.0 -o $@ $^
+	$(CC) $(GDB) -shared -fPIC -Wl,-soname,libzit.so.0 -o $@ $^
 
 .PHONY : test
 test : $(ZIT_TST)
-	$(CC) $(GDB) -lzit -lpthread -lrt -D_REENTRANT $^ -o $(BIN_DIR)/zit_test
+	$(CC) $(GDB) $^ -o $(BIN_DIR)/zit_test -lzit -pthread -lrt
+# error follow, can not work on ubuntu. 
+#	$(CC) $(GDB) -lpthread -lrt -D_REENTRANT -lzit $^ -o $(BIN_DIR)/zit_test
+
