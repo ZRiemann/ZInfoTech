@@ -57,6 +57,12 @@ typedef enum{
   ZSTOPING, // begin stop 
   ZSTOP    // end stop
 }zstatus_t;
+
+#define ZSTAT_FINI 0
+#define ZSTAT_INIT 1
+#define ZSTAT_RUN 2
+#define ZSTAT_STOP 3
+#define ZSTAT_PENDING 4 // not in any status while switch status
   
 typedef void* zcontainer_t; // for all zit container
 /* for all container value, caution in 64bit system:

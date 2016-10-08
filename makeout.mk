@@ -36,3 +36,6 @@ test : $(ZIT_TST)
 # error follow, can not work on ubuntu. 
 #	$(CC) $(GDB) -lpthread -lrt -D_REENTRANT -lzit $^ -o $(BIN_DIR)/zit_test
 
+.PHONY : arm_test
+arm_test : $(ZIT_TST)
+	$(CC) $(GDB) $^ -o $(BIN_DIR)/arm_zit_test -L $(BIN_DIR) -lzit -pthread -lrt

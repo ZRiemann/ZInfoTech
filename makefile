@@ -1,6 +1,7 @@
 #top level makefile
 
 CC=gcc
+#CC=arm-none-linux-gnueabi-gcc
 ROOT_DIR=$(shell pwd)
 OUT_NAME=make
 OUT_DIR=$(ROOT_DIR)/$(OUT_NAME)
@@ -11,7 +12,7 @@ INST_DIR=/usr/local/lib
 ZIT_NAME=libzit.so
 ZIT_VER=$(ZIT_NAME).0.0.0
 CFLAGS='$(GDB) -fPIC -Wall -Werror -I$(ROOT_DIR)'
-CFLAGST = '$(GDB) -Wall -Werror'
+CFLAGST = '$(GDB) -Wall -Werror -I$(ROOT_DIR)'
 # **** export variable to sub makefiles ***
 export CC CFLAGS OBJS_DIR BIN_DIR GDB
 
@@ -48,6 +49,11 @@ makeout:
 test :
 	@./makeworker tests $(OBJS_DIR) .c $(CC) $(CFLAGST) &&\
 	make -C $(OBJS_DIR) test
+
+.PHONY : arm_test
+arm_test :
+	@./makeworker tests $(OBJS_DIR) .c $(CC) $(CFLAGST) &&\
+	make -C $(OBJS_DIR) arm_test
 
 .PHONY:clean
 clean:

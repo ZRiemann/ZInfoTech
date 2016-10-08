@@ -122,8 +122,8 @@ int ztrace_log(int level, void* usr, const char* msg){
             zg_logprefixsize ++;
         }
         fprintf(zg_logpf,"%s%s %s\n",szNow,szLevel,msg);
+	//fflush(zg_logpf); // ztrace_logctl(NULL,0); will close and flush.
         ret = ztrace_logbackup(msg);
     }
     return ret;
 }
-
