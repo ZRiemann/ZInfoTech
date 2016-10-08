@@ -57,7 +57,8 @@ arm_test :
 
 .PHONY:clean
 clean:
-	@rm -fr $(OUT_DIR)
+	@rm -fr $(OUT_DIR) &&\
+	rm -f makeworker
 
 .PHONY:install
 install :

@@ -21,7 +21,7 @@
 #	$(CC) -g -Wl,-rpath=. -L$(BIN_DIR) -lzit -lpthread -lrt -D_REENTRANT $^ -o $@
 
 ZIT_LIB=atomic.o  jet.o  module.o  mutex.o  queue.o  ringbuf.o  semaphore.o  ssl.o  thread.o time.o traceconsole.o tracelog.o  trace.o \
-tracering.o type.o list.o container.o framework.o
+tracering.o type.o list.o container.o framework.o socket.o
 ZIT_TST=tutility.o main.o tbase.o tthread.o
 #ZIT_FLAGS='-lpthread -lrt -D_REENTRANT'
 

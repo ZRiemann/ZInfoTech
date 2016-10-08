@@ -40,12 +40,12 @@ typedef struct sockaddr ZSA;
 ZAPI zsock_t zsocket(int domain, int type, int protocol);
 ZAPI int zinet_addr(zsockaddr_in *addr, const char *host, uint16_t port);
 ZAPI int zconnect(zsock_t sock, const ZSA *addr, int len);
-ZAPI int zrecv(sock_t sock, char *buf, int len, int flags);
-ZAPI int zsend(sock_t sock, const char *buf, int len, int flags);
+ZAPI int zrecv(zsock_t sock, char *buf, int len, int flags);
+ZAPI int zsend(zsock_t sock, const char *buf, int len, int flags);
 
 /**@fn int recv_packet(sock_t sock, char *buf, int maxlen, int* offset, int *len, char *bitmask, char *stuf)
  * @brief recv a packet
  */
-ZAPI int recv_packet(sock_t sock, char *buf, int maxlen, int* offset, int *len, char bitmask, char *stuf);
+ZAPI int recv_packet(zsock_t sock, char *buf, int maxlen, int* offset, int *len, char bitmask, char *stuf);
 ZC_END
 #endif

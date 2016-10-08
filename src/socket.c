@@ -13,7 +13,7 @@ zsock_t zsocket(int domain, int type, int protocol){
 #else
     err = errno;
 #endif
-    ZERRC(error);
+    ZERRC(err);
   }else{
 #if ZTRACE_SOCKET
     ZDBG("socket<%d>(domain<%d>,type<%d>,protocol<%d>", sock, domain, type, protocol);
@@ -22,12 +22,12 @@ zsock_t zsocket(int domain, int type, int protocol){
   return(sock);
 }
 
-int zinet_addr(zsockaddr_in *addr, const char *host, unint16_t port){
+int zinet_addr(zsockaddr_in *addr, const char *host, uint16_t port){
   int ret;
 
   ret = ZOK;
   ZASSERT(!addr || !host);// || (port > 0 && port < 65535));
-  memset(addr, 0, sizeof(sockaddr_in));
+  memset(addr, 0, sizeof(zsockaddr_in));
   addr->sin_family = AF_INET;
   addr->sin_port = htons(port);
 
@@ -64,7 +64,7 @@ int zconnect(zsock_t sock, const ZSA *addr, int len){
   return(ret);
 }
 
-int zrecv(sock_t sock, char *buf, int len, int flags){
+int zrecv(zsock_t sock, char *buf, int len, int flags){
   int ret;
   if(0 > (recv(sock, buf, len, flags))){
 #ifdef ZSYS_WINDOWS
@@ -85,11 +85,11 @@ int zrecv(sock_t sock, char *buf, int len, int flags){
   return ret;
 }
 
-int zsend(sock_t sock, const char *buf, int len, int flags){
+int zsend(zsock_t sock, const char *buf, int len, int flags){
   int ret;
   int sended;
   ret = 0;
-  send = 0;
+  sended = 0;
   while(sended != len){
     ret = send(sock, buf+sended, len-sended, flags);
     if(ret >= 0){
@@ -120,12 +120,12 @@ int zsend(sock_t sock, const char *buf, int len, int flags){
 
 static int packet_bitmask(char *buf, int len, char bitmask, char *stuf){
   if(*buf == bitmask){
-    
+    return(ZTRUE);
   }else{
-    
+    return(ZTRUE);
   }
 }
-int recv_packet(sock_t sock, char *buf, int maxlen, int *offset, int *len, char bitmask, char *stuf){
+int recv_packet(zsock_t sock, char *buf, int maxlen, int *offset, int *len, char bitmask, char *stuf){
   // ZASSERT(!buf || !offset || !len || !bitmask || !stuf);
   if(*offset != *len){
     memmove(buf, buf + *offset, *len - *offset);
@@ -134,4 +134,6 @@ int recv_packet(sock_t sock, char *buf, int maxlen, int *offset, int *len, char 
   }else{
     *offset = *len = 0;
   }
+  packet_bitmask(NULL,0,0,NULL);
+  return(ZOK);
 }
