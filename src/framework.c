@@ -271,10 +271,15 @@ ZINLINE int zrecycle_task(ztsk_svr_t *svr, ztsk_t *tsk){
     //}
   if(0 == hint){
     zcontainer_push(svr->tsk_recycle, tsk);
+    ZDBG("recycle<size:%d> task<%p>", zcontainer_size(svr->tsk_recycle), tsk);
   }else{
     zdbg("task reference<%d>, recycle another time.", hint);
   }
   return ZOK;
+}
+
+int ztsk_svr_recycle_task(ztsk_svr_t *svr, ztsk_t *tsk){
+  return(zrecycle_task(svr, tsk));
 }
 
 ZINLINE int zget_task(ztsk_svr_t *svr, ztsk_t **tsk){
@@ -296,6 +301,7 @@ ZINLINE int zget_task(ztsk_svr_t *svr, ztsk_t **tsk){
     memset(&((*tsk)->obj), 0, sizeof(zobj_t));
     ziatm_xchg((*tsk)->atm, 1);
   }
+  ZDBG("task_buf<size: %d>", zcontainer_size(svr->tsk_recycle));
   return ret;
 }
 

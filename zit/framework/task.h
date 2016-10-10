@@ -57,6 +57,7 @@ ZAPI int ztsk_svr_unobserver(ztsk_svr_t *svr, zmis_t *mis, zobj_type_t task_type
 ZAPI int ztsk_svr_gettask(ztsk_svr_t *svr, ztsk_t **tsk, zobj_type_t task_type);
 ZAPI int ztsk_svr_post(ztsk_svr_t * svr, ztsk_t *tsk);
 ZAPI int ztsk_svr_unref(zvalue_t tsk, zvalue_t *out, zvalue_t ref);
+ZAPI int ztsk_svr_recycle_task(ztsk_svr_t *svr, ztsk_t *tsk);
 /*
   init()/fini()/run()/stop() default implement
 */

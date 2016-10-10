@@ -107,6 +107,10 @@ typedef int (*zoperate)(zvalue_t in, zvalue_t *out, zvalue_t hint); // any opera
 #define OPNULL NULL,NULL,NULL
 #define OPIN(in) (zvalue_t)in,NULL,NULL
 #define OPHINT(hint) NULL,NULL,(zvalue_t)hint
+#define ZOP_ARG OPARG
+#define ZOP_NULL OPNULL
+#define ZOP_IN(in) (zvalue_t)in,NULL,NULL
+#define ZOP_HINT(hint) NULL,NULL,(zvalue_t)hint
 
 #define ZTSKMD_SEQUENCE 0
 #define ZTSKMD_NORMAL 1
