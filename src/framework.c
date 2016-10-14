@@ -15,7 +15,7 @@
 #include <string.h>
 #include <stdio.h>
 
-int zobj_free(OPARG){
+int zobj_free(ZOP_ARG){
   free(in);
   return(ZOK);
 }
@@ -46,6 +46,17 @@ int zdev_init(zdev_t *dev,zobj_type_t type,  zoperate init, zoperate fini, zoper
   return(ZOK);
 }
 
+int ztsk_clone_ref(ZOP_ARG){
+  ztsk_t *tsk;
+  zspin_t ref;
+  tsk = (ztsk_t*)in;
+  ref = ziatm_inc(tsk->atm);
+  *out = in;
+#if ZTRACE_FRAMEWORK
+  ZDBG("tsk<ptr:%p, ref:%d", tsk, ref);
+#endif
+  return(ZOK);
+}
 //===============================
 int zmis_init(OPARG){
   zmis_t *mis;
@@ -271,9 +282,13 @@ ZINLINE int zrecycle_task(ztsk_svr_t *svr, ztsk_t *tsk){
     //}
   if(0 == hint){
     zcontainer_push(svr->tsk_recycle, tsk);
+#if ZTRACE_FRAMEWORK
     ZDBG("recycle<size:%d> task<%p>", zcontainer_size(svr->tsk_recycle), tsk);
+#endif
   }else{
-    zdbg("task reference<%d>, recycle another time.", hint);
+#if ZTRACE_FRAMEWORK
+    ZDBG("task reference<%d>, recycle another time.", hint);
+#endif
   }
   return ZOK;
 }
@@ -300,8 +315,11 @@ ZINLINE int zget_task(ztsk_svr_t *svr, ztsk_t **tsk){
   if(ZOK == ret){
     memset(&((*tsk)->obj), 0, sizeof(zobj_t));
     ziatm_xchg((*tsk)->atm, 1);
+    (*tsk)->obj.clone = ztsk_clone_ref;
   }
+#if ZTRACE_FRAMEWORK
   ZDBG("task_buf<size: %d>", zcontainer_size(svr->tsk_recycle));
+#endif
   return ret;
 }
 
@@ -352,7 +370,7 @@ static int foreach_post(OPARG){
 
   if(ZNOT_EXIST == *dirty){
     // first
-    *dirty = ZTRUE;
+    *dirty = ZOK;
     tsk->mission = (zvalue_t)mis;
     tsk->obj.operate = NULL;
     zcontainer_foreach(mis->operates, foreach_operate, (zvalue_t)tsk);

@@ -52,7 +52,7 @@ ZAPI zsock_t zaccept(zsock_t sock, ZSA *addr, int *addrlen);
 // select() -1 infinit 0 no wait >0 wait ms 
 ZAPI int zselect(int maxfdp1, fd_set *read, fd_set *write, fd_set *except, struct timeval *timeout);
 // get/setoption()
-ZAPI int zsock_noblock(zsock_t sock, int noblock);
+ZAPI int zsock_nonblock(zsock_t sock, int noblock);
 /**@fn int recv_packet(sock_t sock, char *buf, int maxlen, int* offset, int *len, char *bitmask)
  * @brief recv a packet
  * @return ZOK - sock closed

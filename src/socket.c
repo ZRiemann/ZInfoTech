@@ -2,6 +2,7 @@
 #include <zit/base/trace.h>
 #include <arpa/inet.h>
 #include <string.h>
+#include <fcntl.h>
 
 zsock_t zsocket(int domain, int type, int protocol){
   zsock_t sock;
@@ -18,7 +19,7 @@ zsock_t zsocket(int domain, int type, int protocol){
 #if ZTRACE_SOCKET
     ZDBG("socket<%d>(domain<%d>,type<%d>,protocol<%d>", sock, domain, type, protocol);
 #endif
-    zsock_noblock(sock, ZTRUE); // set default no block
+    zsock_nonblock(sock, ZTRUE); // set default no block
   }
   return(sock);
 }
@@ -178,7 +179,7 @@ int zrecv_packet(zsock_t sock, char *buf, int maxlen, int *offset, int *len, cha
       // zdbg("reset offset<%d> len<%d>", *offset, *len);
     }
   }
-  // start recv data
+  // start recv data, socket mask be nonblock
   ret = zrecv(sock, buf+(*len), maxlen-(*len), 0);
   if(ZAGAIN != ret && ZFUN_FAIL != ret && 0 != ret){
     *len += ret;
@@ -216,9 +217,27 @@ int zselect(int maxfdp1, fd_set *read, fd_set *write, fd_set *except, struct tim
   return(ret);
 }
 
-int zsock_noblock(zsock_t sock, int noblock){
-  //...
-  return(ZOK);
+int zsock_nonblock(zsock_t sock, int noblock){
+  int ret = ZOK;
+#ifdef ZSYS_WINDOWS
+  unsigned long ul = noblock;
+  ret = ioctlsocket(sock, FIONBIO, &ul);
+  if(SOCKET_ERROR == ret){
+    ret = WSAGetLastError();
+    ZERRC(ret);
+    ret = ZFUN_FAIL;
+  }
+#else
+  int val;
+  val = fcntl(sock, F_GETFL, 0);
+  if(1 == noblock){
+    val |= O_NONBLOCK;
+  }else{
+    val &= (~O_NONBLOCK);
+  }
+  fcntl(sock, F_SETFL, val);
+#endif
+  return(ret);
 }
 
 int zbind(zsock_t sock, const ZSA *addr, int len){
@@ -269,6 +288,9 @@ int zconnectx(zsock_t sock, const char *host, uint16_t port, int listenq){
   }
 
   if(listenq > 0){
+    int reuse = 1;
+    zsock_nonblock(sock, 0);
+    setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(reuse));
     zbind(sock, (ZSA*)&addr, sizeof(addr));
     ret = zlisten(sock, listenq);
   }else{
