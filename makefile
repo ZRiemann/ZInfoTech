@@ -1,7 +1,7 @@
 #top level makefile
 
-CC=gcc
-#CC=arm-none-linux-gnueabi-gcc
+#CC=gcc
+CC=arm-none-linux-gnueabi-gcc
 ROOT_DIR=$(shell pwd)
 OUT_NAME=make
 OUT_DIR=$(ROOT_DIR)/$(OUT_NAME)

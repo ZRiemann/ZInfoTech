@@ -46,17 +46,6 @@ int zdev_init(zdev_t *dev,zobj_type_t type,  zoperate init, zoperate fini, zoper
   return(ZOK);
 }
 
-int ztsk_clone_ref(ZOP_ARG){
-  ztsk_t *tsk;
-  zspin_t ref;
-  tsk = (ztsk_t*)in;
-  ref = ziatm_inc(tsk->atm);
-  *out = in;
-#if ZTRACE_FRAMEWORK
-  ZDBG("tsk<ptr:%p, ref:%d", tsk, ref);
-#endif
-  return(ZOK);
-}
 //===============================
 int zmis_init(OPARG){
   zmis_t *mis;
@@ -301,6 +290,9 @@ ZINLINE int zget_task(ztsk_svr_t *svr, ztsk_t **tsk){
   int ret;
   ret = zcontainer_pop(svr->tsk_recycle, (zvalue_t*)tsk);
   if(ZOK != ret){
+#if ZTRACE_FRAMEWORK
+    ZDBG("task_buf<size>: %d, malloc memory for task...", zcontainer_size(svr->tsk_recycle));
+#endif
     *tsk = (ztsk_t*)malloc(sizeof(ztsk_t));
     if(!*tsk){
       ret = ZMEM_INSUFFICIENT;
@@ -322,6 +314,44 @@ ZINLINE int zget_task(ztsk_svr_t *svr, ztsk_t **tsk){
 #endif
   return ret;
 }
+
+int ztsk_clone_ref(ZOP_ARG){
+  ztsk_t *tsk;
+  zspin_t ref;
+  tsk = (ztsk_t*)in;
+  ref = ziatm_inc(tsk->atm);
+  *out = in;
+#if ZTRACE_FRAMEWORK
+  ZDBG("tsk<ptr:%p, ref:%d", tsk, ref);
+#endif
+  return(ZOK);
+}
+
+int ztsk_clone_new(ZOP_ARG){
+  //ztsk_svr_gettask();
+  ztsk_t *tsk;
+  ztsk_t *tsk_clone;
+  ztsk_svr_t *svr;
+  int ret;
+
+  tsk = (ztsk_t*)in;
+  svr = (ztsk_svr_t*)hint;
+  ret = zget_task(svr, &tsk_clone);
+  if(ZOK == ret){
+    // copy context to tsk_clone
+    memcpy(&tsk_clone->obj, &tsk->obj, sizeof(zobj_t));
+    tsk_clone->mission = tsk->mission;
+    tsk_clone->hint = tsk->hint;
+    tsk_clone->param[0] = tsk->param[0];
+    tsk_clone->param[1] = tsk->param[1];
+    tsk_clone->param[2] = tsk->param[2];
+    tsk_clone->observers = tsk->observers;
+    *out = (zvalue_t)tsk_clone;
+  }
+  ZERRC(ret);
+  return(ret);
+}
+
 
 int ztsk_svr_gettask(ztsk_svr_t *svr, ztsk_t **tsk, zobj_type_t task_type){
   int ret;
@@ -367,40 +397,26 @@ static int foreach_post(OPARG){
   tsk = (ztsk_t*)param[1].p;
   dirty = (int*)param[0].p;
   svr = (ztsk_svr_t*)param[2].p;
-
   if(ZNOT_EXIST == *dirty){
-    // first
     *dirty = ZOK;
-    tsk->mission = (zvalue_t)mis;
-    tsk->obj.operate = NULL;
-    zcontainer_foreach(mis->operates, foreach_operate, (zvalue_t)tsk);
-    zcontainer_push(mis->tasks, tsk);
+  }
+  ret = tsk->obj.clone(tsk, (zvalue_t*)&tsk_clone, (zvalue_t)svr);
+  if(ZOK == ret){
+    tsk_clone->mission = (zvalue_t)mis;
+    tsk_clone->obj.operate = NULL;
+    zcontainer_foreach(mis->operates, foreach_operate, (zvalue_t)tsk_clone);
+#if ZTRACE_FRAMEWORK
+    ZDBG("push task<%p> to mis<%p>", tsk_clone, mis);
+#endif
+    zcontainer_push(mis->tasks, tsk_clone);
     // !busy push mis_wait
     if(ZTRUE == ziatm_cas(mis->atm, ZFALSE, ZTRUE)){
       zcontainer_push(svr->mis_wait, mis);
       zsem_post(&svr->sem_wait);
-      //zdbg("post to mis_wait");
-    }//else{
-      //zdbg("in mis_wait not post");
-    //}
-  }else{
-    // multi send
-    ret = tsk->obj.clone(tsk, (zvalue_t*)&tsk_clone, NULL);
-    if(ZOK == ret){
-      tsk_clone->mission = (zvalue_t)mis;
-      tsk_clone->obj.operate = NULL;
-      zcontainer_foreach(mis->operates, foreach_operate, (zvalue_t)tsk_clone);
-      zcontainer_push(mis->tasks, tsk_clone);
-      // !busy push mis_wait
-      if(ZTRUE == ziatm_cas(mis->atm, ZFALSE, ZTRUE)){
-	zcontainer_push(svr->mis_wait, mis);
-	zsem_post(&svr->sem_wait);
-      }
-    }else{
-      ZERRC(ret);
     }
+  }else{
+    ZERRC(ret);
   }
-  
   return ZOK;
 }
 
@@ -413,9 +429,7 @@ int ztsk_svr_post(ztsk_svr_t *svr, ztsk_t *tsk){
 
   ret = ZNOT_EXIST;
   zcontainer_foreach(tsk->observers, foreach_post, (zvalue_t)param);
-  if(ZNOT_EXIST == ret){
-    ret = zrecycle_task(svr, tsk);
-  }
+  ret = zrecycle_task(svr, tsk);
   return ret;
 }
 

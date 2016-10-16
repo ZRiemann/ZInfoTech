@@ -22,8 +22,8 @@ typedef struct ztask_s{
   zcontainer_t observers; ///< list<mis_t*>*
   zatm_t atm; /// reference
 }ztsk_t;
-ZAPI int ztsk_clone_ref(ZOP_ARG);// inc reference for clone, default imp
-
+ZAPI int ztsk_clone_ref(ZOP_ARG); // inc reference for clone, default imp
+ZAPI int ztsk_clone_new(ZOP_ARG); // get new task.
 //================================
 #define ZMIS_MODE_SERIAL 0
 #define ZMIS_MODE_CONCURRENT 1
