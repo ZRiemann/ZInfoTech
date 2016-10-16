@@ -73,8 +73,14 @@ int zconnect(zsock_t sock, const ZSA *addr, int len){
 #else
     ret = errno;
 #endif
+    ZERRC(ret);
+    ret = ZFUN_FAIL;
   }
-  ZERRC(ret);
+#if ZTRACE_SOCKET
+  else{
+    ZERRC(ret);
+  }
+#endif
   return(ret);
 }
 
@@ -109,9 +115,18 @@ int zsend(zsock_t sock, const char *buf, int len, int flags){
   ret = 0;
   sended = 0;
   while(sended != len){
+#if ZTRACE_SOCKET
+    //ZDBG("before send<sock:%d, buf:%p, len:%d, flags:%d>", sock, buf+sended, len-sended, flags);
+#endif
     ret = send(sock, buf+sended, len-sended, flags);
+#if ZTRACE_SOCKET
+    //ZDBG("after send<ret:%d>", ret);
+#endif
     if(ret >= 0){
       sended += ret;
+#if ZTRACE_SOCKET
+      //ZDBG("send<total:%d, cur:%d>", sended, ret);
+#endif
     }else{
 #ifdef ZSYS_WINDOWS
       ret = WSAGetLastError();
@@ -278,7 +293,7 @@ zsock_t zaccept(zsock_t sock, ZSA *addr, int *addrlen){
   return(sk);
 }
 
-int zconnectx(zsock_t sock, const char *host, uint16_t port, int listenq){
+int zconnectx(zsock_t sock, const char *host, uint16_t port, int listenq, int timeout_ms){
   int ret;
   zsockaddr_in addr;
 
@@ -294,7 +309,52 @@ int zconnectx(zsock_t sock, const char *host, uint16_t port, int listenq){
     zbind(sock, (ZSA*)&addr, sizeof(addr));
     ret = zlisten(sock, listenq);
   }else{
-    ret = zconnect(sock, (ZSA*)&addr, sizeof(addr));
+    if(-1 == timeout_ms){
+      // block connect
+#if ZTRACE_SOCKET
+      ZDBG("start block connect...");
+#endif
+      zsock_nonblock(sock, 0);
+      ret = zconnect(sock, (ZSA*)&addr, sizeof(addr));
+      zsock_nonblock(sock, 1);
+#if ZTRACE_SOCKET
+      ZDBG("block connect end.");
+#endif
+      return ret;
+    }
+    // nonblock connect
+    if(ZOK != (ret = zconnect(sock, (ZSA*)&addr, sizeof(addr)))){
+      struct timeval tv;
+      fd_set rset, wset;
+      int error;
+      socklen_t len;
+      if(timeout_ms < 1000 || timeout_ms > 15000){
+	timeout_ms = 4000;
+      }
+      tv.tv_sec = timeout_ms/1000;
+      tv.tv_usec = (timeout_ms%1000)*1000;
+      FD_ZERO(&rset);
+      FD_SET(sock, &rset);
+      FD_ZERO(&wset);
+      FD_SET(sock, &wset);
+#if ZTRACE_SOCKET
+      ZDBG("conect timeout<sec:%d, usec:%d>", tv.tv_sec, tv.tv_usec);
+#endif
+      if((ret = zselect(sock+1, &rset, &wset, NULL, &tv)) > 0){
+	ZDBG("select<%d>", ret);
+	len = sizeof(error);
+	getsockopt(sock, SOL_SOCKET, SO_ERROR, &error,&len);
+	if(0 == error){
+	  ret = ZOK;
+	  ZDBG("connect ok");
+	}else{
+	  ret = ZFAIL;
+	  ZDBG("connect fail");
+	}
+      }else{
+	ret = ZTIMEOUT;
+      }
+    }
   }
   ZERRC(ret);
   return(ret);
