@@ -125,7 +125,7 @@ int zsend(zsock_t sock, const char *buf, int len, int flags){
     if(ret >= 0){
       sended += ret;
 #if ZTRACE_SOCKET
-      //ZDBG("send<total:%d, cur:%d>", sended, ret);
+      ZDBG("send<sended:%d, cur:%d, total:%d>", sended, ret, len);
 #endif
     }else{
 #ifdef ZSYS_WINDOWS
@@ -141,6 +141,9 @@ int zsend(zsock_t sock, const char *buf, int len, int flags){
 #endif
       if(ZAGAIN == ret){
 	continue;
+#ifdef ZTRACE_SOCKET
+	ZDBG("try again...");
+#endif
       }else{
 	ZERRC(ret);
 	ret = ZFUN_FAIL;

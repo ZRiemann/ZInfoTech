@@ -406,7 +406,7 @@ static int foreach_post(OPARG){
     tsk_clone->obj.operate = NULL;
     zcontainer_foreach(mis->operates, foreach_operate, (zvalue_t)tsk_clone);
 #if ZTRACE_FRAMEWORK
-    ZDBG("push task<%p> to mis<%p>", tsk_clone, mis);
+    ZDBG("push task<ptr:%p, ID:%04x> to mis<ptr:%p, type:%04x>", tsk_clone, tsk_clone->obj.type, mis, mis->dev.dev_type);
 #endif
     zcontainer_push(mis->tasks, tsk_clone);
     // !busy push mis_wait
