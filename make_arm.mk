@@ -1,9 +1,9 @@
 #top level makefile
 
-CC=gcc
-#CC=arm-none-linux-gnueabi-gcc
+#CC=gcc
+CC=arm-none-linux-gnueabi-gcc
 ROOT_DIR=$(shell pwd)
-OUT_NAME=make
+OUT_NAME=make_arm
 OUT_DIR=$(ROOT_DIR)/$(OUT_NAME)
 OBJS_DIR=$(OUT_DIR)/obj
 BIN_DIR=$(OUT_DIR)/bin
@@ -43,7 +43,9 @@ all: makezit makeout
 makezit:
 	$(make_obj)
 makeout:
-	@make -C $(OBJS_DIR)
+	@make -C $(OBJS_DIR) &&\
+	ln -s $(BIN_DIR)/$(ZIT_VER) $(BIN_DIR)/$(ZIT_NAME).0 &&\
+	ln -s $(BIN_DIR)/$(ZIT_NAME).0 $(BIN_DIR)/$(ZIT_NAME)
 
 .PHONY : test
 test :
@@ -60,10 +62,10 @@ clean:
 	@rm -fr $(OUT_DIR) &&\
 	rm -f makeworker
 
-.PHONY:install
-install :
-	$(install_zit)
+#.PHONY:install
+#install :
+#	$(install_zit)
 
-.PHONY:uninstall
-uninstall:
-	@rm -f $(INST_DIR)/$(ZIT_NAME)* && ldconfig && rm -fr /usr/local/include/zit
+#.PHONY:uninstall
+#uninstall:
+#	@rm -f $(INST_DIR)/$(ZIT_NAME)* && ldconfig && rm -fr /usr/local/include/zit
