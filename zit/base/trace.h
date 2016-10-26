@@ -45,7 +45,7 @@ ZAPI const char*  zstrerr(int code);
 #define ZTRACE_QUE 0
 #define ZTRACE_RING 0 // set 0 if use trace background
 #define ZTRACE_SOCKET 1 
-#define ZTRACE_FRAMEWORK 1
+#define ZTRACE_FRAMEWORK 0
 ZC_END
 
 /**@fn int zversion()

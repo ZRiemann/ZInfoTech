@@ -317,9 +317,15 @@ ZINLINE int zget_task(ztsk_svr_t *svr, ztsk_t **tsk){
 
 int ztsk_clone_ref(ZOP_ARG){
   ztsk_t *tsk;
+#if ZTRACE_FRAMEWORK
   zspin_t ref;
+#endif
   tsk = (ztsk_t*)in;
+#if ZTRACE_FRAMEWORK
   ref = ziatm_inc(tsk->atm);
+#else
+  ziatm_inc(tsk->atm);
+#endif
   *out = in;
 #if ZTRACE_FRAMEWORK
   ZDBG("tsk<ptr:%p, ref:%d", tsk, ref);
