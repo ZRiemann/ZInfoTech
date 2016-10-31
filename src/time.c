@@ -95,7 +95,7 @@ time_t zstr2time(const char* strTime){
 }
 
 void zconvert_time(uint64_t* time, int flag){
-  uint64_t jan1970ft = 116444736000000000;
+  uint64_t jan1970ft = 0;//(uint64_t)116444736000000000;
   if(flag){
       *time = (*time)*10000000 + jan1970ft;
   }else{
