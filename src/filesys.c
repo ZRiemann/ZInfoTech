@@ -4,6 +4,7 @@
 #include "export.h"
 #include <zit/base/filesys.h>
 #include <zit/base/trace.h>
+#include <string.h>
 
 zfd_t zfopen(const char *fname, int flag, int mode){
   zfd_t fd;
@@ -126,9 +127,26 @@ int zfwrite(zfd_t fd, const void *buf, int nbytes){
   return ret;
 }
 
-ZAPI int zfstat(const char *pathname, zfstat_t *stat){
+int zmkdir(const char *dir, int mode){
   int ret;
+  ZASSERT(!dir);
   ret = ZOK;
+#ifdef ZSYS_POSIX
+  ret = mkdir(dir, mode);
+  if(-1 == ret){
+    ZERRC(errno);
+    ret = ZFUN_FAIL;
+  }
+#else
+  ret = ZNOT_SUPPORT;   
+#endif
+  return ret;
+}
+
+int zfstat(const char *pathname, zfstat_t *stat){
+  int ret;
+
+  ZASSERT(!pathname || !stat);
 #ifdef ZSYS_POSIX
   struct stat buf;
   ret = lstat(pathname, &buf);
@@ -160,14 +178,160 @@ ZAPI int zfstat(const char *pathname, zfstat_t *stat){
     stat->uid = buf.st_uid;
     stat->gid = buf.st_gid;
     stat->size = buf.st_size;
-    // atime
-    // mtime;
-    // ctime;
+#ifndef ZUSE_TIMESPEC
+    stat->atime = buf.st_atime;
+    stat->mtime = buf.st_mtime;
+    stat->ctime = buf.st_ctime;
+#else
+    stat->atime.tv_sec = buf.st_atime.tv_sec;
+    stat->mtime.tv_sec = buf.st_mtime.tv_sec;
+    stat->ctime.tv_sec = buf.st_ctime.tv_sec;
+    stat->atime.tv_nsec = buf.st_atime.tv_nsec;
+    stat->mtime.tv_nsec = buf.st_mtime.tv_nsec;
+    stat->ctime.tv_nsec = buf.st_ctime.tv_nsec;
+#endif    
     stat->blksize = buf.st_blksize;
     stat->blocks = buf.st_blocks;
+    ret = ZOK;
   }
 #else
-  
+  ret = ZNOT_SUPPORT;
 #endif
   return ret;
 }
+
+int zftw(char fullpath[512], cbzftw func){
+  int ret;
+#ifdef ZSYS_POSIX
+  //struct stat statbuf;
+  zfstat_t statbuf;
+  struct dirent *dirp;
+  DIR *dp;
+  int n;
+  
+  ret = 0;
+  if(ZOK != zfstat(fullpath, &statbuf)){
+    return func(fullpath, &statbuf, FTW_NS);
+  }
+  if(ZFMODE_DIR != statbuf.mode){
+    return func(fullpath, &statbuf, FTW_F);
+  }
+  if(0 != (ret = func(fullpath, &statbuf, FTW_D))){
+    return ret;
+  }
+  n = strlen(fullpath);
+  fullpath[n++] = '/';
+  fullpath[n] = 0;
+  
+  if(NULL == (dp = opendir(fullpath))){
+    return func(fullpath, &statbuf, FTW_DNR);
+  }
+  
+  while((dirp = readdir(dp)) != NULL){
+    if(0==strcmp(dirp->d_name, ".") || 0==strcmp(dirp->d_name, ".."))continue;
+    strcpy(&fullpath[n], dirp->d_name);
+    if((ret = zftw(fullpath, func)) != 0){
+      break;
+    }
+  }
+  fullpath[n-1] = 0;
+  if(closedir(dp)<0){
+    ZDBG("Can't close directory %s", fullpath);
+  }
+#else
+  ret = ZNOT_SUPPORT;
+#endif
+  return ret;
+}
+
+ZAPI int zftw_nr(char fullpath[512], cbzftw func){
+  int ret;
+  int ftw_flag;
+#ifdef ZSYS_POSIX
+  //struct stat statbuf;
+  zfstat_t statbuf;
+  struct dirent *dirp;
+  DIR *dp;
+  int n;
+  
+  ret = 0;
+  if(ZOK != zfstat(fullpath, &statbuf)){
+    return func(fullpath, &statbuf, FTW_NS);
+  }
+  if(ZFMODE_DIR != statbuf.mode){
+    return func(fullpath, &statbuf, FTW_F);
+  }
+  if(0 != (ret = func(fullpath, &statbuf, FTW_D))){
+    return ret;
+  }
+  n = strlen(fullpath);
+  fullpath[n++] = '/';
+  fullpath[n] = 0;
+  
+  if(NULL == (dp = opendir(fullpath))){
+    return func(fullpath, &statbuf, FTW_DNR);
+  }
+  
+  while((dirp = readdir(dp)) != NULL){
+    if(0==strcmp(dirp->d_name, ".") || 0==strcmp(dirp->d_name, ".."))continue;
+    strcpy(&fullpath[n], dirp->d_name);
+    if(ZOK != zfstat(fullpath, &statbuf)){
+      ftw_flag = FTW_NS;
+    }else if(ZFMODE_DIR != statbuf.mode){
+      ftw_flag = FTW_F;
+    }else{
+      ftw_flag = FTW_D;
+    }
+    func(fullpath, &statbuf, ftw_flag);
+  }
+  fullpath[n-1] = 0;
+  if(closedir(dp)<0){
+    ZDBG("Can't close directory %s", fullpath);
+  }
+#else
+  ret = ZNOT_SUPPORT;
+#endif
+  return ret;
+}
+int print_zftw(const char *pathname, zfstat_t *stat, int ftw_flag){
+  struct tm stm;
+#ifndef ZUSE_TIMESPEC
+  stm = *localtime(&stat->ctime);
+  switch(ftw_flag){
+  case FTW_F:
+    zdbg("file[%d-%02d-%02d %02d:%02d:%02d]: %s",stm.tm_year+1900, stm.tm_mon, stm.tm_mday, stm.tm_hour, stm.tm_min, stm.tm_sec, pathname);
+    break;
+  case FTW_D:
+    zdbg("dir[%d-%02d-%02d %02d:%02d:%02d]: %s",stm.tm_year+1900, stm.tm_mon+1, stm.tm_mday, stm.tm_hour, stm.tm_min, stm.tm_sec, pathname);
+    break;
+  case FTW_DNR:
+    zdbg("dirNR: %s", pathname);
+    break;
+  case FTW_NS:
+    zdbg("zfstat() error for %s", pathname);
+    break;
+  default:
+    ZERR("unknown type %d for pathname %s", ftw_flag, pathname);
+  }
+#else
+  stm = *localtime(&stat->ctime.tv_sec);
+  switch(ftw_flag){
+  case FTW_F:
+    zdbg("file[%d-%02d-%02d %02d:%02d:%02d]: %s",stm.tm_year+1900, stm.tm_mon+1, stm.tm_mday, stm.tm_hour, stm.tm_min, stm.tm_sec, pathname);
+    break;
+  case FTW_D:
+    zdbg("dir[%d-%02d-%02d %02d:%02d:%02d]: %s",stm.tm_year+1900, stm.tm_mon+1, stm.tm_mday, stm.tm_hour, stm.tm_min, stm.tm_sec, pathname);
+    break;
+  case FTW_DNR:
+    zdbg("dirNR: %s", pathname);
+    break;
+  case FTW_NS:
+    zdbg("zfstat() error for %s", pathname);
+    break;
+  default:
+    ZERR("unknown type %d for pathname %s", ftw_flag, pathname);
+  }
+#endif
+  return 0;
+}
+

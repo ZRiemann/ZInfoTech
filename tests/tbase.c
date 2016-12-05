@@ -6,15 +6,19 @@
 #include <zit/base/container.h>
 #include <zit/framework/task.h>
 #include <zit/thread/thread_def.h>
+#include <zit/base/filesys.h>
 #include "tbase.h"
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 
 //static void ztst_list();
 //static void ztst_que();
 //static void ztst_container();
-static void ztst_framework();
+static void ztst_ftw();
+//static void ztst_framework();
 void ztst_base(){
+  ztst_ftw();
   /* int i,j;
   char buf[256];
   int v = zversion();
@@ -48,9 +52,15 @@ void ztst_base(){
   //ztst_list();
   //ztst_que();
   //  ztst_container();
-  ztst_framework();
+  //ztst_framework();
 }
-
+static void ztst_ftw(){
+  char pathname[512];
+  sprintf(pathname, "/nfsroot");
+  zftw(pathname, print_zftw);
+  zftw_nr(pathname, print_zftw);
+}
+#if 0
 //====================================================
 #define ZTSK_TYPE_COUNTER (ZOBJ_TYPE_USER + 1)
 static int  check[0x100000];
@@ -129,7 +139,7 @@ static void ztst_framework(){
   free(mis);
   zsem_uninit(&sem_down);
 }
-#if 0
+
 //=====================================================
 static int zprint(OPARG){
   int* i = (int*)hint;

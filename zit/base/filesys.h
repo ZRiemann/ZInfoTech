@@ -6,6 +6,7 @@
 #include <time.h>
 
 ZC_BEGIN
+//#define ZUSE_TIMESPEC
 
 #ifdef ZSYS_POSIX
 #include <unistd.h>
@@ -17,8 +18,10 @@ ZC_BEGIN
 #include <errno.h>
 typedef int zfd_t;
 #define INVALID_FD (-1)
+
 #else // windows
 
+#include <time.h>
 #define O_RDONLY 1
 #define O_WRONLY 2
 #define O_RDWR 4
@@ -28,6 +31,13 @@ typedef int zfd_t;
 
 typedef HANDLE zfd_t;
 #define INVALID_FD INVALID_HANDLE_VALUE
+
+#ifdef ZUSE_TIMESPEC
+struct timespec{
+  time_t tv_sec;
+  long tv_nsec;
+}
+#endif
 
 #endif
 
@@ -39,6 +49,7 @@ typedef HANDLE zfd_t;
 #define ZFMODE_LNK 5 // symbolic link
 #define ZFMODE_SOCK 6 // socket
 #define ZFMODE_UNKNOWN 7
+
 typedef struct zfile_stat_s{
   int mode; // ZFMODE_*
   int ino;
@@ -48,9 +59,15 @@ typedef struct zfile_stat_s{
   int uid;
   int gid;
   int size;
-  struct tm atime;
-  struct tm mtime;
-  struct tm ctime;
+#ifdef ZUSE_TIMESPEC
+  struct timespec atime;
+  struct timespec mtime;
+  struct timespec ctime;
+#else
+  time_t atime;
+  time_t mtime;
+  time_t ctime;
+#endif
   int blksize;
   int blocks;
 }zfstat_t;
@@ -90,9 +107,13 @@ ZAPI int zrmdir(const char *dir);
 ZAPI int zrmfile(const char *fname);
 //ZAPI void *zopendir(const char *dir);
 //ZAPI void *zreaddir(void *handle);
-typedef int cbftwf(zfstat_t *stat);
+typedef int cbzftw(const char *pathname, zfstat_t *stat, int ftw_flag);
+ZAPI int print_zftw(const char *pathname, zfstat_t *stat, int ftw_flag);
 ZAPI int zfstat(const char *pathname, zfstat_t *stat);
-ZAPI int zftw(const char *dir, zfstat_t stat, int type);
-
+/**@fn int zftw(const char *dir, zfstat_t stat, int type)
+ * @brief file tree walk
+*/
+ZAPI int zftw(char dir[512], cbzftw func);
+ZAPI int zftw_nr(char dir[512], cbzftw func); // not recursive
 ZC_END
 #endif
