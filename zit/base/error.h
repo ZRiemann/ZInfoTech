@@ -22,7 +22,8 @@
 #define ZECMP_GREAT (ZEMASK | 14) // compare great
 #define ZECMP_LITTLE (ZEMASK | 15) // compare little
 #define ZECMD_RESTART (ZEMASK | 16) // return restart command
-#define ZE_END (16)
+#define ZE_EOF (ZEMASK | 17) // end of file
+#define ZE_END (17)
 
 extern const int ZOK; // = ZEOK;// 0 // ZError OK
 extern const int ZFAIL;// = ZEFAIL;// (ZEMASK | 1) // ZError FAILED
@@ -41,6 +42,7 @@ extern const int ZCMP_EQUAL;// (ZEMASK | 13) // compare equal
 extern const int ZCMP_GREAT;// (ZEMASK | 14) // compare great
 extern const int ZCMP_LITTLE;// (ZEMASK | 15) // compare little
 extern const int ZCMD_RESTART;
+extern const int ZEOF;
 
 #define ZASSERTR(x) if(ZOK != (x))return(x)
 #define ZASSERTB(x) if(x)break

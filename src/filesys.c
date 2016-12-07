@@ -104,26 +104,88 @@ int zfread(zfd_t fd, void *buf, int nbytes){
   return ret;
 }
 
+int zfreadx(zfd_t fd, void *buf, int nbytes){
+  int ret;
+  int remain;
+  int nread;
+  ZASSERT(!buf || nbytes<0);
+  
+  remain = nbytes;
+#ifdef ZSYS_POSIX
+  do{
+    nread = read(fd, buf+(nbytes-remain), remain);
+    if(0 == nread){
+      ZDBG("EOF: Read to end of file");
+      ret = ZEOF;
+      break;
+    }else if(-1 == nread){
+      ZERRC(errno);
+      ret = ZFUN_FAIL;
+      break;
+    }else{
+      ZDBG("Read %d bytes", nread);
+      remain -= nread;
+      ret = ZOK;
+    }
+  }while(remain);
+#else
+  do{
+    ret = ReadFile(fd, buf, nbytes, &nread, NULL);
+    if(0 == ret){
+      ZERRC(GetLastError());
+      ret = ZFUN_FAIL;
+    }else if(0 == nread){
+      ZDBG("EOF: Read to end of file");
+      ret = ZEOF;
+    }else{
+      ZDBG("Read %d bytes", nread);
+      remain -= nread;
+      ret = ZOK;
+    }
+  }while(remain);
+#endif
+  if(ret == ZOK){
+    ret = nbytes - remain;
+  }
+  return ret;
+}
+
 int zfwrite(zfd_t fd, const void *buf, int nbytes){
   int ret;
-#ifdef ZSYS_POSIX
-  ret = write(fd, buf, nbytes);
-  if(-1 == ret){
-    ZERRC(errno);
-  }else{
-    ZDBG("Write %d bytes", ret);
-  }
-#else
+  int remain;
   int nwrite;
-  ret = WriteFile(fd, buf, nbytes, &nwrite, NULL);
-  if(0 == ret){
-    ZERRC(GetLastError());
-    ret = -1;
-  }else{
-    ZDBG("Write %d bytes", nwrite);
-    ret = nwrite;
-  }
+  ZASSERT(!buf || nbytes < 0);
+
+  remain = nbytes;
+#ifdef ZSYS_POSIX
+  do{
+    nwrite = write(fd, buf+(nbytes-remain), remain);
+    if(-1 == nwrite){
+      ZERRC(errno);
+      ret = ZFUN_FAIL;
+      break;
+    }else{
+      ZDBG("Write %d bytes", nwrite);
+      remain -= nwrite;
+      ret = ZOK;
+    }
+  }while(remain);
+#else
+  do{
+    ret = WriteFile(fd, buf+(nbytes-remain), remain, &nwrite, NULL);
+    if(0 == ret){
+      ZERRC(GetLastError());
+      ret = ZFUN_FAIL;
+    }else{
+      ZDBG("Write %d bytes", nwrite);
+      remain -= nwrite;
+      ret = ZOK;
+    }
+  }while(remain);
 #endif
+  if(ZOK == ret){
+    ret = nbytes-remain;
+  }
   return ret;
 }
 
@@ -140,6 +202,39 @@ int zmkdir(const char *dir, int mode){
 #else
   ret = ZNOT_SUPPORT;   
 #endif
+  ZERRC(ret);
+  return ret;
+}
+
+int zrmdir(const char *dir){
+  int ret;
+  ZASSERT(!dir);
+#ifdef ZSYS_POSIX
+  ret  = rmdir(dir);
+  if(-1 == ret){
+    ZERRC(errno);
+    ret = ZFUN_FAIL;
+  }
+#else
+  ret = ZNOT_SUPPORT;
+#endif
+  ZERRC(ret);
+  return ret;
+}
+
+int zrmfile(const char *fname){
+  int ret;
+  ZASSERT(!fname);
+#ifdef ZSYS_POSIX
+  ret  = unlink(fname);
+  if(-1 == ret){
+    ZERRC(errno);
+    ret = ZFUN_FAIL;
+  }
+#else
+  ret = ZNOT_SUPPORT;
+#endif
+  ZERRC(ret);
   return ret;
 }
 

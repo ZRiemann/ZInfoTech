@@ -12,13 +12,17 @@
 #include <string.h>
 #include <stdio.h>
 
+#define ZTST_FTW 0
+#define ZTST_DIR 1
 //static void ztst_list();
 //static void ztst_que();
 //static void ztst_container();
 static void ztst_ftw();
+static void ztst_dir();
 //static void ztst_framework();
 void ztst_base(){
   ztst_ftw();
+  ztst_dir();
   /* int i,j;
   char buf[256];
   int v = zversion();
@@ -54,11 +58,26 @@ void ztst_base(){
   //  ztst_container();
   //ztst_framework();
 }
+static void ztst_dir(){
+#if ZTST_DIR
+  const char *dir = "tstdir";
+  char pathname[512];
+  zmkdir(dir,0x755);
+  zmkdir(dir,0x755);
+  sprintf(pathname, ".");
+  zftw_nr(pathname, print_zftw);
+  zrmdir(dir);
+  sprintf(pathname, ".");
+  zftw_nr(pathname, print_zftw);
+#endif
+}
 static void ztst_ftw(){
+#if ZTST_FTW
   char pathname[512];
   sprintf(pathname, "/nfsroot");
   zftw(pathname, print_zftw);
   zftw_nr(pathname, print_zftw);
+#endif
 }
 #if 0
 //====================================================

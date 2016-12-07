@@ -88,8 +88,10 @@ typedef struct zfile_stat_s{
  */
 ZAPI zfd_t zfopen(const char *fname, int flag, int mode);
 ZAPI int zfclose(zfd_t fd);
-ZAPI int zfread(zfd_t fd, void *buf, int nbytes);
+ZAPI int zfread(zfd_t fd, void *buf, int nbytes); // read <= nbytes
+ZAPI int zfreadx(zfd_t fd, void *buf, int nbytes); // read = nbytes
 ZAPI int zfwrite(zfd_t fd, const void *buf, int nbytes);
+
 //ZAPI int zflseek();
 //ZAPI int zfdup();
 //ZAPI int zfcntl();

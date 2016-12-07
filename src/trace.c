@@ -123,7 +123,8 @@ const char *errmap[] = {
   "ZE13-compare-equal",
   "ZE14-compare-great",
   "ZE15-compare-little",
-  "ZE16-command-restart"
+  "ZE16-command-restart",
+  "ZE17-end-of-file"
 };
 
 const char*  zstrerr(int code) {
