@@ -124,10 +124,11 @@ int ztsk_svr_create(ztsk_svr_t **tsk_svr){
       ZASSERTB(ZOK != ret);
       ret = zcontainer_create(&svr->works, ZCONTAINER_LIST);
       ZASSERTB(ZOK != ret);
-      ret = zcontainer_create(&svr->mis_pending, ZCONTAINER_LIST);
-      ZASSERTB(ZOK != ret);
+      //ret = zcontainer_create(&svr->mis_pending, ZCONTAINER_LIST);
+      //ZASSERTB(ZOK != ret);
       ret = zsem_init(&svr->sem_wait, 0);
-      //      ret = ziatm_create(&svr->atm);
+      ZASSERTB(ZOK != ret);
+      ret = ziatm_create(&svr->atm);
       svr->worknum = 4;
   }while(0);  
   if(ZOK != ret && svr){
@@ -154,7 +155,8 @@ int ztsk_svr_destroy(ztsk_svr_t *tsk_svr){
   zcontainer_destroy(tsk_svr->mis_wait, NULL);
   zcontainer_destroy(tsk_svr->tsk_recycle, zobj_free);
   zcontainer_destroy(tsk_svr->works, NULL);// sotp free zthr_t*
-  zcontainer_destroy(tsk_svr->mis_pending, NULL);
+  //zcontainer_destroy(tsk_svr->mis_pending, NULL);
+  ziatm_destroy(tsk_svr->atm);
   zsem_uninit(&tsk_svr->sem_wait);
   free(tsk_svr);
   return ZOK;
@@ -414,12 +416,21 @@ static int foreach_post(OPARG){
 #if ZTRACE_FRAMEWORK
     ZDBG("push task<ptr:%p, ID:%04x> to mis<ptr:%p, type:%04x>", tsk_clone, tsk_clone->obj.type, mis, mis->dev.dev_type);
 #endif
+    ret = ziatm_lock(svr->atm);
+    if(ZOK != ret){
+      ZERRC(ret);
+      return ret;
+    }
     zcontainer_push(mis->tasks, tsk_clone);
     // !busy push mis_wait
     if(ZTRUE == ziatm_cas(mis->atm, ZFALSE, ZTRUE)){
+#if ZTRACE_FRAMEWORK
+      ZDBG("push mission to task wait.");
+#endif
       zcontainer_push(svr->mis_wait, mis);
       zsem_post(&svr->sem_wait);
     }
+    ziatm_unlock(svr->atm);
   }else{
     ZERRC(ret);
   }
@@ -441,21 +452,26 @@ int ztsk_svr_post(ztsk_svr_t *svr, ztsk_t *tsk){
 
 ZINLINE void post_mis(ztsk_svr_t* svr, zmis_t *mis){
   int ret;
+  ret = ziatm_lock(svr->atm);
+  if(ZOK != ret){
+    ZERRC(ret);
+    return;
+  }
   if(0 < zcontainer_size(mis->tasks)){
     // push mis_wait again
     zcontainer_push(svr->mis_wait, mis);
     zsem_post(&svr->sem_wait);
-    //zdbg("push to mis wait...");
+#if ZTRACE_FRAMEWORK
+    ZDBG("push to mis wait...");
+#endif
   }else{
     // set no task, last one pushed, for next mission
     ret = ziatm_cas(mis->atm, ZTRUE, ZFALSE);
-    if(ZTRUE == ret){
-      zcontainer_push(svr->mis_pending, mis);
-      //      zdbg("push to mis pending...");
-    }else{
-      zerr("bad status");
-    }
+#if ZTRACE_FRAMEWORK
+    ZDBG("mission has no task.");
+#endif
   }
+  ziatm_unlock(svr->atm);
 }
 
 static zthr_ret_t ZCALL zproc_tsk_svr(void* param){
@@ -475,47 +491,66 @@ static zthr_ret_t ZCALL zproc_tsk_svr(void* param){
     zthreadx_procend(thr, ret);
     return 0;
   }
+
   while( ZTIMEOUT == zsem_wait(&(thr->exit), 0)){
     if(ZOK != zsem_wait(&(svr->sem_wait), 300)){
-      // handle panding mis
-      //zdbg("zproc_tsk_svr sem_wait timeout...");
-      if(ZOK == zcontainer_pop(svr->mis_pending, (zvalue_t)&mis) && 0 < zcontainer_size(mis->tasks) && ZTRUE == ziatm_cas(mis->atm, ZFALSE, ZTRUE)){
-	zcontainer_push(svr->mis_wait, mis);
-	zsem_post(&svr->sem_wait);
-	zmsg("pending switch to waiting");
-      }
       continue;
     }
+#if ZTRACE_FRAMEWORK
+    else{
+      ZDBG("wait sem ok");
+    }
+#endif
+
     ret = zcontainer_pop(svr->mis_wait, (zvalue_t)&mis);
     if(ZOK != ret){
       ZERRC(ret);
       continue;
     }
-
+#if ZTRACE_FRAMEWORK
+    else{
+      ZDBG("get mis ok");
+    }
+#endif
     // do tasks in mission, max 16 tasks
     if(ZOK != zcontainer_pop(mis->tasks, (zvalue_t)&tsk)){
       zerr("not task in mission...");
       post_mis(svr,mis);
       continue;
     }
+#if ZTRACE_FRAMEWORK
+    else{
+      ZDBG("get task ok");
+    }
+#endif
     
     if(ZMIS_MODE_CONCURRENT == mis->mode){
       // push mis to mis_wait for next thread do concurrent task
       post_mis(svr, mis);
       tsk->obj.operate((zvalue_t)tsk, (zvalue_t*)&thr, (zvalue_t)svr);
       zrecycle_task(svr, tsk);
-      //zdbg("do concurrent task ok.");
+#if ZTRACE_FRAMEWORK
+      ZDBG("do concurrent task ok.");
+#endif
     }else{      
       cnt = 1;
+#if ZTRACE_FRAMEWORK
+      ZDBG("begin do serial tasks...");
+#endif
       tsk->obj.operate((zvalue_t)tsk, (zvalue_t*)&thr, (zvalue_t)svr);
       zrecycle_task(svr, tsk);
+#if ZTRACE_FRAMEWORK
+      ZDBG("do <%d> serial tasks ok.",cnt);
+#endif
       while(ZOK == zcontainer_pop(mis->tasks, (zvalue_t)&tsk)){
 	tsk->obj.operate((zvalue_t)tsk, (zvalue_t*)&thr, (zvalue_t)svr);
 	zrecycle_task(svr, tsk);
 	++cnt;
+#if ZTRACE_FRAMEWORK
+	ZDBG("do <%d> serial tasks ok.",cnt);
+#endif
 	if(cnt >= 16)break;
       }
-      //zdbg("do <%d> serial tasks ok.",cnt);
       post_mis(svr, mis);
     }
   }

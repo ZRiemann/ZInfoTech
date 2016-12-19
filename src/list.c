@@ -239,10 +239,21 @@ int zlist_erase(zcontainer_t cont, zvalue_t in, zoperate compare){
       }
       if(list->tail == nod){
 	list->tail = nod->prev;
-	list->tail->next = NULL;
+	if(list->tail){
+	  list->tail->next = NULL;
+	}
+      }
+
+      if(nod->prev){
+	nod->prev->next = nod->next;
+	if(nod->next){
+	  nod->next->prev = nod->prev;
+	}
       }
       nod = nod->next;
       zlist_recycle(list, nod1);
+    }else{
+      nod = nod->next;
     }
   }
   ziatm_unlock(list->atm);

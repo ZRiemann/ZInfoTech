@@ -44,12 +44,12 @@ typedef struct ztsk_server_s{
   zdev_t dev;
   zcontainer_t observers;// list< zpair_t< zobj_type_t, list<zmis_t*> >* > observer()/gettask()
   zcontainer_t mis_wait; // queue<mis_t*>
-  zcontainer_t mis_pending; // queue<mis_t*> avoid zombie task
+  //zcontainer_t mis_pending; // queue<mis_t*> avoid zombie task
   zcontainer_t tsk_recycle; // tsk buffer
   zcontainer_t works;    // list<zthr_t*>
   int worknum;           // work numbers
   zsem_t sem_wait;
-  //  zatm_t atm;            // lock
+  zatm_t atm;            // lock
 }ztsk_svr_t;
 
 ZAPI int ztsk_svr_create(ztsk_svr_t **tsk_svr);
