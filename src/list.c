@@ -279,3 +279,36 @@ int zlist_foreach(zcontainer_t cont, zoperate op, zvalue_t hint){
   ziatm_unlock(list->atm);
   return(ZOK);
 }
+
+int zlist_back(zcontainer_t cont, zvalue_t *out){
+  int ret;
+  zlist_t *list;
+  ZASSERT(!cont);
+  list = (zlist_t*)cont;
+  ret = ziatm_lock(list->atm);
+  ZASSERT(ret != ZOK);
+  if(list->tail){
+    *out = list->tail->value;
+    ziatm_unlock(list->atm);
+  }else{
+    ret = ZNOT_EXIST;
+  }
+  ziatm_unlock(list->atm);
+  return(ret);
+}
+int zlist_front(zcontainer_t cont, zvalue_t *out){
+  int ret;
+  zlist_t *list;
+  ZASSERT(!cont);
+  list = (zlist_t*)cont;
+  ret = ziatm_lock(list->atm);
+  ZASSERT(ret != ZOK);
+  if(list->head){
+    *out = list->head->value;
+    ziatm_unlock(list->atm);
+  }else{
+    ret = ZNOT_EXIST;
+  }
+  ziatm_unlock(list->atm);
+  return(ret);
+}

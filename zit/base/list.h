@@ -20,5 +20,9 @@ ZAPI int zlist_insert(zcontainer_t cont, zvalue_t in, zoperate compare);
 ZAPI int zlist_erase(zcontainer_t cont, zvalue_t in, zoperate compare);
 ZAPI int zlist_foreach(zcontainer_t cont, zoperate op, zvalue_t hint);
 ZAPI zsize_t zlist_size(zcontainer_t cont);
+
+ZAPI int zlist_back(zcontainer_t cont, zvalue_t *out);
+ZAPI int zlist_front(zcontainer_t cont, zvalue_t *out);
+
 ZC_END
 #endif

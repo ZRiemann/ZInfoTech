@@ -216,7 +216,7 @@ int zque_pushfront(zcontainer_t cont, zvalue_t in){
 
 int zque_popback(zcontainer_t cont, zvalue_t *out){
   zque_t *que;
-  int ret = ZEOK;
+  int ret = ZOK;
   que = (zque_t*)cont;
   ret = ziatm_lock(que->atm_lock); if(ZOK != ret){return ret;}
   --que->size;
@@ -293,4 +293,33 @@ int zque_foreach(zcontainer_t cont, zoperate op, zvalue_t hint){
   //ZERRC(ret);
   ziatm_unlock(que->atm_lock);
   return(ret);
+}
+
+int zque_back(zcontainer_t cont, zvalue_t *out){
+  zque_t *que;
+  int ret = ZOK;
+  que = (zque_t*)cont;
+  ret = ziatm_lock(que->atm_lock); if(ZOK != ret){return ret;}
+  if(que->size>0){
+    *out = que->chnkback->v[que->posback];
+  }else{
+    ret = ZNOT_EXIST;
+  }
+  //ZERRCX(ret);
+  ziatm_unlock(que->atm_lock);
+  return ret;
+}
+int zque_front(zcontainer_t cont, zvalue_t *out){
+  zque_t *que;
+  int ret = ZOK;
+  que = (zque_t*)cont;
+  ret = ziatm_lock(que->atm_lock); if(ZOK != ret){return ret;}
+  if(que->size>0){
+    *out = que->chnkfront->v[que->posfront];
+  }else{
+    ret = ZNOT_EXIST;
+  }
+  //ZERRCX(ret);
+  ziatm_unlock(que->atm_lock);
+  return ret;
 }

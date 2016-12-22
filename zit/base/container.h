@@ -20,6 +20,10 @@ ZAPI int zcontainer_insert(zcontainer_t cont, zvalue_t in, zoperate compare);
 ZAPI int zcontainer_erase(zcontainer_t cont, zvalue_t in, zoperate compare);
 ZAPI int zcontainer_foreach(zcontainer_t cont, zoperate op, zvalue_t hint);
 ZAPI zsize_t zcontainer_size(zcontainer_t cont);
+
+ZAPI int zcontainer_back(zcontainer_t cont, zvalue_t *out);
+ZAPI int zcontainer_front(zcontainer_t cont, zvalue_t *out);
+
 /*
 ZAPI int zcontainer_create(zcontainer_t* cont, int type);
 ZAPI int zcontainer_destroy(zcontainer_t* cont);
