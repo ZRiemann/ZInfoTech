@@ -17,7 +17,7 @@ ZC_BEGIN
 #include <fcntl.h>
 #include <errno.h>
 typedef int zfd_t;
-#define INVALID_FD (-1)
+#define ZINVALID_FD (-1)
 
 #else // windows
 
@@ -30,7 +30,7 @@ typedef int zfd_t;
 #define O_APPEND 0x20
 
 typedef HANDLE zfd_t;
-#define INVALID_FD INVALID_HANDLE_VALUE
+#define ZINVALID_FD INVALID_HANDLE_VALUE
 
 #ifdef ZUSE_TIMESPEC
 struct timespec{

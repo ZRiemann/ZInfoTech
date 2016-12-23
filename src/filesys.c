@@ -15,7 +15,7 @@ zfd_t zfopen(const char *fname, int flag, int mode){
     fd = open(fname, flag);
   }
   
-  if(INVALID_FD == fd){
+  if(ZINVALID_FD == fd){
     ZERRC(errno);
   }else{
     ZDBG("zfopen(fname<%s>, flag<%d>, mode<%d>", fname, flag, mode);
@@ -48,7 +48,7 @@ zfd_t zfopen(const char *fname, int flag, int mode){
 
   fd = CreateFile(fname, access, FILE_SHARE_READ, NULL, create, FILE_ATTRIBUTE_NORMAL, NULL); 
 
-  if(INVALID_FD == fd){
+  if(ZINVALID_FD == fd){
     ZERRC(GetLastError());
   }else{
     ZDBG("zfopen(fname<%s>, flag<%d>, mode<%d>", fname, flag, mode);
@@ -198,6 +198,12 @@ int zmkdir(const char *dir, int mode){
   if(-1 == ret){
     ZERRC(errno);
     ret = ZFUN_FAIL;
+  }else{
+    ret = chmod(dir, S_IRWXU|S_IRGRP|S_IROTH);
+    if(-1 == ret){
+      ZERRC(ret);
+    }
+    ret = ZOK;
   }
 #else
   ret = ZNOT_SUPPORT;   
