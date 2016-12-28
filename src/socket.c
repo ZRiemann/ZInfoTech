@@ -3,6 +3,7 @@
 #include <arpa/inet.h>
 #include <string.h>
 #include <fcntl.h>
+#include <stdio.h>
 
 zsock_t zsocket(int domain, int type, int protocol){
   zsock_t sock;
@@ -109,6 +110,25 @@ int zrecv(zsock_t sock, char *buf, int len, int flags){
   return(ret);
 }
 
+
+static void sock_dump(const char *buf, int len){
+  int i;
+  int j;
+  int offset;
+  char msg[4096];
+  ZASSERTX(!buf && (len < 0 || len > 1024));
+  i = offset = 0;
+  while(i < len){
+    offset += sprintf(msg+offset, "%02x ", (unsigned char)buf[i]);
+    i++;
+    j++;
+    if(j == 32){
+      offset += sprintf(msg+offset, "\n");
+    }
+  }
+  zdbg("%s", msg);
+}
+
 int zsend(zsock_t sock, const char *buf, int len, int flags){
   int ret;
   int sended;
@@ -117,6 +137,7 @@ int zsend(zsock_t sock, const char *buf, int len, int flags){
   while(sended != len){
 #if ZTRACE_SOCKET
     //ZDBG("before send<sock:%d, buf:%p, len:%d, flags:%d>", sock, buf+sended, len-sended, flags);
+    sock_dump(buf, len);
 #endif
     ret = send(sock, buf+sended, len-sended, flags);
 #if ZTRACE_SOCKET
