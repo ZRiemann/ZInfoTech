@@ -63,4 +63,17 @@ ZAPI int ztsk_svr_recycle_task(ztsk_svr_t *svr, ztsk_t *tsk);
 /*
   init()/fini()/run()/stop() default implement
 */
+typedef struct ztsk_timer_s{
+  int type;
+  int flag;
+  int interval; // seconds
+  time_t timestemp;
+  // user data
+  // ...
+}ztsk_timer_t;
+
+ZAPI int ztsk_timer_init();
+ZAPI int ztsk_timer_fini();
+ZAPI int ztsk_timer_add(ztsk_timer_t *timer);
+ZAPI int ztsk_timer_post();
 #endif
