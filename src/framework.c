@@ -15,6 +15,8 @@
 #include <string.h>
 #include <stdio.h>
 
+static zcontainer_t zg_timers;
+
 int zobj_free(ZOP_ARG){
   free(in);
   return(ZOK);
@@ -608,4 +610,62 @@ static int ztsk_svr_stop(OPARG){
   }
   
   return ZOK;
+}
+
+int ztsk_timer_init(){
+  if(zg_timers){return ZOK;}
+  return zcontainer_create(&zg_timers, ZCONTAINER_LIST);
+}
+
+int ztsk_timer_fini(zoperate op_free){
+  if(zg_timers){
+    zcontainer_destroy(zg_timers, op_free);
+  }
+  return ZOK;
+}
+
+int ztsk_timer_add(ztsk_timer_t *timer){
+  ZASSERT(!timer);
+  return zcontainer_push(zg_timers, timer);
+}
+
+static int ztimer_trigger(ZOP_ARG){
+  ztsk_t *tsk;
+  ztsk_timer_t *timer;
+  time_t now;
+  int ret;
+
+  now = time(&now);
+  timer = (ztsk_timer_t*)in;
+  ret = ZOK;
+
+  if(!ZTSK_TIMER_ISENABLE(timer)){
+    return ret;
+  }
+
+  if(now >= (timer->timestemp + timer->interval)){
+    if(!ZTSK_TIMER_ISACT(timer)){
+      ZWAR("timer<%x> blocked", timer->tsk_type);
+      timer->timestemp = now;
+      return ret;
+    }
+    ret = ztsk_svr_gettask((ztsk_svr_t*)hint, &tsk, ((ztsk_timer_t*)in)->tsk_type);
+#if ZTRACE_FRAMEWORK
+    ZERRCX(ret);
+#endif
+    ZASSERT(ret);
+    timer->timestemp = now;
+    ZTSK_TIMER_CLRACT(timer);
+    tsk->hint = timer;
+    ret = ztsk_svr_post((ztsk_svr_t*)hint, tsk);
+#if ZTRACE_FRAMEWORK
+    ZDBG("post timer<%x> %d", timer->tsk_type, ret);
+#endif
+
+  }
+  return ret;
+}
+
+int ztsk_timer_trigger(ztsk_svr_t *svr){
+  return zcontainer_foreach(zg_timers, ztimer_trigger, (zvalue_t)svr);
 }

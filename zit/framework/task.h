@@ -64,16 +64,24 @@ ZAPI int ztsk_svr_recycle_task(ztsk_svr_t *svr, ztsk_t *tsk);
   init()/fini()/run()/stop() default implement
 */
 typedef struct ztsk_timer_s{
-  int type;
-  int flag;
+  int tsk_type;
+  int flag;     // 0x01 -act down 0x00 -trigger but not act
   int interval; // seconds
   time_t timestemp;
   // user data
   // ...
 }ztsk_timer_t;
 
+#define ZTSK_TIMER_ISACT(timer) (timer->flag & 0x01)
+#define ZTSK_TIMER_SETACT(timer) (timer->flag |= 0x01)
+#define ZTSK_TIMER_CLRACT(timer) (timer->flag ^= (timer->flag & 0x01))
+
+#define ZTSK_TIMER_ISENABLE(timer) (timer->flag & 0x02)
+#define ZTSK_TIMER_SETENABLE(timer) (timer->flag |= 0x02)
+#define ZTSK_TIMER_CLRENABLE(timer) (timer->flag ^= (timer->flag & 0x02))
+
 ZAPI int ztsk_timer_init();
-ZAPI int ztsk_timer_fini();
+ZAPI int ztsk_timer_fini(zoperate op_free);
 ZAPI int ztsk_timer_add(ztsk_timer_t *timer);
-ZAPI int ztsk_timer_post();
+ZAPI int ztsk_timer_trigger(ztsk_svr_t *svr);
 #endif
