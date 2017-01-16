@@ -70,6 +70,6 @@ ZAPI int zrecv_packet(zsock_t sock, char *buf, int maxlen, int* offset, int *len
  */
 ZAPI int zconnectx(zsock_t sock, const char *host, uint16_t port, int listenq, int timeout_ms);
 
-#define ZSOCKCLOSE(sock) do{zsockclose(sock); (sock)=ZINVALID_SOCKET;}while(0);
+#define ZSOCKCLOSE(sock) do{zsockclose(sock); (sock)=ZINVALID_SOCKET;}while(0)
 ZC_END
 #endif

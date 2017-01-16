@@ -24,6 +24,7 @@
 #define ZECMD_RESTART (ZEMASK | 16) // return restart command
 #define ZE_EOF (ZEMASK | 17) // end of file
 #define ZE_END (17)
+#define ZESOCK_INVALID (ZEMASK | 18) // invalid socked
 
 extern const int ZOK; // = ZEOK;// 0 // ZError OK
 extern const int ZFAIL;// = ZEFAIL;// (ZEMASK | 1) // ZError FAILED

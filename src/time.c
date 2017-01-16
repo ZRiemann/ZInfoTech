@@ -119,7 +119,7 @@ int zget_localtime(ztime_t* ptm){
   localtime_r(&tv.tv_sec, &now);
 
   ptm->year = now.tm_year + 1900;
-  ptm->month = now.tm_mon;
+  ptm->month = now.tm_mon + 1;
   ptm->day = now.tm_mday;
   ptm->hour = now.tm_hour;
   ptm->minute = now.tm_min;
