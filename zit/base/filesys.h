@@ -109,13 +109,13 @@ ZAPI int zrmdir(const char *dir);
 ZAPI int zrmfile(const char *fname);
 //ZAPI void *zopendir(const char *dir);
 //ZAPI void *zreaddir(void *handle);
-typedef int cbzftw(const char *pathname, zfstat_t *stat, int ftw_flag);
+typedef int cbzftw(const char *pathname, zfstat_t *stat, int ftw_flag, zvalue_t hint);
 ZAPI int print_zftw(const char *pathname, zfstat_t *stat, int ftw_flag);
 ZAPI int zfstat(const char *pathname, zfstat_t *stat);
 /**@fn int zftw(const char *dir, zfstat_t stat, int type)
  * @brief file tree walk
 */
-ZAPI int zftw(char dir[512], cbzftw func);
-ZAPI int zftw_nr(char dir[512], cbzftw func); // not recursive
+ZAPI int zftw(char dir[512], cbzftw func, zvalue_t hint);
+ZAPI int zftw_nr(char dir[512], cbzftw func, zvalue_t hint); // not recursive
 ZC_END
 #endif

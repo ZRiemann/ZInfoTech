@@ -301,7 +301,7 @@ int zfstat(const char *pathname, zfstat_t *stat){
   return ret;
 }
 
-int zftw(char fullpath[512], cbzftw func){
+int zftw(char fullpath[512], cbzftw func, zvalue_t hint){
   int ret;
 #ifdef ZSYS_POSIX
   //struct stat statbuf;
@@ -312,12 +312,12 @@ int zftw(char fullpath[512], cbzftw func){
   
   ret = 0;
   if(ZOK != zfstat(fullpath, &statbuf)){
-    return func(fullpath, &statbuf, FTW_NS);
+    return func(fullpath, &statbuf, FTW_NS, hint);
   }
   if(ZFMODE_DIR != statbuf.mode){
-    return func(fullpath, &statbuf, FTW_F);
+    return func(fullpath, &statbuf, FTW_F, hint);
   }
-  if(0 != (ret = func(fullpath, &statbuf, FTW_D))){
+  if(0 != (ret = func(fullpath, &statbuf, FTW_D, hint))){
     return ret;
   }
   n = strlen(fullpath);
@@ -325,13 +325,13 @@ int zftw(char fullpath[512], cbzftw func){
   fullpath[n] = 0;
   
   if(NULL == (dp = opendir(fullpath))){
-    return func(fullpath, &statbuf, FTW_DNR);
+    return func(fullpath, &statbuf, FTW_DNR, hint);
   }
   
   while((dirp = readdir(dp)) != NULL){
     if(0==strcmp(dirp->d_name, ".") || 0==strcmp(dirp->d_name, ".."))continue;
     strcpy(&fullpath[n], dirp->d_name);
-    if((ret = zftw(fullpath, func)) != 0){
+    if((ret = zftw(fullpath, func, hint)) != 0){
       break;
     }
   }
@@ -345,7 +345,7 @@ int zftw(char fullpath[512], cbzftw func){
   return ret;
 }
 
-ZAPI int zftw_nr(char fullpath[512], cbzftw func){
+ZAPI int zftw_nr(char fullpath[512], cbzftw func, zvalue_t hint){
   int ret;
   int ftw_flag;
 #ifdef ZSYS_POSIX
@@ -357,12 +357,12 @@ ZAPI int zftw_nr(char fullpath[512], cbzftw func){
   
   ret = 0;
   if(ZOK != zfstat(fullpath, &statbuf)){
-    return func(fullpath, &statbuf, FTW_NS);
+    return func(fullpath, &statbuf, FTW_NS, hint);
   }
   if(ZFMODE_DIR != statbuf.mode){
-    return func(fullpath, &statbuf, FTW_F);
+    return func(fullpath, &statbuf, FTW_F, hint);
   }
-  if(0 != (ret = func(fullpath, &statbuf, FTW_D))){
+  if(0 != (ret = func(fullpath, &statbuf, FTW_D, hint))){
     return ret;
   }
   n = strlen(fullpath);
@@ -370,7 +370,7 @@ ZAPI int zftw_nr(char fullpath[512], cbzftw func){
   fullpath[n] = 0;
   
   if(NULL == (dp = opendir(fullpath))){
-    return func(fullpath, &statbuf, FTW_DNR);
+    return func(fullpath, &statbuf, FTW_DNR, hint);
   }
   
   while((dirp = readdir(dp)) != NULL){
@@ -383,7 +383,7 @@ ZAPI int zftw_nr(char fullpath[512], cbzftw func){
     }else{
       ftw_flag = FTW_D;
     }
-    func(fullpath, &statbuf, ftw_flag);
+    func(fullpath, &statbuf, ftw_flag, hint);
   }
   fullpath[n-1] = 0;
   if(closedir(dp)<0){
