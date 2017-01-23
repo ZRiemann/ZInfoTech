@@ -24,6 +24,8 @@ typedef struct sockaddr ZSA;
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/select.h>
+#include <arpa/inet.h>
+#include <netinet/in.h>
 
 typedef int zsock_t;
 typedef struct sockaddr_in zsockaddr_in;
