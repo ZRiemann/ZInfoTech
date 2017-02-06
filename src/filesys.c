@@ -212,6 +212,32 @@ int zmkdir(const char *dir, int mode){
   return ret;
 }
 
+int zchdir(const char *dir){
+  int ret;
+  ZASSERT(!dir);
+  ret = ZOK;
+#ifdef ZSYS_POSIX
+  ret = chdir(dir);
+  if(ret < 0){
+    ZERRC(errno);
+    ret = ZFUN_FAIL;
+  }
+#else
+  ret = ZNOT_SUPPORT;
+#endif
+  ZERRC(ret);
+  return ret;
+}
+
+int zgetcwd(char *buf, size_t size){
+#ifdef ZSYS_POSIX
+  getcwd(buf, size);
+#else
+  return ZNOT_SUPPORT;
+#endif
+  return ZOK;
+}
+
 int zrmdir(const char *dir){
   int ret;
   ZASSERT(!dir);

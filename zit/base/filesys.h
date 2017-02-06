@@ -105,6 +105,8 @@ ZAPI int zfwrite(zfd_t fd, const void *buf, int nbytes);
 #define FTW_NS 4 // file that we can't stat
 
 ZAPI int zmkdir(const char *dir, int mode);
+ZAPI int zchdir(const char *dir);
+ZAPI int zgetcwd(char *buf, size_t size);
 ZAPI int zrmdir(const char *dir);
 ZAPI int zrmfile(const char *fname);
 //ZAPI void *zopendir(const char *dir);
