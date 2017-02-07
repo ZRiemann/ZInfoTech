@@ -85,6 +85,28 @@ int zconnect(zsock_t sock, const ZSA *addr, int len){
   return(ret);
 }
 
+
+static void sock_dump(const char *buf, int len){
+  int i;
+  int j;
+  int offset;
+  char msg[4096];
+  
+  if(len > 1024){
+    len = 64;
+  }
+  i = offset = 0;
+  while(i < len){
+    offset += sprintf(msg+offset, "%02x ", (unsigned char)buf[i]);
+    i++;
+    j++;
+    if(j == 32){
+      offset += sprintf(msg+offset, "\n");
+    }
+  }
+  zdbg("%s", msg);
+}
+
 int zrecv(zsock_t sock, char *buf, int len, int flags){
   int ret;
   int readed;
@@ -106,27 +128,9 @@ int zrecv(zsock_t sock, char *buf, int len, int flags){
     }
   }else{
     ret = readed;
+    sock_dump(buf, ret);
   }
   return(ret);
-}
-
-
-static void sock_dump(const char *buf, int len){
-  int i;
-  int j;
-  int offset;
-  char msg[4096];
-  ZASSERTX(!buf && (len < 0 || len > 1024));
-  i = offset = 0;
-  while(i < len){
-    offset += sprintf(msg+offset, "%02x ", (unsigned char)buf[i]);
-    i++;
-    j++;
-    if(j == 32){
-      offset += sprintf(msg+offset, "\n");
-    }
-  }
-  zdbg("%s", msg);
 }
 
 int zsend(zsock_t sock, const char *buf, int len, int flags){
