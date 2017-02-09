@@ -199,7 +199,7 @@ int zmkdir(const char *dir, int mode){
     ZERRC(errno);
     ret = ZFUN_FAIL;
   }else{
-    ret = chmod(dir, S_IRWXU|S_IRGRP|S_IROTH);
+    ret = chmod(dir, S_IRWXU|S_IRGRP|S_IWGRP|S_IROTH);
     if(-1 == ret){
       ZERRC(ret);
     }
