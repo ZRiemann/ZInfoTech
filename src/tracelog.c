@@ -83,6 +83,8 @@ int ztrace_logctl(const char* fname, int logsize){
   if( (logsize > 1023) && (logsize < 512*1024*1024) )
   {
     zg_logsize = logsize;
+  }else{
+    zg_logsize = 16*1024*1024;
   }
   return ZEOK;
 }

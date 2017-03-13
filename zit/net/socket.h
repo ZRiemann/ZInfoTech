@@ -16,6 +16,7 @@ typedef SOCKET zsock_t;
 typedef SOCKADDR_IN zsockaddr_in;
 typedef struct sockaddr ZSA;
 #define ZINVALID_SOCKET INVALID_SOCKET
+// CAUTION: call WSAStartup and WSAClean up first;
 
 //===========================================
 #else //ZSYS_POSIX
@@ -26,13 +27,16 @@ typedef struct sockaddr ZSA;
 #include <sys/select.h>
 #include <arpa/inet.h>
 #include <netinet/in.h>
-
+#include <fcntl.h>
 typedef int zsock_t;
 typedef struct sockaddr_in zsockaddr_in;
 typedef struct sockaddr ZSA;
 #define ZINVALID_SOCKET -1
 
 #endif
+
+ZAPI int zsock_init(int v1, int v2); // windows WSAStartup
+ZAPI int zsock_fini(); // Widnows WSACleanup
 
 /**@fn zsock_t zsocket(int domain, int type, int protocol)
  * @brief create an endpint for communication

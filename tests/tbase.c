@@ -65,10 +65,10 @@ static void ztst_dir(){
   zmkdir(dir,0x755);
   zmkdir(dir,0x755);
   sprintf(pathname, ".");
-  zftw_nr(pathname, print_zftw);
+  zftw_nr(pathname, print_zftw, 0);
   zrmdir(dir);
   sprintf(pathname, ".");
-  zftw_nr(pathname, print_zftw);
+  zftw_nr(pathname, print_zftw, 0);
 #endif
 }
 static void ztst_ftw(){

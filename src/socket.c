@@ -1,9 +1,52 @@
+#include "export.h"
 #include <zit/net/socket.h>
 #include <zit/base/trace.h>
+#ifdef ZSYS_POSIX
 #include <arpa/inet.h>
+#endif
 #include <string.h>
 #include <fcntl.h>
 #include <stdio.h>
+
+int zsock_init(int v1, int v2){
+#ifdef ZSYS_WINDOWS
+  WORD wVersionRequested;
+  WSADATA wsaData;
+  int err;
+ 
+  wVersionRequested = MAKEWORD( 2, 2 );
+ 
+  err = WSAStartup( wVersionRequested, &wsaData );
+  if ( err != 0 ) {
+    /* Tell the user that we could not find a usable */
+    /* WinSock DLL.                                  */
+    return ZFUN_FAIL;
+  }
+ 
+  /* Confirm that the WinSock DLL supports 2.2.*/
+  /* Note that if the DLL supports versions greater    */
+  /* than 2.2 in addition to 2.2, it will still return */
+  /* 2.2 in wVersion since that is the version we      */
+  /* requested.                                        */
+ 
+  if ( LOBYTE( wsaData.wVersion ) != 2 ||
+       HIBYTE( wsaData.wVersion ) != 2 ) {
+    /* Tell the user that we could not find a usable */
+    /* WinSock DLL.                                  */
+    WSACleanup( );
+    return ZFUN_FAIL; 
+  }
+ 
+  /* The WinSock DLL is acceptable. Proceed. */
+#endif
+  return ZOK;
+}
+int zsock_fini(){
+#ifdef ZSYS_WINDOWS
+  WSACleanup();
+#endif
+  return ZOK;
+}
 
 zsock_t zsocket(int domain, int type, int protocol){
   zsock_t sock;
@@ -165,10 +208,10 @@ int zsend(zsock_t sock, const char *buf, int len, int flags){
       }
 #endif
       if(ZAGAIN == ret){
-	continue;
 #ifdef ZTRACE_SOCKET
 	ZDBG("try again...");
 #endif
+	continue;
       }else{
 	ZERRC(ret);
 	ret = ZFUN_FAIL;

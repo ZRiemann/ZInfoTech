@@ -420,8 +420,9 @@ ZAPI int zftw_nr(char fullpath[512], cbzftw func, zvalue_t hint){
 #endif
   return ret;
 }
-int print_zftw(const char *pathname, zfstat_t *stat, int ftw_flag){
+int print_zftw(const char *pathname, zfstat_t *stat, int ftw_flag, zvalue_t hint){
   struct tm stm;
+  hint = hint;
 #ifndef ZUSE_TIMESPEC
   stm = *localtime(&stat->ctime);
   switch(ftw_flag){
