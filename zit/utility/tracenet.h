@@ -8,8 +8,10 @@ ZC_BEGIN
 ZAPI int ztrace_netctl(const char* hostname, int port);
 ZAPI int ztrace_net(int level, void *user, const char *msg);
 
-typedef int (*ztrace_netmsg)(const char* info);
+typedef int (*ztrace_netmsg)(const char* info, int len);
 ZAPI int ztrace_netserver(int port, ztrace_netmsg fn);
+
+ZAPI int ztrace_netstop();
 ZC_END
 
 /**@fn int ztrace_netctl(const char* hostname, int port)
@@ -24,8 +26,12 @@ ZC_END
 
 /**@fn int ztrace_net(int level, void *user, const char *msg)
  * @brief write <msg> to log server
- *  @param int level [in] log level, defined in <zit/base/trace.h>
- *  @param void *user [in] user data
- *  @param const char * [in] log message
+ * @param int level [in] log level, defined in <zit/base/trace.h>
+ * @param void *user [in] user data
+ * @param const char * [in] log message
+ */
+
+/**@fn int ztrace_netstop()
+ * @brief stop server and client
  */
 #endif
