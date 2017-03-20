@@ -79,7 +79,7 @@ static void ztst_ftw(){
 #else
   sprintf(pathname, "/");
 #endif
-  //zftw(pathname, print_zftw, NULL);
+  zftw(pathname, print_zftw, NULL);
   zftw_nr(pathname, print_zftw, NULL);
 #endif
 }

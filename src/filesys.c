@@ -154,7 +154,9 @@ int zfwrite(zfd_t fd, const void *buf, int nbytes){
   int ret;
   int remain;
   int nwrite;
+#ifdef ZSYS_WINDOWS
   const char *pc;
+#endif
   ZASSERT(!buf || nbytes < 0);
 
   remain = nbytes;
@@ -417,8 +419,10 @@ int zftw(char fullpath[512], cbzftw func, zvalue_t hint){
     return ret;
   }
   n = strlen(fullpath);
-  fullpath[n++] = '/';
-  fullpath[n] = 0;
+  if(fullpath[n-1] != '/' && fullpath[n-1] != '\\'){
+	  fullpath[n++] = '/';
+	  fullpath[n] = 0;
+  }
   
   if(NULL == (dp = opendir(fullpath))){
     return func(fullpath, &statbuf, FTW_DNR, hint);
@@ -507,8 +511,10 @@ ZAPI int zftw_nr(char fullpath[512], cbzftw func, zvalue_t hint){
     return ret;
   }
   n = strlen(fullpath);
-  fullpath[n++] = '/';
-  fullpath[n] = 0;
+  if(fullpath[n-1] != '/' && fullpath[n-1] != '\\'){
+	  fullpath[n++] = '/';
+	  fullpath[n] = 0;
+  }
   
   if(NULL == (dp = opendir(fullpath))){
     return func(fullpath, &statbuf, FTW_DNR, hint);
