@@ -79,7 +79,7 @@ void* zatomic_cmpswap(zatmc_t* atm, void* cmp, void* v){
 // reimplement
 typedef struct ziatm_s{
   volatile zspin_t spin;
-#ifdef ZSYS_POSIX//ZATM_MUTEX
+#ifdef ZATM_MUTEX
   zmtx_t mtx;
 #endif
 }ziatm_t;
@@ -92,7 +92,7 @@ int ziatm_create(zatm_t *atm){
   if(!*atm)return(ZMEM_INSUFFICIENT);
   iatm = (ziatm_t*)*atm;
   iatm->spin = 0;
-#ifdef ZSYS_POSIX //ZATM_MUTEX
+#ifdef ZATM_MUTEX
   ret = zmutex_init(&iatm->mtx);
   ZERRCX(ret);
 #endif
@@ -101,7 +101,7 @@ int ziatm_create(zatm_t *atm){
 
 int ziatm_destroy(zatm_t atm){
   ziatm_t *iatm = (ziatm_t*)atm;
-#ifdef ZSYS_POSIX //ZATM_MUTEX
+#ifdef ZATM_MUTEX
   if(iatm)zmutex_uninit(&iatm->mtx);
 #endif
   free(atm);
@@ -110,6 +110,7 @@ int ziatm_destroy(zatm_t atm){
 
 ZAPI zspin_t ziatm_xchg(zatm_t atm, zspin_t val){
 #ifdef ZSYS_WINDOWS
+	ziatm_t *iatm = (ziatm_t *)atm;
   return (zspin_t)InterlockedExchange(&iatm->spin, val);
 #elif (defined ZATM_MUTEX || defined ZATM_X86 || defined ZATM_ARM)
   zspin_t old = 0;
@@ -125,6 +126,7 @@ ZAPI zspin_t ziatm_xchg(zatm_t atm, zspin_t val){
 }
 zspin_t ziatm_cas(zatm_t atm, zspin_t cmp, zspin_t val){
 #ifdef ZSYS_WINDOWS
+  ziatm_t *iatm = (ziatm_t*)atm;
   return (val == (zspin_t)InterlockedCompareExchange(&iatm->spin, val, cmp));
 #elif (defined ZATM_MUTEX || defined ZATM_X86 || defined ZATM_ARM)
   zspin_t old = 0;
@@ -146,6 +148,7 @@ zspin_t ziatm_cas(zatm_t atm, zspin_t cmp, zspin_t val){
 
 zspin_t ziatm_inc(zatm_t atm){
 #ifdef ZSYS_WINDOWS
+  ziatm_t *iatm = (ziatm_t*)atm;
   return (zspin_t)InterlockedIncrement(&iatm->spin);
 #elif (defined ZATM_MUTEX)
   zspin_t old = 0;
@@ -192,6 +195,7 @@ zspin_t ziatm_inc(zatm_t atm){
 
 zspin_t ziatm_dec(zatm_t atm){
 #ifdef ZSYS_WINDOWS
+  ziatm_t *iatm = (ziatm_t*)atm;
   return (zspin_t)InterlockedDecrement(&iatm->spin);
 #elif (defined ZATM_MUTEX)
   zspin_t old = 0;
@@ -238,7 +242,8 @@ zspin_t ziatm_dec(zatm_t atm){
 
 zspin_t ziatm_add(zatm_t atm, zspin_t inc){
 #ifdef ZSYS_WINDOWS
-  return (zpin_t)InterlockedExchangeAdd (&iatm->spin, val);
+  ziatm_t *iatm = (ziatm_t*)atm;
+  return (zspin_t)InterlockedExchangeAdd (&iatm->spin, inc);
 #elif (defined ZATM_MUTEX)
   zspin_t old = 0;
   ziatm_t *iatm = (ziatm_t*)atm;
@@ -283,7 +288,8 @@ zspin_t ziatm_add(zatm_t atm, zspin_t inc){
 }
 zspin_t ziatm_sub(zatm_t atm, zspin_t dec){
 #ifdef ZSYS_WINDOWS
-  return (zspin_t)InterlockedExchangeAdd (&iatm->spin, -val);
+  ziatm_t *iatm = (ziatm_t*)atm;
+  return (zspin_t)InterlockedExchangeAdd (&iatm->spin, -dec);
 #elif (defined ZATM_MUTEX)
   zspin_t old = 0;
   ziatm_t *iatm = (ziatm_t*)atm;
@@ -377,6 +383,7 @@ zptr_t zpatm_cas(zatm_t atm, zptr_t cmp, zptr_t ptr){
 }
 zptr_t zpatm_xchg(zatm_t atm, zptr_t ptr){
 #ifdef ZSYS_WINDOWS
+  zpatm_t *patm = (zpatm_t*)atm;
   return (zptr_t)InterlockedExchangePointer(&patm->ptr, ptr);
 #elif (defined ZATM_MUTEX)
   zptr_t p;

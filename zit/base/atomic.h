@@ -29,6 +29,8 @@ ZAPI void* zatomic_cmpswap(zatmc_t* atm, void* cmp, void* v);
 #define ZATM_MUTEX // use mutex for hardware independent for linux
 //#define ZATM_X86 // use x86 asm for linux
 //#define ZATM_ARM // use ARM asm for linux
+#else
+#define ZATM_MUTEX // use mutex lock and unlock
 #endif
 
 ZAPI int ziatm_create(zatm_t *atm);

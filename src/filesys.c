@@ -154,6 +154,7 @@ int zfwrite(zfd_t fd, const void *buf, int nbytes){
   int ret;
   int remain;
   int nwrite;
+  const char *pc;
   ZASSERT(!buf || nbytes < 0);
 
   remain = nbytes;
@@ -172,10 +173,11 @@ int zfwrite(zfd_t fd, const void *buf, int nbytes){
   }while(remain);
 #else
   do{
-    ret = WriteFile(fd, buf+(nbytes-remain), remain, &nwrite, NULL);
+    pc = (const char*)buf;
+    ret = WriteFile(fd,pc+(nbytes-remain), remain, &nwrite, NULL);
     if(0 == ret){
       ZERRC(GetLastError());
-      ret = ZFUN_FAIL;
+      ret = ZFUN_FAIL; 
     }else{
       ZDBG("Write %d bytes", nwrite);
       remain -= nwrite;
@@ -206,7 +208,13 @@ int zmkdir(const char *dir, int mode){
     ret = ZOK;
   }
 #else
-  ret = ZNOT_SUPPORT;   
+  ret = CreateDirectory(dir, NULL);
+  if(0 == ret){
+	ZERRC(GetLastError());
+	ret = ZFUN_FAIL;
+  }else{
+	ret = ZOK;
+  }
 #endif
   ZERRC(ret);
   return ret;
@@ -223,9 +231,14 @@ int zchdir(const char *dir){
     ret = ZFUN_FAIL;
   }
 #else
-  ret = ZNOT_SUPPORT;
+  ret = SetCurrentDirectory(dir);
+  if(0 == ret){
+	ZERRC(GetLastError());
+	ret = ZFUN_FAIL;
+  }else{
+	ret = ZOK;
+  }
 #endif
-  ZERRC(ret);
   return ret;
 }
 
@@ -233,7 +246,11 @@ int zgetcwd(char *buf, size_t size){
 #ifdef ZSYS_POSIX
   getcwd(buf, size);
 #else
-  return ZNOT_SUPPORT;
+  if(0 == GetCurrentDirectory(size, buf))
+  {
+	  ZERRC(GetLastError());
+	  return ZFUN_FAIL;
+  }
 #endif
   return ZOK;
 }
@@ -248,9 +265,14 @@ int zrmdir(const char *dir){
     ret = ZFUN_FAIL;
   }
 #else
-  ret = ZNOT_SUPPORT;
+  ret = RemoveDirectory(dir);
+  if(0 == ret){
+	ZERRC(GetLastError());
+	ret = ZFUN_FAIL;
+  }else{
+	ret = ZOK;
+  }
 #endif
-  ZERRC(ret);
   return ret;
 }
 
@@ -264,7 +286,13 @@ int zrmfile(const char *fname){
     ret = ZFUN_FAIL;
   }
 #else
-  ret = ZNOT_SUPPORT;
+  ret = DeleteFile(fname);
+  if(0 == ret){
+	  ZERRC(GetLastError());
+	  ret = ZFUN_FAIL;
+  }else{
+	  ret = ZOK;
+  }
 #endif
   ZERRC(ret);
   return ret;
@@ -273,8 +301,8 @@ int zrmfile(const char *fname){
 int zfstat(const char *pathname, zfstat_t *stat){
   int ret;
 
-  ZASSERT(!pathname || !stat);
 #ifdef ZSYS_POSIX
+  ZASSERT(!pathname || !stat);
   struct stat buf;
   ret = lstat(pathname, &buf);
   if(0 > ret){
@@ -322,7 +350,49 @@ int zfstat(const char *pathname, zfstat_t *stat){
     ret = ZOK;
   }
 #else
-  ret = ZNOT_SUPPORT;
+  struct _stat buf;
+  ZASSERT(!pathname || !stat);
+  ret = _stat(pathname, &buf);
+  if(0 > ret){
+	  //ZERRC(errno);
+	  ZERR("%s", strerror(errno));
+	  ret = ZFUN_FAIL;
+  }else{
+	  if(_S_IFREG & buf.st_mode){
+		stat->mode = ZFMODE_REGULAR;
+	  }else if(_S_IFDIR & buf.st_mode){
+		stat->mode = ZFMODE_DIR;
+	  }else if(_S_IFIFO & buf.st_mode){
+		stat->mode = ZFMODE_FIFO;
+	  }else if(_S_IFCHR & buf.st_mode){
+		  stat->mode = ZFMODE_CHAR;
+	  }else{
+		stat->mode = ZFMODE_UNKNOWN;
+	  }
+
+	  stat->ino = buf.st_ino;
+	  stat->dev = buf.st_dev;
+	  stat->rdev = buf.st_rdev;
+	  stat->nlink = buf.st_nlink;
+	  stat->uid = buf.st_uid;
+	  stat->gid = buf.st_gid;
+	  stat->size = buf.st_size;
+#ifndef ZUSE_TIMESPEC
+	  stat->atime = buf.st_atime;
+	  stat->mtime = buf.st_mtime;
+	  stat->ctime = buf.st_ctime;
+#else
+	  stat->atime.tv_sec = buf.st_atime.tv_sec;
+	  stat->mtime.tv_sec = buf.st_mtime.tv_sec;
+	  stat->ctime.tv_sec = buf.st_ctime.tv_sec;
+	  stat->atime.tv_nsec = buf.st_atime.tv_nsec;
+	  stat->mtime.tv_nsec = buf.st_mtime.tv_nsec;
+	  stat->ctime.tv_nsec = buf.st_ctime.tv_nsec;
+#endif    
+	  stat->blksize = 0;//buf.st_blksize;
+	  stat->blocks = 0;//buf.st_blocks;
+	  ret = ZOK;
+  }
 #endif
   return ret;
 }
@@ -366,7 +436,52 @@ int zftw(char fullpath[512], cbzftw func, zvalue_t hint){
     ZDBG("Can't close directory %s", fullpath);
   }
 #else
-  ret = ZNOT_SUPPORT;
+  zfstat_t statbuf;
+  WIN32_FIND_DATA FindFileData;
+  HANDLE hFind;
+  int n;
+
+  ret = 0;
+  if(ZOK != zfstat(fullpath, &statbuf)){
+	  n = strlen(fullpath);
+	  if(fullpath[n-1] == ':'){
+		fullpath[n++] = '/';
+		fullpath[n] = 0;
+		if(ZOK != zfstat(fullpath, &statbuf)){
+			return func(fullpath, &statbuf, FTW_NS, hint);
+		}
+	  }else{
+		return func(fullpath, &statbuf, FTW_NS, hint);
+	  }
+  }
+  if(ZFMODE_DIR != statbuf.mode){
+	  return func(fullpath, &statbuf, FTW_F, hint);
+  }
+  if(0 != (ret = func(fullpath, &statbuf, FTW_D, hint))){
+	  return ret;
+  }
+  n = strlen(fullpath);
+  if(fullpath[n-1] != '/' && fullpath[n-1] != '\\'){
+	  fullpath[n++] = '/';
+	  fullpath[n] = 0;
+  }
+  
+  strcat(fullpath, "*.*");
+
+  if(INVALID_HANDLE_VALUE == (hFind = FindFirstFile(fullpath, &FindFileData))){
+	  return func(fullpath, &statbuf, FTW_DNR, hint);
+  }
+
+  do{
+	if(strcmp(FindFileData.cFileName, ".") == 0 || strcmp(FindFileData.cFileName, "..") == 0)continue;
+	strcpy(&fullpath[n], FindFileData.cFileName);
+	if((ret = zftw(fullpath, func, hint)) != 0){
+	  break;
+	}
+  }while(FindNextFile(hFind, &FindFileData));
+
+  fullpath[n-1] = 0;
+  FindClose(hFind);
 #endif
   return ret;
 }
@@ -416,15 +531,67 @@ ZAPI int zftw_nr(char fullpath[512], cbzftw func, zvalue_t hint){
     ZDBG("Can't close directory %s", fullpath);
   }
 #else
-  ret = ZNOT_SUPPORT;
+  zfstat_t statbuf;
+  WIN32_FIND_DATA FindFileData;
+  HANDLE hFind;
+  int n;
+
+  ret = 0;
+  if(ZOK != zfstat(fullpath, &statbuf)){
+	  n = strlen(fullpath);
+	  if(fullpath[n-1] == ':'){
+		  fullpath[n++] = '/';
+		  fullpath[n] = 0;
+		  if(ZOK != zfstat(fullpath, &statbuf)){
+			  return func(fullpath, &statbuf, FTW_NS, hint);
+		  }
+	  }else{
+		  return func(fullpath, &statbuf, FTW_NS, hint);
+	  }
+  }
+  if(ZFMODE_DIR != statbuf.mode){
+	  return func(fullpath, &statbuf, FTW_F, hint);
+  }
+  if(0 != (ret = func(fullpath, &statbuf, FTW_D, hint))){
+	  return ret;
+  }
+  n = strlen(fullpath);
+  if(fullpath[n-1] != '/' && fullpath[n-1] != '\\'){
+	  fullpath[n++] = '/';
+	  fullpath[n] = 0;
+  }
+  strcat(fullpath, "*.*");
+
+  if(INVALID_HANDLE_VALUE == (hFind = FindFirstFile(fullpath, &FindFileData))){
+	  return func(fullpath, &statbuf, FTW_DNR, hint);
+  }
+
+  do{
+	  if(0==strcmp(FindFileData.cFileName, ".") || 0==strcmp(FindFileData.cFileName, ".."))continue;
+	  strcpy(&fullpath[n], FindFileData.cFileName);
+	  if(ZOK != zfstat(fullpath, &statbuf)){
+		  ftw_flag = FTW_NS;
+	  }else if(ZFMODE_DIR != statbuf.mode){
+		  ftw_flag = FTW_F;
+	  }else{
+		  ftw_flag = FTW_D;
+	  }
+	  func(fullpath, &statbuf, ftw_flag, hint);
+  }while(FindNextFile(hFind, &FindFileData));
+  fullpath[n-1] = 0;
+  FindClose(hFind);
 #endif
   return ret;
 }
+
 int print_zftw(const char *pathname, zfstat_t *stat, int ftw_flag, zvalue_t hint){
   struct tm stm;
   hint = hint;
 #ifndef ZUSE_TIMESPEC
-  stm = *localtime(&stat->ctime);
+  if(ftw_flag == FTW_F || ftw_flag == FTW_D){
+	stm = *localtime(&stat->ctime);
+  }
+  
   switch(ftw_flag){
   case FTW_F:
     zdbg("file[%d-%02d-%02d %02d:%02d:%02d]: %s",stm.tm_year+1900, stm.tm_mon, stm.tm_mday, stm.tm_hour, stm.tm_min, stm.tm_sec, pathname);

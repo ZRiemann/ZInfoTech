@@ -12,7 +12,7 @@
 #include <string.h>
 #include <stdio.h>
 
-#define ZTST_FTW 0
+#define ZTST_FTW 1
 #define ZTST_DIR 1
 //static void ztst_list();
 //static void ztst_que();
@@ -74,9 +74,13 @@ static void ztst_dir(){
 static void ztst_ftw(){
 #if ZTST_FTW
   char pathname[512];
-  sprintf(pathname, "/nfsroot");
-  zftw(pathname, print_zftw);
-  zftw_nr(pathname, print_zftw);
+#ifdef ZSYS_WINDOWS
+  sprintf(pathname, "C:");
+#else
+  sprintf(pathname, "/");
+#endif
+  //zftw(pathname, print_zftw, NULL);
+  zftw_nr(pathname, print_zftw, NULL);
 #endif
 }
 #if 0

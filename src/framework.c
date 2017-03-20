@@ -11,6 +11,7 @@
 #include <zit/base/trace.h>
 #include <zit/base/container.h>
 #include <zit/thread/thread.h>
+#include <time.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>

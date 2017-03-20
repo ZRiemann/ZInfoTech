@@ -79,8 +79,8 @@ int ztrace_netctl(const char* hostname, int port){
     addr.sin_family = AF_INET;
     addr.sin_port = htons(port);
 #ifdef ZSYS_WINDOWS
-    if(INETADDR_NONE == (addr.sin_addr.S_un.S_addr = inet_addr(hostname))){
-      break;;
+    if(INADDR_NONE == (addr.sin_addr.S_un.S_addr = inet_addr(hostname))){
+      break;
     }
     ret = ioctlsocket(zg_logfd, FIONBIO, &ul);
     if(SOCKET_ERROR == ret){
@@ -113,7 +113,11 @@ int ztrace_netctl(const char* hostname, int port){
       ret = select(zg_logfd+1, &rset, &wset, NULL, &tv);
       if(ret > 0){
 	len = sizeof(error);
+#ifdef ZSYS_WINDOWS
+	getsockopt(zg_logfd, SOL_SOCKET, SO_ERROR, (char*)&error, &len);
+#else
 	getsockopt(zg_logfd, SOL_SOCKET, SO_ERROR, &error, &len);
+#endif
 	if(0 == error){
 	  ret = ZOK;
 	}
@@ -218,7 +222,11 @@ zthr_ret_t ZCALL zproc_tracenet(void* param){
     ret = select(listenfd+1, &set, NULL, NULL, &tv);
     if(ret > 0){
       len = sizeof(error);
+#ifdef ZSYS_WINDOWS
+	  getsockopt(listenfd, SOL_SOCKET, SO_ERROR, (char*)&error, &len);
+#else
       getsockopt(listenfd, SOL_SOCKET, SO_ERROR, &error, &len);
+#endif
       if(0 == error){
 	acceptfd = zaccept(listenfd, (ZSA*)NULL, NULL);
 	if(acceptfd == ZINVALID_SOCKET){

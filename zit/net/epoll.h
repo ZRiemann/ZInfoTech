@@ -15,15 +15,16 @@
 ZC_BEGIN
 
 #ifdef ZSYS_WINDOWS
-#error not support windows system
+//#error not support windows system
 #else //ZSYS_POSIX
 #include <zit/net/socket.h>
 #include <sys/epoll.h>
-#endif
 
 ZAPI zsock_t zepoll_create(int size);
 ZAPI int zepoll_ctl(int epfd, int op, int fd, struct epoll_event *evt);
 ZAPI int zepoll_wait(int epfd, struct epoll_event *evt, int maxevents, int timeout);
+
+#endif
 
 ZC_END
 #endif

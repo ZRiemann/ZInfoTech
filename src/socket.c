@@ -3,6 +3,8 @@
 #include <zit/base/trace.h>
 #ifdef ZSYS_POSIX
 #include <arpa/inet.h>
+#else
+#pragma comment(lib, "Ws2_32")
 #endif
 #include <string.h>
 #include <fcntl.h>
@@ -138,13 +140,14 @@ static void sock_dump(const char *buf, int len){
   if(len > 1024){
     len = 64;
   }
-  i = offset = 0;
+  i = offset = j = 0;
   while(i < len){
     offset += sprintf(msg+offset, "%02x ", (unsigned char)buf[i]);
     i++;
     j++;
     if(j == 32){
       offset += sprintf(msg+offset, "\n");
+	  j = 0;
     }
   }
   zdbg("%s", msg);
@@ -376,7 +379,11 @@ int zconnectx(zsock_t sock, const char *host, uint16_t port, int listenq, int ti
   if(listenq > 0){
     int reuse = 1;
     zsock_nonblock(sock, 0);
+#ifdef ZSYS_WINDOWS
+	setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (const char*)&reuse, sizeof(reuse));
+#else
     setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(reuse));
+#endif
     zbind(sock, (ZSA*)&addr, sizeof(addr));
     ret = zlisten(sock, listenq);
   }else{
@@ -414,7 +421,11 @@ int zconnectx(zsock_t sock, const char *host, uint16_t port, int listenq, int ti
       if((ret = zselect(sock+1, &rset, &wset, NULL, &tv)) > 0){
 	ZDBG("select<%d>", ret);
 	len = sizeof(error);
+#ifdef ZSYS_WINDOWS
+	getsockopt(sock, SOL_SOCKET, SO_ERROR, (char*)&error,&len);
+#else
 	getsockopt(sock, SOL_SOCKET, SO_ERROR, &error,&len);
+#endif
 	if(0 == error){
 	  ret = ZOK;
 	  ZDBG("connect ok");

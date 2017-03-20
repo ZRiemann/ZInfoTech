@@ -22,14 +22,17 @@ typedef int zfd_t;
 #else // windows
 
 #include <time.h>
+#include <Windows.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <string.h>
+#include <errno.h>
 #define O_RDONLY 1
 #define O_WRONLY 2
 #define O_RDWR 4
 #define O_CREAT 8
 #define O_TRUNC 0x10
 #define O_APPEND 0x20
-
-typedef HANDLE zfd_t;
 #define ZINVALID_FD INVALID_HANDLE_VALUE
 
 #ifdef ZUSE_TIMESPEC
@@ -39,7 +42,10 @@ struct timespec{
 }
 #endif
 
+typedef HANDLE zfd_t;
+
 #endif
+
 
 #define ZFMODE_REGULAR 0 // regular file
 #define ZFMODE_DIR 1 // directory

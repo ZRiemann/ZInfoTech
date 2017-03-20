@@ -10,7 +10,10 @@
 #endif//ZEXPORT
 
 #if(defined(_WIN32) || defined(_WIN64))
+#ifndef ZSYS_WINDOWS
 #define ZSYS_WINDOWS
+#endif
+#define snprintf _snprintf
 #else
 #define ZSYS_POSIX
 #endif

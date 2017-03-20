@@ -13,6 +13,7 @@ ZC_BEGIN
 #include <winsock2.h>
 
 typedef SOCKET zsock_t;
+typedef int socklen_t;
 typedef SOCKADDR_IN zsockaddr_in;
 typedef struct sockaddr ZSA;
 #define ZINVALID_SOCKET INVALID_SOCKET
