@@ -14,11 +14,11 @@ void ztst_convert(){
   char out[64];
   int len;
 
-  len = strlen(buf);
+  len = 64;
   sprintf(buf,"浙A12345");
   zconv_u2g(1, buf, strlen(buf), out, &len);
-  ZDBG("%s",buf);
-  ZDBG("%s",out);
+  ZDBG("%s %d",buf, strlen(buf));
+  ZDBG("%s : outlen:%d %d", out, len, strlen(out));
 }
 #endif
 

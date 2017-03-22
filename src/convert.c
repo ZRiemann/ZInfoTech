@@ -1,6 +1,7 @@
 #include "export.h"
 #include <zit/base/trace.h>
 #include <zit/utility/convert.h>
+#include <string.h>
 #ifdef ZSYS_POSIX
 #include <iconv.h>
 #include <errno.h>
@@ -27,8 +28,8 @@ int zconv_u2g(int isu2g, char *in, int inlen, char *out, int *outlen){
     ZERRC(errno);
     return ZFUN_FAIL;
   }
-  
-  if((size_t)-1 == (*outlen = iconv(cd, &in, (size_t*)&inlen, &out, (size_t*)&outlen))){
+  memset(out, 0, *outlen);
+  if(-1 == iconv(cd, &in, (size_t*)&inlen, &out, (size_t*)outlen)){
     ZERRC(errno);
     ret = ZFUN_FAIL;
   }
