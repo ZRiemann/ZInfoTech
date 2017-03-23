@@ -1,20 +1,31 @@
 #include "tutility.h"
 #include <zit/base/trace.h>
 #include <zit/utility/module.h>
+#include <zit/utility/convert.h>
 #include <stdio.h>
 #include <string.h>
 
+#define ZTST_CONVERT 1
+#define ZTST_FIXLOGNAME 0
+
+#if ZTST_CONVERT
+void ztst_convert(){
+  char buf[64];
+  char out[64];
+  int len;
+
+  len = strlen(buf);
+  sprintf(buf,"浙A12345");
+  zconv_u2g(1, buf, strlen(buf), out, &len);
+  ZDBG("%s",buf);
+  ZDBG("%s",out);
+}
+#endif
+
+#if ZTST_FIXLOGNAME
 static char zg_fix[256] = "fix.log";
 static char zg_fix1[256] = "fix.log.log";
 static void fixlogname();
-
-void ztst_utility(){
-  char path[256];
-  char name[64];
-  zmodule_name(path, name);
-  ZDBG("\npath: %s;\nname: %s", path, name);
-  fixlogname();
-}
 
 void fixlogname(){
   printf("fixlogname ...\n");
@@ -31,4 +42,14 @@ void fixlogname(){
       printf("zg_fix1: %s\n", zg_fix1);
     }
   }
+}
+#endif
+
+void ztst_utility(){
+#if ZTST_CONVERT
+  ztst_convert();
+#endif
+#if ZTST_FIXLOGNAME
+  fixlogname();
+#endif
 }

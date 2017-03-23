@@ -140,16 +140,18 @@ static void sock_dump(const char *buf, int len){
   if(len > 1024){
     len = 64;
   }
-  i = offset = j = 0;
+  i = offset = 0;
+  j = 32;
   while(i < len){
+    if(j == 32){
+      offset += sprintf(msg+offset, "\n");
+      j = 0;
+    }
     offset += sprintf(msg+offset, "%02x ", (unsigned char)buf[i]);
     i++;
     j++;
-    if(j == 32){
-      offset += sprintf(msg+offset, "\n");
-	  j = 0;
-    }
   }
+  offset += sprintf(msg+offset, "\n");
   zdbg("%s", msg);
 }
 
