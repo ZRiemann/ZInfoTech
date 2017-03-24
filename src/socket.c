@@ -137,11 +137,9 @@ static void sock_dump(const char *buf, int len){
   int offset;
   char msg[4096];
   
-  if(len > 1024){
-    len = 64;
-  }
   i = offset = 0;
   j = 32;
+  offset += sprintf(msg+offset, "total %d bytes:", len);
   while(i < len){
     if(j == 32){
       offset += sprintf(msg+offset, "\n");
@@ -150,9 +148,16 @@ static void sock_dump(const char *buf, int len){
     offset += sprintf(msg+offset, "%02x ", (unsigned char)buf[i]);
     i++;
     j++;
+    if(i%1024 == 0 && i!= 0){
+      offset += sprintf(msg+offset, "\n");
+      zdbg("%s", msg);
+      offset = 0;
+    }
   }
-  offset += sprintf(msg+offset, "\n");
-  zdbg("%s", msg);
+  if(i%1024 != 0 && i != 0){
+    offset += sprintf(msg+offset, "\n");
+      zdbg("%s", msg);
+  }
 }
 
 int zrecv(zsock_t sock, char *buf, int len, int flags){
