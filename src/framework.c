@@ -630,6 +630,11 @@ int ztsk_timer_add(ztsk_timer_t *timer){
   return zcontainer_push(zg_timers, timer);
 }
 
+int ztsk_timer_update(ztsk_timer_t *timer, time_t tmstemp){
+  timer->timestemp = tmstemp;
+  return ZOK;
+}
+
 static int ztimer_trigger(ZOP_ARG){
   ztsk_t *tsk;
   ztsk_timer_t *timer;
