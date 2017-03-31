@@ -641,7 +641,7 @@ static int ztimer_trigger(ZOP_ARG){
   time_t now;
   int ret;
 
-  now = time(&now);
+  time(&now);
   timer = (ztsk_timer_t*)in;
   ret = ZOK;
 
@@ -674,4 +674,13 @@ static int ztimer_trigger(ZOP_ARG){
 
 int ztsk_timer_trigger(ztsk_svr_t *svr){
   return zcontainer_foreach(zg_timers, ztimer_trigger, (zvalue_t)svr);
+}
+
+int ztsk_timer_set(ztsk_timer_t *timer, int tsk_type, int interval){
+  timer->tsk_type = tsk_type;
+  time(&timer->timestemp);
+  timer->interval = interval;
+  ZTSK_TIMER_SETENABLE(timer);
+  ZTSK_TIMER_SETACT(timer);
+  return ZOK;
 }

@@ -85,4 +85,5 @@ ZAPI int ztsk_timer_fini(zoperate op_free);
 ZAPI int ztsk_timer_add(ztsk_timer_t *timer);
 ZAPI int ztsk_timer_trigger(ztsk_svr_t *svr);
 ZAPI int ztsk_timer_update(ztsk_timer_t *timer, time_t tmstemp); // update timer->timestemp to now
+ZAPI int ztsk_timer_set(ztsk_timer_t *timer, int tsk_type, int interval);
 #endif
