@@ -6,6 +6,7 @@
 #include <zit/base/list.h>
 #include <zit/base/error.h>
 #include <zit/base/atomic.h>
+#include <zit/base/trace.h>
 #include <stdlib.h>
 
 /*
@@ -71,39 +72,7 @@ ZINLINE void zlist_getnode(zlist_t *list, znod_t **nod){
   }
 }
 
-zsize_t zlist_size(zcontainer_t cont){
-  return ((zlist_t*)cont)->num;
-}
-int zlist_push(zcontainer_t cont, zvalue_t in){//push back
-  znod_t *nod;
-  zlist_t *list;
-  int ret;
-  ZASSERT(!cont);
-  list = (zlist_t*)cont;
-  ret = ziatm_lock(list->atm);
-  if(ZOK != ret){
-    return ret;
-  }
-  zlist_getnode(list, &nod);
-  if(!nod){
-    ziatm_unlock(list->atm);
-    return(ZMEM_INSUFFICIENT);
-  }
-  nod->value = in;
-  
-  if(list->head){
-    nod->prev = list->tail;
-    nod->next = NULL;
-    list->tail->next = nod;
-    list->tail = nod;
-  }else{
-    list->head = list->tail = nod;
-    nod->prev = nod->next = NULL;
-  }
-  ++list->num;
-  ziatm_unlock(list->atm);
-  return(ZOK);
-}
+
 ZINLINE void zlist_recycle(zlist_t *list, znod_t *nod){
   if(list->cnt_recycle < list->max_recycle){
     nod->next = list->recycle;
@@ -114,14 +83,69 @@ ZINLINE void zlist_recycle(zlist_t *list, znod_t *nod){
   }
 }
 
+zsize_t zlist_size(zcontainer_t cont){
+  return ((zlist_t*)cont)->num;
+}
+
+int zlist_push(zcontainer_t cont, zvalue_t in){//push back
+  znod_t *nod;
+  zlist_t *list;
+  int ret;
+  ZASSERT(!cont);
+  list = (zlist_t*)cont;
+
+#if ZTRACE_LIST
+  zdbg("LIST: begin push<%p>", list);
+#endif
+  ret = ziatm_lock(list->atm);
+  if(ZOK != ret){
+#if ZTRACE_LIST
+    zdbg("LIST: end push<%p>, lock failed",list);
+#endif
+    return ret;
+  }
+  zlist_getnode(list, &nod);
+  if(!nod){
+    ziatm_unlock(list->atm);
+#if ZTRACE_LIST
+    zdbg("LIST: end push<%p>, mem insufficient", list);
+#endif
+    return(ZMEM_INSUFFICIENT);
+  }
+  nod->value = in;
+  
+  if(list->tail){
+    nod->prev = list->tail;
+    nod->next = NULL;
+    list->tail->next = nod;
+    list->tail = nod;
+  }else{
+    list->head = list->tail = nod;
+    nod->prev = nod->next = NULL;
+  }
+  ++list->num;
+  ziatm_unlock(list->atm);
+#if ZTRACE_LIST
+  zdbg("LIST: end push<%p>", list);
+#endif
+  return(ZOK);
+}
+
 int zlist_pop(zcontainer_t cont, zvalue_t *out){
   znod_t *nod;
   zlist_t *list;
   int ret;
   ZASSERT(!cont);
   list = (zlist_t*)cont;
+
+#if ZTRACE_LIST
+  zdbg("LIST: begin pop<%p>", list);
+#endif
   ret = ziatm_lock(list->atm);
   if(ZOK != ret){
+#if ZTRACE_LIST
+    zdbg("LIST: end pop<%p>, lock failed", list);
+#endif
     return ret;
   }
   if(list->head){
@@ -141,6 +165,9 @@ int zlist_pop(zcontainer_t cont, zvalue_t *out){
     ret = ZNOT_EXIST;
   }
   ziatm_unlock(list->atm);
+#if ZTRACE_LIST
+  zdbg("LIST: end pop<%p>", list);
+#endif
   return ret;
 }
 
@@ -151,11 +178,18 @@ int zlist_pushfront(zcontainer_t cont, zvalue_t in){
 
   ZASSERT(!cont);
   list = (zlist_t*)cont;
+
+#if ZTRACE_LIST
+  zdbg("LIST: begin pushfront<%p>", list);
+#endif
   ret = ziatm_lock(list->atm); ZASSERTR(ret);
 
   zlist_getnode(list, &nod);
   if(!nod){
     ziatm_unlock(list->atm);
+#if ZTRACE_LIST
+    zdbg("LIST: end pushfront<%p>", list);
+#endif
     return(ZMEM_INSUFFICIENT);
   }
   nod->value = in;
@@ -171,6 +205,9 @@ int zlist_pushfront(zcontainer_t cont, zvalue_t in){
   }
   ++list->num;
   ziatm_unlock(list->atm);
+#if ZTRACE_LIST
+  zdbg("LIST: end popfront<%p>", list);
+#endif
   return(ZOK);
 }
 
@@ -180,8 +217,15 @@ int zlist_popback(zcontainer_t cont, zvalue_t *out){
   int ret;
   ZASSERT(!cont);
   list = (zlist_t*)cont;
+
+#if ZTRACE_LIST
+  zdbg("LIST: begin popback<%p>", list);
+#endif
   ret = ziatm_lock(list->atm);
   if(ZOK != ret){
+#if ZTRACE_LIST
+    zdbg("LIST: end popback<%p>", list);
+#endif
     return ret;
   }
   if(list->tail){
@@ -202,6 +246,9 @@ int zlist_popback(zcontainer_t cont, zvalue_t *out){
     ret = ZNOT_EXIST;
   }
   ziatm_unlock(list->atm);
+#if ZTRACE_LIST
+  zdbg("LIST: end popback<%p>", list);
+#endif
   return ret;
 }
 
@@ -217,6 +264,10 @@ int zlist_erase(zcontainer_t cont, zvalue_t in, zoperate compare){
   
   ZASSERT(!cont);
   list = (zlist_t*)cont;
+
+#if ZTRACE_LIST
+  zdbg("LIST: begin erase<%p>", list);
+#endif
   ret = ziatm_lock(list->atm); ZASSERTR(ret);
   
   nod = list->head;
@@ -235,21 +286,26 @@ int zlist_erase(zcontainer_t cont, zvalue_t in, zoperate compare){
 	list->head = nod->next;
 	if(!list->head){
 	  list->tail = NULL;
+	}else{
+	  list->head->prev = NULL;
 	}
       }
       if(list->tail == nod){
 	list->tail = nod->prev;
 	if(list->tail){
 	  list->tail->next = NULL;
+	}else{
+	  list->head = NULL;
 	}
       }
 
       if(nod->prev){
 	nod->prev->next = nod->next;
-	if(nod->next){
-	  nod->next->prev = nod->prev;
-	}
       }
+      if(nod->next){
+	nod->next->prev = nod->prev;
+      }
+
       nod = nod->next;
       zlist_recycle(list, nod1);
     }else{
@@ -257,6 +313,10 @@ int zlist_erase(zcontainer_t cont, zvalue_t in, zoperate compare){
     }
   }
   ziatm_unlock(list->atm);
+
+#if ZTRACE_LIST
+  zdbg("LIST: end erase<%p>", list);
+#endif
   return(ZOK);
 }
 
@@ -266,6 +326,10 @@ int zlist_foreach(zcontainer_t cont, zoperate op, zvalue_t hint){
   int ret;
   ZASSERT(!cont || !op);
   list = (zlist_t*)cont;
+
+#if ZTRACE_LIST
+  zdbg("LIST: begin foreach<%p>", list);
+#endif
   ret = ziatm_lock(list->atm);
   ZASSERTR(ret);
   nod = list->head;
@@ -277,6 +341,9 @@ int zlist_foreach(zcontainer_t cont, zoperate op, zvalue_t hint){
     nod = nod->next;
   }
   ziatm_unlock(list->atm);
+#if ZTRACE_LIST
+  zdbg("LIST: end foreach<%p>", list);
+#endif
   return(ZOK);
 }
 
@@ -285,30 +352,41 @@ int zlist_back(zcontainer_t cont, zvalue_t *out){
   zlist_t *list;
   ZASSERT(!cont);
   list = (zlist_t*)cont;
+#if ZTRACE_LIST
+  zdbg("LIST: begin back<%p>", list);
+#endif
   ret = ziatm_lock(list->atm);
   ZASSERT(ret != ZOK);
   if(list->tail){
     *out = list->tail->value;
-    ziatm_unlock(list->atm);
   }else{
     ret = ZNOT_EXIST;
   }
   ziatm_unlock(list->atm);
+#if ZTRACE_LIST
+  zdbg("LIST: end back<%p>", list);
+#endif
   return(ret);
 }
+
 int zlist_front(zcontainer_t cont, zvalue_t *out){
   int ret;
   zlist_t *list;
   ZASSERT(!cont);
   list = (zlist_t*)cont;
+#if ZTRACE_LIST
+  zdbg("LIST: begin front<%p>", list);
+#endif
   ret = ziatm_lock(list->atm);
   ZASSERT(ret != ZOK);
   if(list->head){
     *out = list->head->value;
-    ziatm_unlock(list->atm);
   }else{
     ret = ZNOT_EXIST;
   }
   ziatm_unlock(list->atm);
+#if ZTRACE_LIST
+  zdbg("LIST: end front<%p>", list);
+#endif
   return(ret);
 }

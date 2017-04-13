@@ -67,13 +67,18 @@ void zmutex_destroy(zmutex_t* mtx){
 
 int zmutex_lock(zmutex_t* pmtx){
   int ret = ZEOK;
+#if ZTRACE_MUTEX
+  zdbg("MUTEX: begin lock<%p>", pmtx);
+#endif
+
 #ifdef ZSYS_POSIX
   ret = pthread_mutex_lock(pmtx);// if(0 != ret) ret = ZEFUN_FAIL;
 #else//ZSYS_WINDOWS
   EnterCriticalSection(pmtx);
 #endif
 #if ZTRACE_MUTEX
-  ZERRC(ret);
+  zdbg("MUTEX: end lock<%p>", pmtx);
+  //ZERRC(ret);
 #endif
   return ret;
 }
@@ -86,7 +91,8 @@ int zmutex_unlock(zmutex_t* pmtx){
   LeaveCriticalSection(pmtx);
 #endif
 #if ZTRACE_MUTEX
-  ZERRC(ret);
+  //ZERRC(ret);
+  zdbg("MUTEX: unlock<%p>", pmtx);
 #endif
   return ret;
 }
