@@ -204,6 +204,7 @@ zthr_ret_t ZCALL zproc_tracenet(void* param){
   char buf[1024];
   socklen_t len;
   int error;
+  int port;
 
   listenfd = zsocket(AF_INET, SOCK_STREAM, 0);
   if(ZINVALID_SOCKET == listenfd){
@@ -212,8 +213,10 @@ zthr_ret_t ZCALL zproc_tracenet(void* param){
   acceptfd = ZINVALID_SOCKET;
   tv.tv_sec = 1;
   tv.tv_usec = 0;
-
-  zconnectx(listenfd, "0.0.0.0", (int)param, 5, 3000);
+  port = 0;
+  
+  ZCONVERT(port, param);
+  zconnectx(listenfd, "0.0.0.0", (int)port, 5, 3000);
 
   while(zg_tracenet_state != 2){
     // wait connect...
@@ -280,13 +283,17 @@ zthr_ret_t ZCALL zproc_tracenet(void* param){
 int ztrace_netserver(int port, ztrace_netmsg fn){
   int ret;
   zthr_id_t tracenet_id;
+  void *param;
+
   ret = ZOK;
   zg_netfn = fn;
+  
   
   if(zg_tracenet_state != 0){
     return ZOK;
   }
-  if(ZOK == zthread_create(&tracenet_id, zproc_tracenet, (void*)port)){
+  ZCONVERT(param, port);
+  if(ZOK == zthread_create(&tracenet_id, zproc_tracenet, param)){
     zthread_detach(&tracenet_id);
     zg_tracenet_state = 1;
   }
