@@ -308,6 +308,7 @@ int zfstat(const char *pathname, zfstat_t *stat){
   struct stat buf;
   ret = lstat(pathname, &buf);
   if(0 > ret){
+    zdbg("%s", pathname);
     ZERRC(errno);
   }else{
     if(S_ISREG(buf.st_mode)){
