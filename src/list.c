@@ -62,7 +62,7 @@ int zlist_destroy(zcontainer_t cont, zoperate release){
   return(ZOK);
 }
 
-ZINLINE void zlist_getnode(zlist_t *list, znod_t **nod){
+static ZINLINE void zlist_getnode(zlist_t *list, znod_t **nod){
   *nod = list->recycle;
   if(*nod){
     list->recycle = (*nod)->next;
@@ -73,7 +73,7 @@ ZINLINE void zlist_getnode(zlist_t *list, znod_t **nod){
 }
 
 
-ZINLINE void zlist_recycle(zlist_t *list, znod_t *nod){
+static ZINLINE void zlist_recycle(zlist_t *list, znod_t *nod){
   if(list->cnt_recycle < list->max_recycle){
     nod->next = list->recycle;
     list->recycle = nod;

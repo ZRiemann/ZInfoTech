@@ -267,7 +267,7 @@ ZAPI int ztsk_svr_unref(zvalue_t tsk, zvalue_t *out, zvalue_t ref){
   return ZOK;
 }
 
-ZINLINE int zrecycle_task(ztsk_svr_t *svr, ztsk_t *tsk){
+static ZINLINE int zrecycle_task(ztsk_svr_t *svr, ztsk_t *tsk){
   int hint = 0;
   if(tsk->obj.release){
     tsk->obj.release(tsk, NULL, (zvalue_t)&hint);
@@ -291,7 +291,7 @@ int ztsk_svr_recycle_task(ztsk_svr_t *svr, ztsk_t *tsk){
   return(zrecycle_task(svr, tsk));
 }
 
-ZINLINE int zget_task(ztsk_svr_t *svr, ztsk_t **tsk){
+static ZINLINE int zget_task(ztsk_svr_t *svr, ztsk_t **tsk){
   int ret;
   ret = zcontainer_pop(svr->tsk_recycle, (zvalue_t*)tsk);
   if(ZOK != ret){
@@ -453,7 +453,7 @@ int ztsk_svr_post(ztsk_svr_t *svr, ztsk_t *tsk){
   return ret;
 }
 
-ZINLINE void post_mis(ztsk_svr_t* svr, zmis_t *mis){
+static ZINLINE void post_mis(ztsk_svr_t* svr, zmis_t *mis){
   int ret;
   ret = ziatm_lock(svr->atm);
   if(ZOK != ret){

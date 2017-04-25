@@ -21,7 +21,7 @@ int main(int argc, char** argv){
   ztrace_reg(ztst_trace, NULL);
   //zjet_init();
   //  zjet_run();
-
+  ZDBG("test code");
 #ifdef _ZTST_BASE_H_
   ztst_base();
 #endif
@@ -29,7 +29,7 @@ int main(int argc, char** argv){
   ztst_utility();
 #endif
 #ifdef _ZTST_THREAD_H_
-    ztst_thread();
+  //ztst_thread();
 #endif
 
     //zjet_stop(0);
