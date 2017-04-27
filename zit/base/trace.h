@@ -29,10 +29,10 @@ ZAPI int zwar(const char* msg, ...);
 ZAPI int zerr(const char* msg, ...);
 ZAPI const char*  zstrerr(int code);
 
-#define ZDBG(fmt, ...)       zdbg("[ln:%04d fn:%s]\t"fmt,__LINE__,__FUNCTION__,##__VA_ARGS__)
-#define ZMSG(fmt, ...)       zmsg("[ln:%04d fn:%s]\t"fmt,__LINE__,__FUNCTION__,##__VA_ARGS__)
-#define ZWAR(fmt, ...)       zwar("[ln:%04d fn:%s]\t"fmt,__LINE__,__FUNCTION__,##__VA_ARGS__)
-#define ZERR(fmt, ...)       zerr("[ln:%04d fn:%s]\t"fmt,__LINE__,__FUNCTION__,##__VA_ARGS__)
+#define ZDBG(fmt, ...)       zdbg("[ln:%04d fn:%s]\t" fmt,__LINE__,__FUNCTION__,##__VA_ARGS__)
+#define ZMSG(fmt, ...)       zmsg("[ln:%04d fn:%s]\t" fmt,__LINE__,__FUNCTION__,##__VA_ARGS__)
+#define ZWAR(fmt, ...)       zwar("[ln:%04d fn:%s]\t" fmt,__LINE__,__FUNCTION__,##__VA_ARGS__)
+#define ZERR(fmt, ...)       zerr("[ln:%04d fn:%s]\t" fmt,__LINE__,__FUNCTION__,##__VA_ARGS__)
 
 #define ZERRC(x) zerr("[ln:%04d fn:%s]\t%s",__LINE__,__FUNCTION__,zstrerr(x))
 #define ZERRCX(x) if( ZOK != (x) )ZERRC(x)
