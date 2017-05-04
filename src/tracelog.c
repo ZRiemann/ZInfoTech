@@ -11,7 +11,7 @@
 #define ZLOG_NAME_SIZE 256
 
 static FILE* zg_logpf = NULL;
-static int zg_logprefixsize = 0;
+//static int zg_logprefixsize = 0;
 static long zg_logsize = ZLOG_FILE_SIZE;
 static long zg_loglen = 0;
 static char zg_logname[ZLOG_NAME_SIZE] = "ZInfoTech.log";
@@ -48,40 +48,30 @@ static int ztrace_logopen()
   return ret;
 }
 
-static int ztrace_logbackup(const char* msg)
+static int ztrace_logbackup(const char* msg, int len)
 {
-    int ret = ZEOK;
-    //ret = HTK_TraceLogOpen();
-    //HTK_VERIFY_ERR(HTK_EOK, ret);
-    zg_loglen += zg_logprefixsize;
-    zg_loglen += strlen(msg);
-    if( zg_loglen < zg_logsize )
-    {
-        return ret;
-    }
-    ret = fclose(zg_logpf);
-    //HTK_VERIFY_EQUAL(EOF, ret, HTK_ECALL_FUN_FAIL);
-    ret = remove(zg_logname_backup);
-    //HTK_VERIFY_EQUAL(-1, ret, HTK_ECALL_FUN_FAIL);    // first time backup will return -1;
-    ret = rename(zg_logname, zg_logname_backup);
-    //HTK_VERIFY_ERR(0,ret);
-    zg_logpf = fopen(zg_logname,"w");
-    //HTK_VERIFY_EQUAL(NULL, g_pfLog, HTK_ECALL_FUN_FAIL);
-    zg_loglen = 0;
+  int ret = ZEOK;
+  zg_loglen += len;
+  if( zg_loglen < zg_logsize ){
     return ret;
+  }
+  ret = fclose(zg_logpf);
+  ret = remove(zg_logname_backup);
+  ret = rename(zg_logname, zg_logname_backup);
+  zg_logpf = fopen(zg_logname,"w");
+  zg_loglen = 0;
+  return ret;
 }
 
 int ztrace_logctl(const char* fname, int logsize){
   if(NULL != zg_logpf){
     fclose(zg_logpf);
   }
-  if(fname && (strlen(fname) < ((size_t)ZLOG_NAME_SIZE-4)) )
-  {
+  if(fname && (strlen(fname) < ((size_t)ZLOG_NAME_SIZE-4)) ){
     sprintf(zg_logname,"%s",fname);
     sprintf(zg_logname_backup, "%s.log",fname);
   }
-  if( (logsize > 1023) && (logsize < 512*1024*1024) )
-  {
+  if( (logsize > 1023) && (logsize < 512*1024*1024) ){
     zg_logsize = logsize;
   }else{
     zg_logsize = 16*1024*1024;
@@ -89,43 +79,15 @@ int ztrace_logctl(const char* fname, int logsize){
   return ZEOK;
 }
 
-int ztrace_log(int level, void* usr, const char* msg){
-  int ret = ZEOK;
- 
-  const char* szLevel = " DBG:";
-  switch(level){
-    case ZTRACE_LEVEL_ERR:
-        szLevel = " ERR:";
-        break;
-    case ZTRACE_LEVEL_WAR:
-        szLevel = " WAR:";
-        break;
-    case ZTRACE_LEVEL_MSG:
-        szLevel = " MSG:";
-        break;
-    case ZTRACE_LEVEL_DBG:
-        szLevel = " DBG:";
-        break;
-    default:
-        break;
-    }
-    // CAUTION: NEED A LOCK FOR MULTITHREAD...
-    // [TASK DELAY] lock log file for write.
-
-    ret = ztrace_logopen();
-    if( ZEOK == ret )
-    {
-        static char szNow[64] = {0};
-        zstr_systime_now(szNow,ZTP_MILLISEC);
-        if( 0 == zg_logprefixsize)
-        {
-            zg_logprefixsize = strlen(szNow);
-            zg_logprefixsize += strlen(szLevel);
-            zg_logprefixsize ++;
-        }
-        fprintf(zg_logpf,"%s%s %s\n",szNow,szLevel,msg);
-	//fflush(zg_logpf); // ztrace_logctl(NULL,0); will close and flush.
-        ret = ztrace_logbackup(msg);
-    }
-    return ret;
+int ztrace_log(int len, void* usr, const char* msg){
+  // CAUTION: NEED A LOCK FOR MULTITHREAD...
+  // [TASK DELAY] lock log file for write.
+  int ret;
+  ret = ztrace_logopen();
+  if( ZEOK == ret ){
+    fputs(msg, zg_logpf);
+    //fflush(zg_logpf); // ztrace_logctl(NULL,0); will close and flush.
+    ztrace_logbackup(msg, len);
+  }
+  return ZOK;
 }

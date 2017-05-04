@@ -13,12 +13,17 @@ ZC_BEGIN
 ZAPI int zversion();
 ZAPI const char* zsystem();
 ZAPI const char* zhistory();
+ZAPI void zdump_mix(char *out, int size, const unsigned char *mix, int *len);
+ZAPI void zdump_bin(char *out, int size, const unsigned char *bin, int *len);
+ZAPI int zrandin(int max); // rand 0~max-1
+ZAPI int zrandat(int begin, int end); // rand begin~end-1
 
 #define ZTRACE_BUF_SIZE 4096
 #define ZTRACE_LEVEL_DBG 0
 #define ZTRACE_LEVEL_MSG 1
 #define ZTRACE_LEVEL_WAR 2
 #define ZTRACE_LEVEL_ERR 3
+#define ZTRACE_LEVEL_INF 4 // user business logic infomation
 
 typedef int (*ztrace)(int level, void* user, const char* msg);
 ZAPI int ztrace_reg(ztrace fn, void* user);
@@ -27,16 +32,18 @@ ZAPI int zdbg(const char* msg, ...);
 ZAPI int zmsg(const char* msg, ...);
 ZAPI int zwar(const char* msg, ...);
 ZAPI int zerr(const char* msg, ...);
+ZAPI int zinf(const char* msg, ...);
 ZAPI const char*  zstrerr(int code);
 
 #define ZDBG(fmt, ...)       zdbg("[ln:%04d fn:%s]\t" fmt,__LINE__,__FUNCTION__,##__VA_ARGS__)
 #define ZMSG(fmt, ...)       zmsg("[ln:%04d fn:%s]\t" fmt,__LINE__,__FUNCTION__,##__VA_ARGS__)
 #define ZWAR(fmt, ...)       zwar("[ln:%04d fn:%s]\t" fmt,__LINE__,__FUNCTION__,##__VA_ARGS__)
 #define ZERR(fmt, ...)       zerr("[ln:%04d fn:%s]\t" fmt,__LINE__,__FUNCTION__,##__VA_ARGS__)
+#define ZINF(fmt, ...)       zinf("[ln:%04d fn:%s]\t" fmt,__LINE__,__FUNCTION__,##__VA_ARGS__)
 
 #define ZERRC(x) zerr("[ln:%04d fn:%s]\t%s",__LINE__,__FUNCTION__,zstrerr(x))
 #define ZERRCX(x) if( ZOK != (x) )ZERRC(x)
-#define ZERRCXR(x) if( ZOK != (x) ){ZERC(x);return(x));
+#define ZERRCXR(x) if( ZOK != (x) ){ZERC(x);return(x));}
 #define ZDUMP(x) zdbg("%s %s", #x, zstrerr(x))
 
 // control module trace
