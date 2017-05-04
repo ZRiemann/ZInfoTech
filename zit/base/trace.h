@@ -25,6 +25,13 @@ ZAPI int zrandat(int begin, int end); // rand begin~end-1
 #define ZTRACE_LEVEL_ERR 3
 #define ZTRACE_LEVEL_INF 4 // user business logic infomation
 
+#define ZTRACE_FLAG_DBG 0x01
+#define ZTRACE_FLAG_MSG 0x02
+#define ZTRACE_FLAG_WAR 0x04
+#define ZTRACE_FLAG_ERR 0x08
+#define ZTRACE_FLAG_INF 0x10
+extern int g_ztrace_flag;
+
 typedef int (*ztrace)(int level, void* user, const char* msg);
 ZAPI int ztrace_reg(ztrace fn, void* user);
 ZAPI int ztrace_ctl(int flag);

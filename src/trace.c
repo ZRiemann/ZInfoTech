@@ -41,9 +41,11 @@ int ztrace_ctl(int flag) {
 void zdump_mix(char *out, int size, const unsigned char *mix, int *len){
   int offset;
   int idx;
+  unsigned char c;
+  
   offset = 0;
   idx = 0;
-  unsigned char c;
+
   while(idx < *len){
     c = mix[idx];
     if( (c > 31 && c < 127) || (c > 7 && c < 14)){
@@ -93,14 +95,6 @@ ZAPI int zrandat(int begin, int end){
 
 int zdbg(const char* msg, ...) {
   if (g_ztrace && (g_ztrace_flag & ZTRACE_FLAG_DBG)) {
-#if 0    
-    va_list arglist;
-    char buf[ZTRACE_BUF_SIZE];
-    va_start(arglist, msg);
-    vsnprintf(buf, ZTRACE_BUF_SIZE, msg, arglist);
-    va_end(arglist);
-    g_ztrace(ZTRACE_LEVEL_DBG, g_ztrace_user, buf);
-#else
     va_list arglist;
     int offset;
     char buf[ZTRACE_BUF_SIZE];
@@ -113,21 +107,12 @@ int zdbg(const char* msg, ...) {
     buf[offset++] = '\n';
     buf[offset] = 0;
     g_ztrace(offset, g_ztrace_user, buf);    
-#endif
   }  
   return ZEOK;
 }
 
 int zmsg(const char* msg, ...) {
   if (g_ztrace && (g_ztrace_flag & ZTRACE_FLAG_DBG)) {
-#if 0
-    va_list arglist;
-    char buf[ZTRACE_BUF_SIZE];
-    va_start(arglist, msg);
-    vsnprintf(buf, ZTRACE_BUF_SIZE, msg, arglist);
-    va_end(arglist);
-    g_ztrace(ZTRACE_LEVEL_MSG, g_ztrace_user, buf);
-#else
     va_list arglist;
     int offset;
     char buf[ZTRACE_BUF_SIZE];
@@ -140,21 +125,12 @@ int zmsg(const char* msg, ...) {
     buf[offset++] = '\n';
     buf[offset] = 0;
     g_ztrace(offset, g_ztrace_user, buf);    
-#endif
   }
   return ZEOK;
 }
 
 int zwar(const char* msg, ...) {
   if (g_ztrace && (g_ztrace_flag & ZTRACE_FLAG_DBG)) {
-#if 0
-    va_list arglist;
-    char buf[ZTRACE_BUF_SIZE];
-    va_start(arglist, msg);
-    vsnprintf(buf, ZTRACE_BUF_SIZE, msg, arglist);
-    va_end(arglist);
-    g_ztrace(ZTRACE_LEVEL_WAR, g_ztrace_user, buf);
-#else
     va_list arglist;
     int offset;
     char buf[ZTRACE_BUF_SIZE];
@@ -167,21 +143,12 @@ int zwar(const char* msg, ...) {
     buf[offset++] = '\n';
     buf[offset] = 0;
     g_ztrace(offset, g_ztrace_user, buf);    
-#endif
   }
   return ZEOK;
 }
 
 int zerr(const char* msg, ...) {
   if (g_ztrace && (g_ztrace_flag & ZTRACE_FLAG_DBG)) {
-#if 0
-    va_list arglist;
-    char buf[ZTRACE_BUF_SIZE];
-    va_start(arglist, msg);
-    vsnprintf(buf, ZTRACE_BUF_SIZE, msg, arglist);
-    va_end(arglist);
-    g_ztrace(ZTRACE_LEVEL_ERR, g_ztrace_user, buf);
-#else
     va_list arglist;
     int offset;
     char buf[ZTRACE_BUF_SIZE];
@@ -194,21 +161,12 @@ int zerr(const char* msg, ...) {
     buf[offset++] = '\n';
     buf[offset] = 0;
     g_ztrace(offset, g_ztrace_user, buf);    
-#endif
   }
   return ZEOK;
 }
 
 int zinf(const char* msg, ...) {
   if (g_ztrace && (g_ztrace_flag & ZTRACE_FLAG_INF)) {
-#if 0
-    va_list arglist;
-    char buf[ZTRACE_BUF_SIZE];
-    va_start(arglist, msg);
-    vsnprintf(buf, ZTRACE_BUF_SIZE, msg, arglist);
-    va_end(arglist);
-    g_ztrace(ZTRACE_LEVEL_INF, g_ztrace_user, buf);
-#else
     va_list arglist;
     int offset;
     char buf[ZTRACE_BUF_SIZE];
@@ -221,7 +179,6 @@ int zinf(const char* msg, ...) {
     buf[offset++] = '\n';
     buf[offset] = 0;
     g_ztrace(offset, g_ztrace_user, buf);    
-#endif
   }
   return ZEOK;
 }
