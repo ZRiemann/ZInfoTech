@@ -42,6 +42,13 @@ ZAPI int zerr(const char* msg, ...);
 ZAPI int zinf(const char* msg, ...);
 ZAPI const char*  zstrerr(int code);
 
+ZAPI int zdbgx(const char *title, int flag, const char* msg, ...);
+ZAPI int zmsgx(const char *title, int flag, const char* msg, ...);
+ZAPI int zwarx(const char *title, int flag, const char* msg, ...);
+ZAPI int zerrx(const char *title, int flag, const char* msg, ...);
+ZAPI int zinfx(const char *title, int flag, const char* msg, ...);
+
+
 #define ZDBG(fmt, ...)       zdbg("[ln:%04d fn:%s]\t" fmt,__LINE__,__FUNCTION__,##__VA_ARGS__)
 #define ZMSG(fmt, ...)       zmsg("[ln:%04d fn:%s]\t" fmt,__LINE__,__FUNCTION__,##__VA_ARGS__)
 #define ZWAR(fmt, ...)       zwar("[ln:%04d fn:%s]\t" fmt,__LINE__,__FUNCTION__,##__VA_ARGS__)
