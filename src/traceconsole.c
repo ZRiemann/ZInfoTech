@@ -5,6 +5,6 @@
 #include <zit/utility/traceconsole.h>
 
 int ztrace_console(int level, void *user, const char* msg){
-  puts(msg);
+  printf("%s", msg);
   return ZOK;
 }

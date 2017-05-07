@@ -85,7 +85,7 @@ int ztrace_log(int len, void* usr, const char* msg){
   int ret;
   ret = ztrace_logopen();
   if( ZEOK == ret ){
-    fputs(msg, zg_logpf);
+    fprintf(zg_logpf, "%s", msg);
     //fflush(zg_logpf); // ztrace_logctl(NULL,0); will close and flush.
     ztrace_logbackup(msg, len);
   }
