@@ -1,6 +1,7 @@
 #include "export.h"
 #include <zit/base/error.h>
 #include <zit/base/time.h>
+#include <zit/base/trace.h>
 
 #ifdef ZSYS_POSIX
 #include <sys/time.h>
@@ -189,5 +190,91 @@ void zsleepus(int us){
   usleep(us);
 #else//ZSYS_WINDOWS
   // not support.
+#endif
+}
+
+void *ztick(){
+  int ret;
+  struct timeval *tv;
+  tv = (struct timeval*)malloc(sizeof(struct timeval));
+  if(tv){
+    ret = gettimeofday(tv,NULL);
+    if( 0 != ret ){
+      free(tv);
+      tv = NULL;
+    }
+  }
+  return tv;
+}
+void ztock(void *handle, int *_sec, int *_usec){
+#ifdef ZSYS_POSIX
+  struct timeval *tv;
+  struct timeval tvend;
+  int sec;
+  int usec;
+  struct tm now;
+  ztime_t begin;
+  ztime_t end;
+  ztime_t *ptm;
+
+  gettimeofday(&tvend,NULL);
+  tv = (struct timeval*)handle;
+
+  if(tv){
+    tvend.tv_usec %= 1000000;
+    tv->tv_usec %= 1000000;
+
+    ptm = &begin;
+    localtime_r(&tv->tv_sec, &now);
+    
+    ptm->year = now.tm_year + 1900;
+    ptm->month = now.tm_mon + 1;
+    ptm->day = now.tm_mday;
+    ptm->hour = now.tm_hour;
+    ptm->minute = now.tm_min;
+    ptm->second = now.tm_sec;
+    ptm->millisecond = tv->tv_usec/1000;
+    ptm->microsecond = tv->tv_usec%1000;
+    ptm->nanosecond = 0;
+    ptm->day_of_week = now.tm_wday;
+    
+    ptm = &end;
+    localtime_r(&tvend.tv_sec, &now);
+    
+    ptm->year = now.tm_year + 1900;
+    ptm->month = now.tm_mon + 1;
+    ptm->day = now.tm_mday;
+    ptm->hour = now.tm_hour;
+    ptm->minute = now.tm_min;
+    ptm->second = now.tm_sec;
+    ptm->millisecond = tvend.tv_usec/1000;
+    ptm->microsecond = tvend.tv_usec%1000;
+    ptm->nanosecond = 0;
+    ptm->day_of_week = now.tm_wday;
+  
+
+    sec = (int)(tvend.tv_sec - tv->tv_sec);
+    if(tvend.tv_usec < tv->tv_usec){
+      --sec;
+      tvend.tv_usec += 1000000;
+    }
+    usec = tvend.tv_usec - tv->tv_usec;
+    zdbg("\nztick:%d:%d:%d.%03d%03d\nztock:%d:%d:%d.%03d%03d\ninterval:%d.%06d"
+	 "\nztick:%llu.%06lu\nztock:%llu.%06lu",
+	 begin.hour, begin.minute, begin.second, begin.millisecond, begin.microsecond,end.hour, end.minute, end.second, end.millisecond, end.microsecond,sec,usec,
+	 tv->tv_sec, tv->tv_usec, tvend.tv_sec, tvend.tv_usec);
+    free(handle);
+  }else{
+    usec = 0;
+    sec = 0;
+  }
+  if(_sec){
+    *_sec = sec;
+  }
+  if(_usec){
+    *_usec = usec;
+  }
+#else
+  // task delay windows
 #endif
 }

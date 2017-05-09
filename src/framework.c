@@ -114,6 +114,7 @@ int ztsk_svr_create(ztsk_svr_t **tsk_svr){
   ztsk_svr_t *svr;
   do{
       ret = ZOK;
+      svr = NULL;
       ZASSERTBC(!tsk_svr, ZPARAM_INVALID);
       svr = *tsk_svr = (ztsk_svr_t*)malloc(sizeof(ztsk_svr_t));
       ZASSERTBC(!svr,ZMEM_INSUFFICIENT);

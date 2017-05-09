@@ -26,6 +26,8 @@ ZAPI zsize_t zque_size(zcontainer_t cont);
 ZAPI int zque_back(zcontainer_t cont, zvalue_t *out);
 ZAPI int zque_front(zcontainer_t cont, zvalue_t *out);
 
+ZAPI int zque_swap(zcontainer_t *cont1, zcontainer_t *cont2);
+
 ZC_END
 
 #endif

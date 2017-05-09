@@ -104,7 +104,7 @@ int zque_destroy(zcontainer_t cont, zoperate release){
     while(que->chnkfront){
       chnkfront = que->chnkfront;
       que->chnkfront = que->chnkfront->next;
-      zdbg("free queue chunk<%p>", chnkfront);
+      //zdbg("free queue chunk<%p>", chnkfront);
       free(chnkfront);
     }
     
@@ -322,4 +322,26 @@ int zque_front(zcontainer_t cont, zvalue_t *out){
   //ZERRCX(ret);
   ziatm_unlock(que->atm_lock);
   return ret;
+}
+
+int zque_swap(zcontainer_t *cont1, zcontainer_t *cont2){
+  int ret;
+  zque_t *que1;
+  zque_t *que2;
+
+  que1 = (zque_t*)(*cont1);
+  que2 = (zque_t*)(*cont2);
+
+  ret = ziatm_lock(que1->atm_lock); if(ZOK != ret){return ret;}
+  ret = ziatm_lock(que2->atm_lock); if(ZOK != ret){
+    ziatm_unlock(que1->atm_lock);    
+    return ret;
+  }
+
+  *cont1 = que2;
+  *cont2 = que1;
+  
+  ziatm_unlock(que2->atm_lock);
+  ziatm_unlock(que1->atm_lock);
+  return ZOK;
 }

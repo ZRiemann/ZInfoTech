@@ -15,7 +15,8 @@ int zmodule_name(char* path, char* name){
   int ret = ZEOK;
   char buf[1024];
   char* dest;
-  
+
+  dest = NULL;
 #ifdef ZSYS_POSIX
   ssize_t len = readlink("/proc/self/exe", buf, sizeof(buf)-1);
   if(-1 == len){

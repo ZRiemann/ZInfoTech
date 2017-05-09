@@ -53,6 +53,9 @@ ZAPI void zsleepsec(int sec);
 ZAPI void zsleepms(int ms);
 ZAPI void zsleepus(int us);
 
+// time interval count
+ZAPI void *ztick();
+ZAPI void ztock(void *handle, int *sec, int *usec);
 
 ZC_END
 

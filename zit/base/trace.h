@@ -3,6 +3,64 @@
 
 /**@file zit/base/trace.h
  * @brief trace message
+ * @note
+comment config:
+
+int ztst_trace(int level, void* user, const char* msg){
+  //ztrace_console(level, user, msg);
+  ztrace_log(level, user, msg); // FILE* not thread safe, need background write.
+  return ZEOK;
+}
+
+int main(int argc, char** argv){  
+  ztrace_logctl("ztest.log",32*1024*1024);
+  ztrace_bkgctl(ztst_trace);
+  ztrace_reg(ztrace_bkg, 0); // thread safe
+}
+
+write 500000 logs
+# ZTRACE_0COPY 0
+base log: 0.120668
+not bkg: 0.450221
+copy bkg: 1.482033
+copy bkg: 1.195532
+
+base log: 0.147761
+not bkg: 0.460535
+copy bkg: 1.130209
+copy bkg: 1.226876
+
+base log: 0.120387
+not bkg: 0.474872
+copy bkg: 1.116381
+copy bkg: 0.950283
+
+# ZTRACE_OCOPY 1
+
+not bkg: 0.120973
+not bkg: 0.510242
+0-copy bkg: 2.705645
+copy bkg: 2.246940
+0-copy bkg: 2.282852
+
+not bkg: 0.121270
+not bkg: 0.468417
+0-copy bkg: 1.647249
+copy bkg: 2.403158
+0-copy bkg: 1.488580
+
+not bkg: 0.253457
+not bkg: 0.490379
+0-copy bkg: 1.431431
+copy bkg: 1.619998
+0-copy bkg: 1.051606
+
+not bkg: 0.125118
+not bkg: 0.472997
+0-copy bkg: 1.352124
+copy bkg: 1.115913
+0-copy bkg: 1.451636
+
  */
 
 #include "platform.h"
@@ -33,8 +91,12 @@ ZAPI int zrandat(int begin, int end); // rand begin~end-1
 extern int g_ztrace_flag;
 
 typedef int (*ztrace)(int level, void* user, const char* msg);
+typedef int (*zgetbuf)(char **buf, int len);
+
 ZAPI int ztrace_reg(ztrace fn, void* user);
+ZAPI int ztrace_reg_0copy(ztrace fn, void *user, zgetbuf getfn);
 ZAPI int ztrace_ctl(int flag);
+
 ZAPI int zdbg(const char* msg, ...);
 ZAPI int zmsg(const char* msg, ...);
 ZAPI int zwar(const char* msg, ...);

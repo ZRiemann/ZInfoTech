@@ -7,7 +7,10 @@ OUT_NAME=make
 OUT_DIR=$(ROOT_DIR)/$(OUT_NAME)
 OBJS_DIR=$(OUT_DIR)/obj
 BIN_DIR=$(OUT_DIR)/bin
-GDB=-g
+#debug mode
+#GDB=-g
+#release mode
+GDB=-O3
 INST_DIR=/usr/local/lib
 ZIT_NAME=libzit.so
 ZIT_VER=$(ZIT_NAME).0.0.0

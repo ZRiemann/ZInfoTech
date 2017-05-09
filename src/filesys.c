@@ -246,7 +246,11 @@ int zchdir(const char *dir){
 
 int zgetcwd(char *buf, size_t size){
 #ifdef ZSYS_POSIX
-  getcwd(buf, size);
+  
+  if(NULL == getcwd(buf, size)){
+    return ZFUN_FAIL;
+  }
+  
 #else
   if(0 == GetCurrentDirectory(size, buf))
   {
@@ -597,6 +601,8 @@ int print_zftw(const char *pathname, zfstat_t *stat, int ftw_flag, zvalue_t hint
 #ifndef ZUSE_TIMESPEC
   if(ftw_flag == FTW_F || ftw_flag == FTW_D){
 	stm = *localtime(&stat->ctime);
+  }else{
+    memset(&stm,  0, sizeof(stm));
   }
   
   switch(ftw_flag){
