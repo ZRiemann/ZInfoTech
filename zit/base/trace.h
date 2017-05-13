@@ -6,16 +6,24 @@
  * @note
 comment config:
 
-int ztst_trace(int level, void* user, const char* msg){
+#include <zit/base/trace.h>
+#include <zit/utility/traceconsole.h>
+#include <zit/utility/tracelog.h>
+#include <zit/utility/tracebkg.h>
+
+int zit_trace(int level, void* user, const char* msg){
   //ztrace_console(level, user, msg);
   ztrace_log(level, user, msg); // FILE* not thread safe, need background write.
   return ZEOK;
 }
 
 int main(int argc, char** argv){  
-  ztrace_logctl("ztest.log",32*1024*1024);
-  ztrace_bkgctl(ztst_trace);
+  ztrace_logctl("zit.log",64*1024*1024);
+  ztrace_bkgctl(zit_trace);
   ztrace_reg(ztrace_bkg, 0); // thread safe
+  //...
+  ztrace_bkgend();
+  ztrace_logctl(NULL,0); // close the log file.
 }
 
 write 500000 logs
@@ -119,7 +127,7 @@ ZAPI int zinfx(const char *title, int flag, const char* msg, ...);
 
 #define ZERRC(x) zerr("[ln:%04d fn:%s]\t%s",__LINE__,__FUNCTION__,zstrerr(x))
 #define ZERRCX(x) if( ZOK != (x) )ZERRC(x)
-#define ZERRCXR(x) if( ZOK != (x) ){ZERC(x);return(x));}
+#define ZERRCXR(x) if( ZOK != (x) ){ZERRC(x); return(x);}
 #define ZDUMP(x) zdbg("%s %s", #x, zstrerr(x))
 
 // control module trace

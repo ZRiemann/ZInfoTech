@@ -25,6 +25,9 @@ const int ZCMP_GREAT = ZECMP_GREAT;// (ZEMASK | 14) // compare great
 const int ZCMP_LITTLE = ZECMP_LITTLE;// (ZEMASK | 15) // compare little
 const int ZCMD_RESTART = ZECMD_RESTART; // 16
 const int ZEOF = ZE_EOF; //17
+const int ZCAST_FAIL = ZECAST_FAIL;// (ZMASK | 18) // cast type fail
+const int ZSOCK = ZESOCK_INVALID;// (ZEMASK | 19) // invalid socket
+
 int zversion(){
   return 0x010101;
 }

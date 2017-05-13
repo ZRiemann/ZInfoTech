@@ -476,7 +476,9 @@ const char *errmap[] = {
   "ZE14-compare-great",
   "ZE15-compare-little",
   "ZE16-command-restart",
-  "ZE17-end-of-file"
+  "ZE17-end-of-file",
+  "ZE18-cast-type-fail",
+  "ZE19-invalid-socket"
 };
 
 const char*  zstrerr(int code) {

@@ -52,6 +52,40 @@ ZAPI zptr_t zpatm_xchg(zatm_t atm, zptr_t ptr);
 //=============================================================
 // 3rd edition
 
+#ifdef ZSYS_POSIX
+#define zatm_add(ptr, value) __sync_add_and_fetch((ptr), (value))
+#define zatm_sub(ptr, value) __sync_sub_and_fetch((ptr), (value))
+#define zatm_cas(ptr, oldval, newval) __sync_val_compare_and_swap(type *ptr,oldval,newval)
+#endif
+
+#if 0
+// gcc从4.1.2提供了__sync_*系列的built-in函数，用于提供加减和逻辑运算的原子操作
+// 在Linux2.6.18之后,GCC提供了内置的原子操作函数，更适合用户态的程序使用。
+type __sync_fetch_and_add (type *ptr, type value);
+type __sync_fetch_and_sub (type *ptr, type value);
+type __sync_fetch_and_or (type *ptr, type value);
+type __sync_fetch_and_and (type *ptr, type value);
+type __sync_fetch_and_xor (type *ptr, type value);
+type __sync_fetch_and_nand (type *ptr, type value);
+type __sync_add_and_fetch (type *ptr, type value);
+type __sync_sub_and_fetch (type *ptr, type value);
+type __sync_or_and_fetch (type *ptr, type value);
+type __sync_and_and_fetch (type *ptr, type value);
+type __sync_xor_and_fetch (type *ptr, type value);
+type __sync_nand_and_fetch (type *ptr, type value);
+
+bool __sync_bool_compare_and_swap (type*ptr, type oldval, type newval, ...);
+type __sync_val_compare_and_swap (type *ptr, type oldval,  type newval, ...);
+
+__sync_synchronize (...);
+//理解上面这个东西，参照：http://blog.sunchangming.com/post/47188394133
+
+type __sync_lock_test_and_set (type *ptr, type value, ...);
+//将*ptr设为value并返回*ptr操作之前的值。
+
+void __sync_lock_release (type *ptr, ...);//将*ptr置0
+#endif
+
 ZC_END
 
 #endif

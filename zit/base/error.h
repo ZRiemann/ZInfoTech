@@ -23,8 +23,10 @@
 #define ZECMP_LITTLE (ZEMASK | 15) // compare little
 #define ZECMD_RESTART (ZEMASK | 16) // return restart command
 #define ZE_EOF (ZEMASK | 17) // end of file
-#define ZE_END (17)
-#define ZESOCK_INVALID (ZEMASK | 18) // invalid socked
+#define ZECAST_FAIL (ZEMASK | 18) // cast type fail
+#define ZESOCK_INVALID (ZEMASK | 19) // invalid socket
+#define ZE_END (19)
+
 
 extern const int ZOK; // = ZEOK;// 0 // ZError OK
 extern const int ZFAIL;// = ZEFAIL;// (ZEMASK | 1) // ZError FAILED
@@ -44,6 +46,9 @@ extern const int ZCMP_GREAT;// (ZEMASK | 14) // compare great
 extern const int ZCMP_LITTLE;// (ZEMASK | 15) // compare little
 extern const int ZCMD_RESTART;
 extern const int ZEOF;
+extern const int ZCAST_FAIL; // (ZMASK | 18) // cast type fail
+extern const int ZSOCK; // (ZEMASK | 19) // invalid socket
+
 
 #define ZASSERTR(x) if(ZOK != (x))return(x)
 #define ZASSERTB(x) if(x)break

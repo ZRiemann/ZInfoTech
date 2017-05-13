@@ -31,6 +31,7 @@ typedef pthread_t zthr_id_t; // not use UINT, 64bit system will cause jion fault
 typedef void* zthr_ret_t;
 typedef pthread_mutex_t zmutex_t;
 typedef sem_t zsem_t;
+typedef pthread_rwlock_t zrwlock_t;
 
 #define ZCALL
 #define ZINFINITE -1

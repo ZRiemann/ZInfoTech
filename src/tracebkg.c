@@ -61,6 +61,9 @@ int ztrace_bkgend(){
   void **puser;
   char *msg;
   char *buf;
+  if(!intlen){
+    return ZOK; // not call bkgclt(), just return;
+  }
   zthreadx_cancel(&thr_trace);
   zthreadx_join(&thr_trace);
   // dump out...
