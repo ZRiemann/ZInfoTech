@@ -37,12 +37,27 @@ int ztrace_reg(ztrace fn, void* user) {
   return ZEOK;
 }
 
-ZAPI int ztrace_reg_0copy(ztrace fn, void *user, zgetbuf getfn){
+int ztrace_reg_0copy(ztrace fn, void *user, zgetbuf getfn){
   g_ztrace = fn;
   g_ztrace_user = user;
   g_ztrace_getbuf = getfn;
   srand(time(NULL));
   return ZEOK;
+}
+
+int ztrace_state(ztrace *fn, void **user, int *flag){
+  if(fn){
+    *fn = g_ztrace;
+  }
+
+  if(user){
+    *user =g_ztrace_user;
+  }
+
+  if(flag){
+    *flag = g_ztrace_flag;
+  }
+  return ZOK;
 }
 
 int ztrace_ctl(int flag) {
@@ -104,7 +119,7 @@ int zrandin(int max){
 ZAPI int zrandat(int begin, int end){
   return (begin + (rand()%(begin-end)));
 }
-
+/*
 int zdbg(const char* msg, ...) {
   if (g_ztrace && (g_ztrace_flag & ZTRACE_FLAG_DBG)) {
     va_list arglist;
@@ -259,43 +274,71 @@ int zinf(const char* msg, ...) {
   }
   return ZEOK;
 }
+*/
+int zdbgx(int flag, const char* msg, ...){
+  if (g_ztrace && (flag & ZTRACE_FLAG_INF)) {
+    va_list arglist;
+    int offset;
+    //char buf[ZTRACE_BUF_SIZE];
+#if ZTRACE_0COPY    
+    char local_buf[ZTRACE_BUF_SIZE];
+    char *buf;
+    if(g_ztrace_getbuf){
+      if(ZOK != g_ztrace_getbuf(&buf, ZTRACE_BUF_SIZE)){
+	return ZMEM_INSUFFICIENT;
+      }
+    }else{
+      buf = local_buf;
+    }
+#else
+    char buf[ZTRACE_BUF_SIZE];
+#endif
+    zstr_systime_now(buf,ZTP_MILLISEC);
+    offset = strlen(buf);
+    offset += sprintf(buf+offset, " DBG:");
+        
+    va_start(arglist, msg);
+    offset += vsnprintf(buf+offset, ZTRACE_BUF_SIZE-offset, msg, arglist);
+    va_end(arglist);
+    buf[offset++] = '\n';
+    buf[offset] = 0;
+    g_ztrace(offset, g_ztrace_user, buf);    
+  }
+  return ZEOK;
+}
+int zmsgx(int flag, const char* msg, ...){
+  if (g_ztrace && (flag & ZTRACE_FLAG_INF)) {
+    va_list arglist;
+    int offset;
+    
+#if ZTRACE_0COPY
+    char local_buf[ZTRACE_BUF_SIZE];
+    char *buf;
+    if(g_ztrace_getbuf){
+      if(ZOK != g_ztrace_getbuf(&buf, ZTRACE_BUF_SIZE)){
+	return ZMEM_INSUFFICIENT;
+      }
+    }else{
+      buf = local_buf;
+    }
+#else
+    char buf[ZTRACE_BUF_SIZE];
+#endif
+    zstr_systime_now(buf,ZTP_MILLISEC);
+    offset = strlen(buf);
+    offset += sprintf(buf+offset, " MSG:");
+    
+    va_start(arglist, msg);
+    offset += vsnprintf(buf+offset, ZTRACE_BUF_SIZE-offset, msg, arglist);
+    va_end(arglist);
+    buf[offset++] = '\n';
+    buf[offset] = 0;
+    g_ztrace(offset, g_ztrace_user, buf);    
+  }
+  return ZEOK;
+}
 
-int zdbgx(const char *title, int flag, const char* msg, ...){
-  if (g_ztrace && (flag & ZTRACE_FLAG_INF)) {
-    va_list arglist;
-    int offset;
-    //char buf[ZTRACE_BUF_SIZE];
-#if ZTRACE_0COPY    
-    char local_buf[ZTRACE_BUF_SIZE];
-    char *buf;
-    if(g_ztrace_getbuf){
-      if(ZOK != g_ztrace_getbuf(&buf, ZTRACE_BUF_SIZE)){
-	return ZMEM_INSUFFICIENT;
-      }
-    }else{
-      buf = local_buf;
-    }
-#else
-    char buf[ZTRACE_BUF_SIZE];
-#endif
-    zstr_systime_now(buf,ZTP_MILLISEC);
-    offset = strlen(buf);
-    if(title){
-      offset += sprintf(buf+offset, " DBG: %s ", title);
-    }else{
-      offset += sprintf(buf+offset, " DBG:");
-    }
-    
-    va_start(arglist, msg);
-    offset += vsnprintf(buf+offset, ZTRACE_BUF_SIZE-offset, msg, arglist);
-    va_end(arglist);
-    buf[offset++] = '\n';
-    buf[offset] = 0;
-    g_ztrace(offset, g_ztrace_user, buf);    
-  }
-  return ZEOK;
-}
-int zmsgx(const char *title, int flag, const char* msg, ...){
+int zwarx(int flag, const char* msg, ...){
   if (g_ztrace && (flag & ZTRACE_FLAG_INF)) {
     va_list arglist;
     int offset;
@@ -315,45 +358,8 @@ int zmsgx(const char *title, int flag, const char* msg, ...){
 #endif
     zstr_systime_now(buf,ZTP_MILLISEC);
     offset = strlen(buf);
-    if(title){
-      offset += sprintf(buf+offset, " MSG: %s ", title);
-    }else{
-      offset += sprintf(buf+offset, " MSG:");
-    }
-    va_start(arglist, msg);
-    offset += vsnprintf(buf+offset, ZTRACE_BUF_SIZE-offset, msg, arglist);
-    va_end(arglist);
-    buf[offset++] = '\n';
-    buf[offset] = 0;
-    g_ztrace(offset, g_ztrace_user, buf);    
-  }
-  return ZEOK;
-}
-int zwarx(const char *title, int flag, const char* msg, ...){
-  if (g_ztrace && (flag & ZTRACE_FLAG_INF)) {
-    va_list arglist;
-    int offset;
+    offset += sprintf(buf+offset, " WAR:");
     
-#if ZTRACE_0COPY
-    char local_buf[ZTRACE_BUF_SIZE];
-    char *buf;
-    if(g_ztrace_getbuf){
-      if(ZOK != g_ztrace_getbuf(&buf, ZTRACE_BUF_SIZE)){
-	return ZMEM_INSUFFICIENT;
-      }
-    }else{
-      buf = local_buf;
-    }
-#else
-    char buf[ZTRACE_BUF_SIZE];
-#endif
-    zstr_systime_now(buf,ZTP_MILLISEC);
-    offset = strlen(buf);
-    if(title){
-      offset += sprintf(buf+offset, " WAR: %s ", title);
-    }else{
-      offset += sprintf(buf+offset, " WAR:");
-    }
     va_start(arglist, msg);
     offset += vsnprintf(buf+offset, ZTRACE_BUF_SIZE-offset, msg, arglist);
     va_end(arglist);
@@ -363,7 +369,7 @@ int zwarx(const char *title, int flag, const char* msg, ...){
   }
   return ZEOK;
 }
-int zerrx(const char *title, int flag, const char* msg, ...){
+int zerrx(int flag, const char* msg, ...){
   if (g_ztrace && (flag & ZTRACE_FLAG_INF)) {
     va_list arglist;
     int offset;
@@ -383,11 +389,8 @@ int zerrx(const char *title, int flag, const char* msg, ...){
 #endif
     zstr_systime_now(buf,ZTP_MILLISEC);
     offset = strlen(buf);
-    if(title){
-      offset += sprintf(buf+offset, " ERR: %s ", title);
-    }else{
-      offset += sprintf(buf+offset, " ERR:");
-    }
+    offset += sprintf(buf+offset, " ERR:");
+    
     va_start(arglist, msg);
     offset += vsnprintf(buf+offset, ZTRACE_BUF_SIZE-offset, msg, arglist);
     va_end(arglist);
@@ -397,7 +400,8 @@ int zerrx(const char *title, int flag, const char* msg, ...){
   }
   return ZEOK;
 }
-int zinfx(const char *title, int flag, const char* msg, ...){
+
+int zinfx(int flag, const char* msg, ...){
   if (g_ztrace && (flag & ZTRACE_FLAG_INF)) {
     va_list arglist;
     int offset;
@@ -417,11 +421,8 @@ int zinfx(const char *title, int flag, const char* msg, ...){
 #endif    
     zstr_systime_now(buf,ZTP_MILLISEC);
     offset = strlen(buf);
-    if(title){
-      offset += sprintf(buf+offset, " INF: %s ", title);
-    }else{
-      offset += sprintf(buf+offset, " INF:");
-    }
+    offset += sprintf(buf+offset, " INF:");
+    
     va_start(arglist, msg);
     offset += vsnprintf(buf+offset, ZTRACE_BUF_SIZE-offset, msg, arglist);
     va_end(arglist);

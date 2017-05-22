@@ -5,7 +5,6 @@
  * @brief trace message
  * @note
 comment config:
-
 #include <zit/base/trace.h>
 #include <zit/utility/traceconsole.h>
 #include <zit/utility/tracelog.h>
@@ -25,51 +24,7 @@ int main(int argc, char** argv){
   ztrace_bkgend();
   ztrace_logctl(NULL,0); // close the log file.
 }
-
-write 500000 logs
-# ZTRACE_0COPY 0
-base log: 0.120668
-not bkg: 0.450221
-copy bkg: 1.482033
-copy bkg: 1.195532
-
-base log: 0.147761
-not bkg: 0.460535
-copy bkg: 1.130209
-copy bkg: 1.226876
-
-base log: 0.120387
-not bkg: 0.474872
-copy bkg: 1.116381
-copy bkg: 0.950283
-
-# ZTRACE_OCOPY 1
-
-not bkg: 0.120973
-not bkg: 0.510242
-0-copy bkg: 2.705645
-copy bkg: 2.246940
-0-copy bkg: 2.282852
-
-not bkg: 0.121270
-not bkg: 0.468417
-0-copy bkg: 1.647249
-copy bkg: 2.403158
-0-copy bkg: 1.488580
-
-not bkg: 0.253457
-not bkg: 0.490379
-0-copy bkg: 1.431431
-copy bkg: 1.619998
-0-copy bkg: 1.051606
-
-not bkg: 0.125118
-not bkg: 0.472997
-0-copy bkg: 1.352124
-copy bkg: 1.115913
-0-copy bkg: 1.451636
-
- */
+*/
 
 #include "platform.h"
 #include <zit/base/error.h>
@@ -103,32 +58,34 @@ typedef int (*zgetbuf)(char **buf, int len);
 
 ZAPI int ztrace_reg(ztrace fn, void* user);
 ZAPI int ztrace_reg_0copy(ztrace fn, void *user, zgetbuf getfn);
+ZAPI int ztrace_state(ztrace *fn, void **user, int *flag);
 ZAPI int ztrace_ctl(int flag);
 
-ZAPI int zdbg(const char* msg, ...);
-ZAPI int zmsg(const char* msg, ...);
-ZAPI int zwar(const char* msg, ...);
-ZAPI int zerr(const char* msg, ...);
-ZAPI int zinf(const char* msg, ...);
 ZAPI const char*  zstrerr(int code);
 
-ZAPI int zdbgx(const char *title, int flag, const char* msg, ...);
-ZAPI int zmsgx(const char *title, int flag, const char* msg, ...);
-ZAPI int zwarx(const char *title, int flag, const char* msg, ...);
-ZAPI int zerrx(const char *title, int flag, const char* msg, ...);
-ZAPI int zinfx(const char *title, int flag, const char* msg, ...);
+ZAPI int zdbgx(int flag, const char* msg, ...);
+ZAPI int zmsgx(int flag, const char* msg, ...);
+ZAPI int zwarx(int flag, const char* msg, ...);
+ZAPI int zerrx(int flag, const char* msg, ...);
+ZAPI int zinfx(int flag, const char* msg, ...);
 
+#define zdbg(fmt, ...) zdbgx(g_ztrace_flag, fmt, ##__VA_ARGS__)
+#define zmsg(fmt, ...) zmsgx(g_ztrace_flag, fmt, ##__VA_ARGS__)
+#define zwar(fmt, ...) zwarx(g_ztrace_flag, fmt, ##__VA_ARGS__)
+#define zerr(fmt, ...) zerrx(g_ztrace_flag, fmt, ##__VA_ARGS__)
+#define zinf(fmt, ...) zinfx(g_ztrace_flag, fmt, ##__VA_ARGS__)
 
-#define ZDBG(fmt, ...)       zdbg("[ln:%04d fn:%s]\t" fmt,__LINE__,__FUNCTION__,##__VA_ARGS__)
-#define ZMSG(fmt, ...)       zmsg("[ln:%04d fn:%s]\t" fmt,__LINE__,__FUNCTION__,##__VA_ARGS__)
-#define ZWAR(fmt, ...)       zwar("[ln:%04d fn:%s]\t" fmt,__LINE__,__FUNCTION__,##__VA_ARGS__)
-#define ZERR(fmt, ...)       zerr("[ln:%04d fn:%s]\t" fmt,__LINE__,__FUNCTION__,##__VA_ARGS__)
-#define ZINF(fmt, ...)       zinf("[ln:%04d fn:%s]\t" fmt,__LINE__,__FUNCTION__,##__VA_ARGS__)
+#define ZDBG(fmt, ...)       zdbgx(g_ztrace_flag, "[ln:%04d fn:%s]\t" fmt,__LINE__,__FUNCTION__,##__VA_ARGS__)
+#define ZMSG(fmt, ...)       zmsgx(g_ztrace_flag, "[ln:%04d fn:%s]\t" fmt,__LINE__,__FUNCTION__,##__VA_ARGS__)
+#define ZWAR(fmt, ...)       zwarx(g_ztrace_flag, "[ln:%04d fn:%s]\t" fmt,__LINE__,__FUNCTION__,##__VA_ARGS__)
+#define ZERR(fmt, ...)       zerrx(g_ztrace_flag, "[ln:%04d fn:%s]\t" fmt,__LINE__,__FUNCTION__,##__VA_ARGS__)
+#define ZINF(fmt, ...)       zinfx(g_ztrace_flag, "[ln:%04d fn:%s]\t" fmt,__LINE__,__FUNCTION__,##__VA_ARGS__)
 
-#define ZERRC(x) zerr("[ln:%04d fn:%s]\t%s",__LINE__,__FUNCTION__,zstrerr(x))
+#define ZDBGC(x) zdbgx(g_ztrace_flag, "[ln:%04d fn:%s]\t%s",__LINE__,__FUNCTION__,zstrerr(x)) // for buglevel
+#define ZERRC(x) zerrx(g_ztrace_flag, "[ln:%04d fn:%s]\t%s",__LINE__,__FUNCTION__,zstrerr(x))
 #define ZERRCX(x) if( ZOK != (x) )ZERRC(x)
 #define ZERRCXR(x) if( ZOK != (x) ){ZERRC(x); return(x);}
-#define ZDUMP(x) zdbg("%s %s", #x, zstrerr(x))
+#define ZDUMP(x) zdbgx(g_ztrace_flag, "%s %s", #x, zstrerr(x))
 
 // control module trace
 #define ZTRACE_MUTEX 0
@@ -152,5 +109,22 @@ ZC_END
  * @brief get ZInfoTech version history
  * @return history string
  */
-
+/*
+write 500000 logs to file
+$ make/bin/zit_test bkglog 500000
+not bkg: 0.121014
+not bkg: 0.439808
+copy bkg: 0.845756
+copy bkg: 0.650955
+$ make/bin/zit_test bkglog 500000
+not bkg: 0.137679
+not bkg: 0.476832
+copy bkg: 0.819397
+copy bkg: 0.664261
+$ make/bin/zit_test bkglog 500000
+not bkg: 0.120228
+not bkg: 0.452248
+copy bkg: 0.847605
+copy bkg: 0.745492
+*/
 #endif//_ZBASE_TRACE_H_

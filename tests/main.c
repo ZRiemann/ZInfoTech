@@ -18,8 +18,8 @@ static void bkglog(int argc, char ** argv);
 static void rwlock(int argc, char ** argv);
 
 int ztst_trace(int level, void* user, const char* msg){
-  ztrace_console(level, user, msg);
-  //ztrace_log(level, user, msg);
+  //ztrace_console(level, user, msg);
+  ztrace_log(level, user, msg);
   return ZEOK;
 }
 

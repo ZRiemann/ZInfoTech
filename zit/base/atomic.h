@@ -55,7 +55,9 @@ ZAPI zptr_t zpatm_xchg(zatm_t atm, zptr_t ptr);
 #ifdef ZSYS_POSIX
 #define zatm_add(ptr, value) __sync_add_and_fetch((ptr), (value))
 #define zatm_sub(ptr, value) __sync_sub_and_fetch((ptr), (value))
-#define zatm_cas(ptr, oldval, newval) __sync_val_compare_and_swap(type *ptr,oldval,newval)
+#define zatm_casv(ptr, oldval, newval) __sync_val_compare_and_swap(type *ptr,oldval,newval)
+#define zatm_casb(ptr, oldval, newval) __sync_bool_compare_and_swap(type *ptr,oldval,newval)
+//#define zatm_spin(ptr, oldval, newval, timeout)
 #endif
 
 #if 0
