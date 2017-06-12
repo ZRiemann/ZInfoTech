@@ -91,3 +91,9 @@ int ztrace_log(int len, void* usr, const char* msg){
   }
   return ZOK;
 }
+
+void ztrace_logflush(){
+  if(zg_logpf){
+    fflush(zg_logpf);
+  }
+}

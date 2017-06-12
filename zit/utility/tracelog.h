@@ -7,6 +7,7 @@ ZC_BEGIN
 
 ZAPI int ztrace_logctl(const char* fname, int log_size);
 ZAPI int ztrace_log(int level, void *user, const char* msg);
+ZAPI void ztrace_logflush(); // flush to log file
 
 ZC_END
 

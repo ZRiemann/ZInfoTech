@@ -1,5 +1,6 @@
 #include "export.h"
 #include <zit/utility/tracebkg.h>
+#include <zit/utility/tracelog.h>
 #include <stdio.h>
 #include <zit/base/trace.h>
 #include <zit/base/queue.h>
@@ -141,6 +142,7 @@ zthr_ret_t ZCALL zproc_trace(void* param){
   void **puser;
   
   ret = ZOK;
+  msg = NULL;
   thr = (zthr_t*)param;
   if(ZEOK != zthreadx_procbegin(thr)){
     zthreadx_procend(thr, ret);
@@ -162,7 +164,13 @@ zthr_ret_t ZCALL zproc_trace(void* param){
     
     if(zque_size(in)){
       zque_swap(&in, &out); // swap in/
-    }// else in and out all empty(may be can use timer)
+    }// else in and out all empty(may be call use timer)
+
+    if(msg){
+      // fflush to logfile
+      ztrace_logflush();
+      msg = NULL;
+    }
   }
   zthreadx_procend(thr, ret);
 
