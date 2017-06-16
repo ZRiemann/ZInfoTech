@@ -4,7 +4,7 @@
  * @brief daemonize
  * @note
  *  POSIX:
- *  1. umask();
+ *  1. linux call daemon()
  *  2. 
  */
 #include <zit/base/platform.h>
@@ -13,6 +13,7 @@ ZC_BEGIN
 
 ZAPI void daemoinize(const char *cmd);
 ZAPI void already_running(const char *lockfile);
+
 ZC_END
 
 #endif

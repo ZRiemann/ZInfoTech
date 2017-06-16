@@ -19,7 +19,7 @@ static char zg_logname_backup[ZLOG_NAME_SIZE] = "ZInfoTech.log.log";
 
 static int ztrace_logfixname(){
   // set log file path seem to module path
-  if((NULL == strchr(zg_logname, '\\')) || (NULL == strchr(zg_logname, '/'))){
+  if((NULL == strchr(zg_logname, '\\')) && (NULL == strchr(zg_logname, '/'))){
     char path[ZLOG_NAME_SIZE];
     if(ZEOK == zmodule_name(path, NULL)){
       strcat(path,"/");
@@ -66,6 +66,7 @@ static int ztrace_logbackup(const char* msg, int len)
 int ztrace_logctl(const char* fname, int logsize){
   if(NULL != zg_logpf){
     fclose(zg_logpf);
+    zg_logpf = NULL;
   }
   if(fname && (strlen(fname) < ((size_t)ZLOG_NAME_SIZE-4)) ){
     sprintf(zg_logname,"%s",fname);
@@ -80,12 +81,10 @@ int ztrace_logctl(const char* fname, int logsize){
 }
 
 int ztrace_log(int len, void* usr, const char* msg){
-  // CAUTION: NEED A LOCK FOR MULTITHREAD...
-  // [TASK DELAY] lock log file for write.
   int ret;
   ret = ztrace_logopen();
   if( ZEOK == ret ){
-    fprintf(zg_logpf, "%s", msg);
+    fputs(msg, zg_logpf);
     //fflush(zg_logpf); // ztrace_logctl(NULL,0); will close and flush.
     ztrace_logbackup(msg, len);
   }

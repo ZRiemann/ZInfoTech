@@ -14,7 +14,8 @@ GDB=-O3
 INST_DIR=/usr/local/lib
 ZIT_NAME=libzit.so
 ZIT_VER=$(ZIT_NAME).0.0.0
-CFLAGS='$(GDB) -fPIC -Wall -Werror -I$(ROOT_DIR)'
+#CFLAGS='$(GDB) -fPIC -Wall -Werror -I$(ROOT_DIR)'
+CFLAGS=$(GDB) -fPIC -Wall -Werror -I.
 CFLAGST = '$(GDB) -Wall -Werror -I$(ROOT_DIR)'
 # **** export variable to sub makefiles ***
 export CC CFLAGS OBJS_DIR BIN_DIR GDB
@@ -24,9 +25,10 @@ define make_obj
 	@mkdir -p $(OBJS_DIR)
 	@mkdir -p $(BIN_DIR)
 	@cp -u makeout.mk $(OBJS_DIR)/makefile
-	@gcc makeworker.c -o makeworker
-	@./makeworker src $(OBJS_DIR) .c $(CC) $(CFLAGS)
+	@./compiler.sh src make/obj $CC "$(CFLAGS)"
 endef
+#	@gcc makeworker.c -o makeworker
+#	@./makeworker src $(OBJS_DIR) .c $(CC) $(CFLAGS)
 
 define install_zit
 	@rm -f $(INST_DIR)/$(ZIT_NAME)* &&\
