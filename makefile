@@ -22,8 +22,8 @@ INST_DIR=/usr/local/lib
 ZIT_NAME=libzit.so
 ZIT_SONAME=$(ZIT_NAME).1
 ZIT_VER=$(ZIT_SONAME).0.0
-CFLAGS=$(GDB) -fPIC -Wall -Werror -I.
-CFLAGST = '$(GDB) -Wall -Werror -I$(ROOT_DIR)'
+CFLAGS=$(GDB) -D_REENTRANT -fPIC -Wall -Werror -I.
+CFLAGST = $(GDB) -D_REENTRANT -Wall -Werror -I$(ROOT_DIR)
 # **** export variable to sub makefiles ***
 export CC CFLAGS BIN_NAME GDB ZIT_VER ZIT_SONAME VER
 
@@ -59,13 +59,15 @@ makeout:
 
 .PHONY : test
 test :
-	@./compiler.sh test $(OBJS_DIR) $(CC) "$(CFLAGST)" &&\
+	@./compiler.sh tests $(OBJS_DIR) $(CC) "$(CFLAGST)" &&\
 	make -C $(OBJS_DIR) test
 
-.PHONY : arm_test
-arm_test :
-	@./makeworker tests $(OBJS_DIR) .c $(CC) $(CFLAGST) &&\
+#.PHONY : arm_test
+#arm_test :
+#	@./compiler tests $(OBJS_DIR) $(CC) "$(CFLAGST)" &&\
 	make -C $(OBJS_DIR) arm_test
+#	@./makeworker tests $(OBJS_DIR) .c $(CC) $(CFLAGST) &&\
+
 
 .PHONY:clean
 clean:
