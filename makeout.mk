@@ -14,26 +14,30 @@
 # <minor>: downward compatibility
 # <release>: compatible with each other
 # gcc -shared -W,soname,libzit.so.0 -o llibzit.so.0.0.0 $^ ;make so
-# ls -s libzit.so.0.0.0 libzit.so.0
+# ln -s libzit.so.0.0.0 libzit.so.0
 # =============================
 #$(BIN_DIR)/libzit.a : $(LIB_ZIT)
 #	ar crv $@ $^
 #	$(CC) -g -Wl,-rpath=. -L$(BIN_DIR) -lzit -lpthread -lrt -D_REENTRANT $^ -o $@
 
+BIN_DIR=../$(BIN_NAME)
 ZIT_LIB=atomic.o  jet.o  module.o  mutex.o  queue.o  ringbuf.o  semaphore.o  ssl.o  thread.o time.o traceconsole.o tracelog.o  trace.o \
 tracering.o type.o list.o container.o framework.o socket.o filesys.o convert.o tracebkg.o rwlock.o
 ZIT_TST=tutility.o main.o tbase.o tthread.o
 #ZIT_FLAGS='-lpthread -lrt -D_REENTRANT'
 
 .PHONY : all
-all : $(BIN_DIR)/libzit.so.0.0.0
-$(BIN_DIR)/libzit.so.0.0.0 : $(ZIT_LIB)
-	$(CC) $(GDB) -shared -fPIC -Wl,-soname,libzit.so.0 -o $@ $^
+all : $(BIN_DIR)/$(ZIT_VER)
+$(BIN_DIR)/$(ZIT_VER) : $(ZIT_LIB)
+	$(CC) $(GDB) -shared -fPIC -Wl,-soname,$(ZIT_SONAME) -o $@ $^
+ifeq ($(VER),release)
+	@strip $@
+endif
 
 .PHONY : test
 test : $(ZIT_TST)
 	$(CC) $(GDB) $^ -o $(BIN_DIR)/zit_test -lzit -pthread -lrt
-# error follow, can not work on ubuntu. 
+# error follow, can not work on ubuntu.
 #	$(CC) $(GDB) -lpthread -lrt -D_REENTRANT -lzit $^ -o $(BIN_DIR)/zit_test
 
 .PHONY : arm_test

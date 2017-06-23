@@ -1,31 +1,38 @@
 #top level makefile
+ifeq ($(VER), debug)
+	GDB=-g
+else ifeq ($(VER), release)
+	GDB=-O3
+else
+$(warning default release module)
+$(warning useage: make VER={debug|release})
+	VER=release
+	GDB=-O3
+endif
 
+BIN_NAME=$(VER)
 CC=gcc
 #CC=arm-none-linux-gnueabi-gcc
 ROOT_DIR=$(shell pwd)
 OUT_NAME=make
 OUT_DIR=$(ROOT_DIR)/$(OUT_NAME)
-OBJS_DIR=$(OUT_DIR)/obj
-BIN_DIR=$(OUT_DIR)/bin
-#debug mode
-#GDB=-g
-#release mode
-GDB=-O3
+OBJS_DIR=$(OUT_NAME)/$(BIN_NAME)_obj
+BIN_DIR=$(OUT_NAME)/$(BIN_NAME)
 INST_DIR=/usr/local/lib
 ZIT_NAME=libzit.so
-ZIT_VER=$(ZIT_NAME).0.0.0
-#CFLAGS='$(GDB) -fPIC -Wall -Werror -I$(ROOT_DIR)'
+ZIT_SONAME=$(ZIT_NAME).1
+ZIT_VER=$(ZIT_SONAME).0.0
 CFLAGS=$(GDB) -fPIC -Wall -Werror -I.
 CFLAGST = '$(GDB) -Wall -Werror -I$(ROOT_DIR)'
 # **** export variable to sub makefiles ***
-export CC CFLAGS OBJS_DIR BIN_DIR GDB
+export CC CFLAGS BIN_NAME GDB ZIT_VER ZIT_SONAME VER
 
 define make_obj
 	@mkdir -p $(OUT_DIR)
 	@mkdir -p $(OBJS_DIR)
 	@mkdir -p $(BIN_DIR)
 	@cp -u makeout.mk $(OBJS_DIR)/makefile
-	@./compiler.sh src make/obj $CC "$(CFLAGS)"
+	@./compiler.sh src $(OBJS_DIR) $(CC) "$(CFLAGS)"
 endef
 #	@gcc makeworker.c -o makeworker
 #	@./makeworker src $(OBJS_DIR) .c $(CC) $(CFLAGS)
@@ -38,7 +45,7 @@ define install_zit
 	cd $(INST_DIR) &&\
 	ldconfig -n ./ &&\
 	ldconfig &&\
-	ln -s $(ZIT_NAME).0 $(ZIT_NAME) &&\
+	ln -s $(ZIT_SONAME) $(ZIT_NAME) &&\
 	cd -
 endef
 
@@ -52,7 +59,7 @@ makeout:
 
 .PHONY : test
 test :
-	@./makeworker tests $(OBJS_DIR) .c $(CC) $(CFLAGST) &&\
+	@./compiler.sh test $(OBJS_DIR) $(CC) "$(CFLAGST)" &&\
 	make -C $(OBJS_DIR) test
 
 .PHONY : arm_test

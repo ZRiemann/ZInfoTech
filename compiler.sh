@@ -1,21 +1,26 @@
 #!/bin/sh
 
-# @file compiler.sh 
+# @file compiler.sh
 # @breif compiler c/c++(.c/.cpp/.cc/.cxx) files to object files(.o)
 # @useage compiler <src_dir> <obj_dir> <CC> <FLAGS...>
 # @note
-#  comiple all c/c++ source file from <src> to <dest> obj file.
+#  compile all c/c++ source file from <src> to <dest> obj file.
 #  src_dir:src; obj_dir:make/obj; out_dir:make/bin;
 #  sample: ./compiler src make/obj gcc -g -Wall -Werror -I./src
 #   .C, .cc, .cpp, .CPP, .c++, .cp, or .cxx
 # @optimize
 #  . paralle compile
-#  . check head file modify 
+#  . check head file modify
 
 SRC_DIR=$1
 OBJ_DIR=$2
 CC=$3
 CFLAGS=$4
+
+if [ ! -d $SRC_DIR ]; then
+    echo "CAN NOT COMPILE SOURCE FILE: $SRC_DIR IS NOT A DIRECTOR."
+    exit 0
+fi
 
 compile(){
     if [ "$CC" = "g++" ]; then
@@ -23,8 +28,8 @@ compile(){
 	g++ -c $CFLAGS -o $OBJ $FILE
     else
 	echo "gcc -c $CFLAGS -o $OBJ_DIR/${NAME%.*}.o $FILE"
-	gcc -c $CFLAGS -o $OBJ $FILE	    
-    fi    
+	gcc -c $CFLAGS -o $OBJ $FILE
+    fi
 }
 
 for FILE in $(find $SRC_DIR -type f -name \*.c -o -name \*.C -o -name \*.cc -o -name \*.cpp -o -name \*.CPP -o -name \*.c++ -o -name \*.cp -o -name \*.cxx)
@@ -36,7 +41,7 @@ do
 	    compile
 	fi
     else
-	compile
+	    compile
     fi
 done
 
