@@ -83,6 +83,8 @@ ZAPI int zinfx(int flag, const char* msg, ...);
 
 #define ZDBGC(x) zdbgx(g_ztrace_flag, "[ln:%04d fn:%s]\t%s",__LINE__,__FUNCTION__,zstrerr(x)) // for buglevel
 #define ZERRC(x) zerrx(g_ztrace_flag, "[ln:%04d fn:%s]\t%s",__LINE__,__FUNCTION__,zstrerr(x))
+#define ZERRCB(x) if( ZOK != (x)){ZERRC(x); break;}
+#define ZERRCBX(c, x) if( (c) == (x)){ZERRC(ZFAIL); break;}
 #define ZERRCX(x) if( ZOK != (x) )ZERRC(x)
 #define ZERRCXR(x) if( ZOK != (x) ){ZERRC(x); return(x);}
 #define ZDUMP(x) zdbgx(g_ztrace_flag, "%s %s", #x, zstrerr(x))

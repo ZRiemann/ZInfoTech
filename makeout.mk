@@ -22,7 +22,7 @@
 
 BIN_DIR=../$(BIN_NAME)
 ZIT_LIB=atomic.o  jet.o  module.o  mutex.o  queue.o  ringbuf.o  semaphore.o  ssl.o  thread.o time.o traceconsole.o tracelog.o  trace.o \
-tracering.o type.o list.o container.o framework.o socket.o filesys.o convert.o tracebkg.o rwlock.o
+tracering.o type.o list.o container.o framework.o socket.o filesys.o convert.o tracebkg.o rwlock.o dlfcn.o
 ZIT_TST=tutility.o main.o tbase.o tthread.o
 #ZIT_FLAGS='-lpthread -lrt -D_REENTRANT'
 
@@ -36,7 +36,8 @@ endif
 
 .PHONY : test
 test : $(ZIT_TST)
-	$(CC) $(GDB) $^ -o $(BIN_DIR)/zit_test -lzit -pthread -lrt
+	$(CC) $(GDB) $^ -Wl,-rpath=. -o $(BIN_DIR)/zit_test -lzit -pthread -ldl -lrt
+	$(CC) $(GDB) -shared -o $(BIN_DIR)/libtstso.so tstso.o
 # error follow, can not work on ubuntu.
 #	$(CC) $(GDB) -lpthread -lrt -D_REENTRANT -lzit $^ -o $(BIN_DIR)/zit_test
 

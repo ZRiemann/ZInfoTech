@@ -30,8 +30,6 @@
 //#include <ws2tcpip.h>
 #pragma warning(disable:4996 4047 4022 4244)
 
-//#define ZSYS_WINDOWS
-
 #if (ZEXPORT == 0)
 #define ZAPI
 #elif (ZEXPORT == 1)
@@ -41,9 +39,11 @@
 #endif
 #define ZINLINE _inline
 
-#elif(defined(ZSYS_POSIX))
+#ifndef inline
+#define inline _inline
+#endif
 
-//#define ZSYS_POSIX
+#elif(defined(ZSYS_POSIX))
 
 #if defined(__SUNPRO_C)
 #define ZAPI __global
@@ -62,5 +62,7 @@
 #define ZC_BEGIN
 #define ZC_END
 #endif //__cplusplus
+
+#define ZUSE_INLINE 1 // control inline model or dll mode
 
 #endif//_ZBASE_PLATFORM_H_

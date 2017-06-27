@@ -8,6 +8,7 @@
 #include <zit/utility/tracebkg.h>
 #include <zit/thread/jet.h>
 #include <zit/thread/rwlock.h>
+#include <zit/base/dlfcn.h>
 #include <string.h>
 #include <stdlib.h>
 //#include "tbase.h"
@@ -16,9 +17,10 @@
 
 static void bkglog(int argc, char ** argv);
 static void rwlock(int argc, char ** argv);
+static void tzdl_open(int argc, char **argv);
 
 int ztst_trace(int level, void* user, const char* msg){
-  //ztrace_console(level, user, msg);
+  ztrace_console(level, user, msg);
   ztrace_log(level, user, msg);
   return ZEOK;
 }
@@ -31,11 +33,14 @@ int main(int argc, char** argv){
   //ztrace_reg_0copy(ztrace_0cpy_bkg, 0, ztrace_bkgbuf);
 
   zdbg("\n zit_test bkglog <lognum>"
-       "\n zit_test rwlock");
+       "\n zit_test rwlock"
+       "\n zit_test zdl_open");
   if(argc >= 2 && strcmp("bkglog", argv[1]) == 0){
     bkglog(argc, argv);
   }else if(argc >= 2 && strcmp("rwlock", argv[1]) == 0){
     rwlock(argc, argv);
+  }else if(argc >= 2 && strcmp("zdl_open", argv[1]) == 0){
+      tzdl_open(argc, argv);
   }else{
     zdbg("param error");
   }
@@ -54,6 +59,24 @@ int main(int argc, char** argv){
   return 0;
 }
 
+typedef int (*ztadd)(int, int);
+
+static void tzdl_open(int argc, char **argv){
+    zdl_t dl;
+    ztadd tadd;
+    do{
+        dl = zdl_open("libtstso.so", RTLD_LAZY);
+        ZERRCBX(NULL, dl);
+        zdbg("zdl_open(\"libtstso.so\", RTLD_LAZY); OK");
+        tadd = (ztadd)zdl_sym(dl, "tstso_add");
+        ZERRCBX(NULL, tadd);
+        zdbg("zdl_sym(dl, \"tstso_add\"); OK");
+
+        zdbg("tadd(3,4) = %d", tadd(3,4));
+        zdl_close(dl);
+        //zdbg("tadd(3,4) = %d, after close", tadd(3,4)); // segmentation fault
+    }while(0);
+}
 void bkglog(int argc, char ** argv){
   int i;
   void *tick;
