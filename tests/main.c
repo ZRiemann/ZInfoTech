@@ -29,7 +29,8 @@ int main(int argc, char** argv){
   ztrace_logctl("ztest.log",80*1024*1024);
   //ztrace_reg(ztst_trace, NULL);
   ztrace_bkgctl(ztst_trace);
-  ztrace_reg(ztrace_bkg, 0);
+  //ztrace_reg(ztrace_bkg, 0);
+  ztrace_reg(ztrace_console, 0);
   //ztrace_reg_0copy(ztrace_0cpy_bkg, 0, ztrace_bkgbuf);
 
   zdbg("\n zit_test bkglog <lognum>"
@@ -65,15 +66,22 @@ static void tzdl_open(int argc, char **argv){
     zdl_t dl;
     ztadd tadd;
     do{
+#ifdef abcdefg
+        zdbg("abcdefg ok");
+#else
+        zdbg("abcdefg not defined");
+#endif
+        
         dl = zdl_open("libtstso.so", RTLD_LAZY);
         ZERRCBX(NULL, dl);
         zdbg("zdl_open(\"libtstso.so\", RTLD_LAZY); OK");
         tadd = (ztadd)zdl_sym(dl, "tstso_add");
         ZERRCBX(NULL, tadd);
         zdbg("zdl_sym(dl, \"tstso_add\"); OK");
-
+        tadd(11,22);
         zdbg("tadd(3,4) = %d", tadd(3,4));
         zdl_close(dl);
+        
         //zdbg("tadd(3,4) = %d, after close", tadd(3,4)); // segmentation fault
     }while(0);
 }

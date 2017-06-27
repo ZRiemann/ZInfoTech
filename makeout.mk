@@ -36,7 +36,8 @@ endif
 
 .PHONY : test
 test : $(ZIT_TST)
-	$(CC) $(GDB) $^ -Wl,-rpath=. -o $(BIN_DIR)/zit_test -lzit -pthread -ldl -lrt
+	cd $(BIN_DIR) && rm -f $(ZIT_SONAME) $(ZIT_NAME)  && ln -s $(ZIT_VER) $(ZIT_SONAME) && ln -s $(ZIT_SONAME) $(ZIT_NAME)
+	$(CC) $(GDB) -Wl,-rpath=.:make/$(VER) -L$(BIN_DIR) -o $(BIN_DIR)/zit_test $^ -lzit -pthread -ldl -lrt
 	$(CC) $(GDB) -shared -o $(BIN_DIR)/libtstso.so tstso.o
 # error follow, can not work on ubuntu.
 #	$(CC) $(GDB) -lpthread -lrt -D_REENTRANT -lzit $^ -o $(BIN_DIR)/zit_test

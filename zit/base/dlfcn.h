@@ -7,11 +7,9 @@
 #ifdef ZSYS_POSIX
 #include <dlfcn.h>
 //#include <link.h>
-
 #define zdl_t void*
 // need link -ldl
 #else
-
 #include <Windows.h>
 #define zdl_t HINSTANCE
 #define RTLD_LAZY 1
@@ -31,6 +29,11 @@ ZAPI char * zdl_error(void); // NULL: no error
 #else
 
 #include <zit/base/error.h>
+
+zdl_t zdl_open(const char *filename, int flags); // flag=RTLD_LAZY
+int zdl_close(zdl_t dl);
+zvalue_t zdl_sym(zdl_t dl, const char *symbol);
+char * zdl_error(void); // NULL: no error
 
 inline zdl_t zdl_open(const char *filename, int flags){
 #ifdef ZSYS_POSIX

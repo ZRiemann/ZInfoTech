@@ -25,7 +25,7 @@ ZIT_VER=$(ZIT_SONAME).0.0
 CFLAGS=$(GDB) -D_REENTRANT -fPIC -Wall -Werror -I.
 CFLAGST = $(GDB) -D_REENTRANT -Wall -Werror -I$(ROOT_DIR)
 # **** export variable to sub makefiles ***
-export CC CFLAGS BIN_NAME GDB ZIT_VER ZIT_SONAME VER
+export CC CFLAGS BIN_NAME GDB ZIT_VER ZIT_SONAME ZIT_NAME VER
 
 define make_obj
 	@mkdir -p $(OUT_DIR)
