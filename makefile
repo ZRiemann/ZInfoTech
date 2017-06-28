@@ -33,6 +33,8 @@ CFLAGST = $(GDB) -D_REENTRANT -Wall -Werror -I$(ROOT_DIR)
 # **** export variable to sub makefiles ***
 export CC CFLAGS BIN_NAME GDB ZIT_VER ZIT_SONAME ZIT_NAME VER
 
+# auto version control
+# strings libzit.so.1.0.0 | grep {DATE|V1.|GIT}
 AUTO_VERSION=src/auto_version.h
 define auto_version
 	@echo "#define VER_AUTO 1" > $(AUTO_VERSION) &&\
