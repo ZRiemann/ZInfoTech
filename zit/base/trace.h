@@ -33,7 +33,7 @@ ZC_BEGIN
 
 ZAPI int zversion();
 ZAPI const char* zsystem();
-ZAPI const char* zhistory();
+ZAPI const char* zhistory(char buf[1024]);
 ZAPI void zdump_mix(char *out, int size, const unsigned char *mix, int *len);
 ZAPI void zdump_bin(char *out, int size, const unsigned char *bin, int *len);
 ZAPI int zrandin(int max); // rand 0~max-1

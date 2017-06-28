@@ -20,19 +20,38 @@ OBJS_DIR=$(OUT_NAME)/$(BIN_NAME)_obj
 BIN_DIR=$(OUT_NAME)/$(BIN_NAME)
 INST_DIR=/usr/local/lib
 ZIT_NAME=libzit.so
-ZIT_SONAME=$(ZIT_NAME).1
-ZIT_VER=$(ZIT_SONAME).0.0
+VERSION_MAJOR=1
+VERSION_MINOR=0
+VERSION_REVISION=0
+VERSION_DATE=$(shell date '+20%y%m%d')
+# base => alpha => beta => RC => relaease
+VERSION_ALPHABET=beta
+ZIT_SONAME=$(ZIT_NAME).$(VERSION_MAJOR)
+ZIT_VER=$(ZIT_SONAME).$(VERSION_MINOR).$(VERSION_REVISION)
 CFLAGS=$(GDB) -D_REENTRANT -fPIC -Wall -Werror -I.
 CFLAGST = $(GDB) -D_REENTRANT -Wall -Werror -I$(ROOT_DIR)
 # **** export variable to sub makefiles ***
 export CC CFLAGS BIN_NAME GDB ZIT_VER ZIT_SONAME ZIT_NAME VER
 
+AUTO_VERSION=src/auto_version.h
+define auto_version
+	@echo "#define VER_AUTO 1" > $(AUTO_VERSION) &&\
+	echo "const int major_version=$(VERSION_MAJOR);" >> $(AUTO_VERSION) &&\
+	echo "const int minor_version=$(VERSION_MINOR);" >> $(AUTO_VERSION) &&\
+	echo "const int revision_version=$(VERSION_REVISION);" >> $(AUTO_VERSION) &&\
+	echo "const char *version= \"V$(VERSION_MAJOR).$(VERSION_MINOR).$(VERSION_REVISION).$(VERSION_DATE)_$(VERSION_ALPHABET)\";" >> $(AUTO_VERSION) &&\
+	echo "const char *build_date = \"BUILD_DATE:$(shell date '+20%y.%m.%d %k:%M')\";" >> $(AUTO_VERSION) &&\
+	echo "const char *git_rev = \"GIT_REV:$(shell git rev-parse HEAD)\";" >> $(AUTO_VERSION)
+endef
+
 define make_obj
-	@mkdir -p $(OUT_DIR)
-	@mkdir -p $(OBJS_DIR)
-	@mkdir -p $(BIN_DIR)
-	@cp -u makeout.mk $(OBJS_DIR)/makefile
-	@./compiler.sh src $(OBJS_DIR) $(CC) "$(CFLAGS)"
+	$(auto_version) &&\
+	mkdir -p $(OUT_DIR) &&\
+	mkdir -p $(OBJS_DIR) &&\
+	mkdir -p $(BIN_DIR) &&\
+	cp -u makeout.mk $(OBJS_DIR)/makefile &&\
+	./compiler.sh src $(OBJS_DIR) $(CC) "$(CFLAGS)" &&\
+	rm -f $(AUTO_VERSION)
 endef
 #	@gcc makeworker.c -o makeworker
 #	@./makeworker src $(OBJS_DIR) .c $(CC) $(CFLAGS)

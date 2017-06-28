@@ -4,8 +4,10 @@
  * zhuweiping 2016-01-04 found
  */
 #include "export.h"
+#include "auto_version.h"
 #include <zit/base/type.h>
 #include <zit/base/trace.h>
+#include <stdio.h>
 
 const int ZOK = ZEOK;// 0 // ZError OK
 const int ZFAIL = ZEFAIL;// (ZEMASK | 1) // ZError FAILED
@@ -29,7 +31,11 @@ const int ZCAST_FAIL = ZECAST_FAIL;// (ZMASK | 18) // cast type fail
 const int ZSOCK = ZESOCK_INVALID;// (ZEMASK | 19) // invalid socket
 
 int zversion(){
-  return 0x010101;
+    int version;
+    version = major_version; version <<= 8;
+    version |= minor_version; version <<= 8;
+    version |= revision_version;
+  return version;
 }
 
 const char* zsystem(){
@@ -52,7 +58,7 @@ const char* zsystem(){
   return msg;
 }
 
-const char* zhistory(){
-  const char* msg = "V1.1.0 Z.Riemann founder\n";
-  return msg;
+const char* zhistory(char buf[1024]){
+    sprintf(buf, "\n%s\n%s\n%s\n", version, build_date, git_rev);
+    return build_date;
 }
