@@ -1,0 +1,18 @@
+# ZInfoTech/doc/project.org 
+* tasks
+** TODO libzit [100%]
+   - [X] zit/framesork/plugin 
+     + [X] code: support inline/dll mode
+     + [X] test:
+       - [X] case1: base load;
+       - [X] case2: dynamic link call dynamic link;
+         CAUTION: zdl_open() in zdl_open() dll file must be register to lib dir;
+     <2017-07-06 Thu>
+   - [+] next... 
+
+* framework 
+* log
+1. <2017-08-01 Tue> inline API for improving efficiency
+2. <2017-08-05 Sat> rewrite list and queue
+   support parallel push()/pop(). see zit/container/queue.h[list.h];
+   coding test case.

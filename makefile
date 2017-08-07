@@ -80,7 +80,8 @@ makeout:
 
 .PHONY : test
 test :
-	@./compiler.sh tests $(OBJS_DIR) $(CC) "$(CFLAGST)" &&\
+	@touch tests/main.c &&\
+	./compiler.sh tests $(OBJS_DIR) $(CC) "$(CFLAGST)" &&\
 	make -C $(OBJS_DIR) test
 
 #.PHONY : arm_test

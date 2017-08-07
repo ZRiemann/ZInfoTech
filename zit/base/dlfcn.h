@@ -15,18 +15,6 @@
 #define RTLD_LAZY 1
 #endif
 
-ZC_BEGIN
-
-#if !ZUSE_INLINE
-ZAPI zdl_t zdl_open(const char *filename, int flags); // flag=RTLD_LAZY
-ZAPI int zdl_close(zdl_t dl);
-ZAPI zvalue_t zdl_sym(zdl_t dl, const char *symbol);
-ZAPI char * zdl_error(void); // NULL: no error
-
-//ZAPI int zdl_info(zdl_t dl, int request, zvalue_t info);
-//ZAPI int zdl_addr(zdl_t dl, zvalue_t info);
-
-#else
 
 #include <zit/base/error.h>
 
@@ -35,6 +23,9 @@ int zdl_close(zdl_t dl);
 zvalue_t zdl_sym(zdl_t dl, const char *symbol);
 char * zdl_error(void); // NULL: no error
 
+/*
+ * implement
+ */
 inline zdl_t zdl_open(const char *filename, int flags){
 #ifdef ZSYS_POSIX
     zdl_t dl =  dlopen(filename, flags);
@@ -48,11 +39,14 @@ inline int zdl_close(zdl_t dl){
 #ifdef ZSYS_POSIX
     return dlclose(dl) ? ZFUN_FAIL : ZOK;
 #else
-    return FreeLibrary(hInst) ? ZOK : ZFUN_FAIL;;
+    return FreeLibrary(dl) ? ZOK : ZFUN_FAIL;;
 #endif
 }
 
 inline zvalue_t zdl_sym(zdl_t dl, const char *symbol){
+    if(!dl){
+        return NULL;
+    }
  #ifdef ZSYS_POSIX
      zvalue_t sym =  dlsym(dl, symbol);
      return dlerror() ? NULL : sym;
@@ -69,9 +63,5 @@ inline char * zdl_error(void){ // NULL: no error
     return NULL;
 #endif
 }
-
-#endif // ZUSE_INLINE
-
-ZC_END
 
 #endif

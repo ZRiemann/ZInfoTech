@@ -1,9 +1,10 @@
-/** @file zinc/basze/type.h
- *  @brief ZInfoTech types definitions
- *  @note zhuweiping 2016-01-04 found
- */
 #ifndef _Z_TYPE_H_
 #define _Z_TYPE_H_
+/**
+ * @file zit/base/type.h
+ * @brief ZInfoTech types definitions
+ * @note zhuweiping 2016-01-04 found
+ */
 
 #include "platform.h"
 
@@ -40,6 +41,7 @@ ZC_BEGIN
 #ifndef ZBACK
 #define ZBACK 1
 #endif
+
 #ifndef ZEQUAL
 #define ZEQUAL 0
 #endif
@@ -51,11 +53,11 @@ ZC_BEGIN
 #endif
 
 typedef enum{
-  ZUNINIT = 0,
-  ZINIT,
-  ZRUN,
-  ZSTOPING, // begin stop 
-  ZSTOP    // end stop
+    ZUNINIT = 0,
+    ZINIT,
+    ZRUN,
+    ZSTOPING, // begin stop 
+    ZSTOP    // end stop
 }zstatus_t;
 
 #define ZSTAT_FINI 0
@@ -63,46 +65,66 @@ typedef enum{
 #define ZSTAT_RUN 2
 #define ZSTAT_STOP 3
 #define ZSTAT_PENDING 4 // not in any status while switch status
-  
-typedef void* zcontainer_t; // for all zit container
+
+typedef void* zvalue_t;
+typedef zvalue_t zptr_t;
+typedef zvalue_t zcontainer_t; // for all zit container
+
+typedef uint32_t zsize_t;
+typedef uint32_t zotype_t;
+typedef uint32_t zoid_t;
+typedef int32_t zerr_t;
+
+typedef zerr_t (*zoperate)(zvalue_t in, zvalue_t *out, zvalue_t hint); // any operate
+
 /* for all container value, caution in 64bit system:
  * int i; // 32bit
  * zvalue_t v; // 64bit
  * ZCONVERT(i,v); //use memset(v, i, sizeof(v)) instand of v = i;(warning)
  * ZCONVERT(v,i); //use memcpy(&i, v, sizeof(int)) instand of i = v;(warning)
  */
-typedef void* zvalue_t;
-typedef zvalue_t zatm_t;
-typedef int32_t zspin_t;
-typedef zvalue_t zptr_t;
-typedef uint32_t zsize_t;
 
-// include <string.h> before use ZI2V()/ZV2I()
 #define ZCONVERT(dest, src) do{memset(&(dest),0,sizeof(dest));memcpy(&(dest),&(src),(sizeof(src)<sizeof(dest)?sizeof(src):sizeof(dest)));}while(0)
 
+#ifdef ZSYS_WINDOWS
+#define zmem_align(alignment, size) _aligned_malloc(size,alignment)
+#define zmem_align64(size) _aligned_malloc(size, 64)
+#else // ZSYS_POSIX
+#define zmem_align(alignment, size) memalign(alignment, size)
+#define zmem_align64(size) memalign(64, size)
+#endif
+
 typedef union{
-  zptr_t p;
-  int i;
-  //  double d;
-}zany_t;// any type
+    zptr_t p;
+    int i;
+    double d;
+    float f;
+    int32_t i32;
+    uint32_t u32;
+    int64_t i64;
+    uint64_t u64;
+}zany_t;// any base type
 
 typedef struct zpair_s{
-  zany_t key;
-  zvalue_t value;
-  //zvalue_t hint;
+    zany_t key;
+    zvalue_t value;
+    //zvalue_t hint;
 }zpair_t;
-// zany_t param[5]; // for param list
+
 typedef struct znode_s{
-  zvalue_t value;
-  struct znode_s* next;
-  struct znode_s* prev;
+    zvalue_t value;
+    struct znode_s* next;
+    struct znode_s* prev;
+    char net[]; // parents/children(network)
 }znod_t;
-/*
-typedef int (*zcompare)(zvalue_t p1, zvalue_t p2); //return ZGREAT/ZEQUAL/ZLITTLE
-typedef int (*zfree)(zvalue_t user, zvalue_t hint);
-typedef int (*zact)(zvalue_t user, zvalue_t hint);
-*/
-typedef int (*zoperate)(zvalue_t in, zvalue_t *out, zvalue_t hint); // any operate
+
+#define ZCHUNK_SIZE 4096
+typedef struct zchunk_s{
+    zvalue_t value[ZCHUNK_SIZE];
+    struct zchunk_s *next;
+    struct zchunk_s *prev;
+}zchunk_t;
+
 #define OPARG zvalue_t in,zvalue_t *out,zvalue_t hint
 #define OPNULL NULL,NULL,NULL
 #define OPIN(in) (zvalue_t)in,NULL,NULL
@@ -112,19 +134,16 @@ typedef int (*zoperate)(zvalue_t in, zvalue_t *out, zvalue_t hint); // any opera
 #define ZOP_IN(in) (zvalue_t)in,NULL,NULL
 #define ZOP_HINT(hint) NULL,NULL,(zvalue_t)hint
 
+#if 0
+#define zprint(fmt, ...) printf("[ln:%4d fn:%s]\t" fmt, __LINE__, __FUNCTION__, ##__VA_ARGS__)
+#else
+#define zprint(fmt, ...)
+#endif
+
+#define ZUSE_STATISTIC 0
+
 #define ZTSKMD_SEQUENCE 0
 #define ZTSKMD_NORMAL 1
-/*
-typedef struct ztask_t{
-  int priority; ///< 0-low(idel) 1-normal 2-(above normal)hight priority queue
-  int mode; ///< 0-sequence ; 1-normal
-  int misid; ///< attach mission if sequence level
-  zvalue_t user; ///< user data
-  zvalue_t hint; ///< user hint
-  zact act; ///< action task(can not NULL)
-  zfree free; ///< release user data(default NULL)
-}ztsk_t;
-*/
 
 ZC_END
 

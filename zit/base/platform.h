@@ -37,7 +37,6 @@
 #elif (ZEXPORT == 2)
 #define ZAPI __declspec(dllimport)
 #endif
-#define ZINLINE _inline
 
 #ifndef inline
 #define inline _inline
@@ -52,7 +51,7 @@
 #else
 #define ZAPI
 #endif//__SUNPRO_C
-#define ZINLINE inline
+
 #endif // ZSYS_WINDOWS|ZSYS_POSIX
 
 #ifdef __cplusplus
@@ -62,7 +61,5 @@
 #define ZC_BEGIN
 #define ZC_END
 #endif //__cplusplus
-
-#define ZUSE_INLINE 1 // control inline model or dll mode
 
 #endif//_ZBASE_PLATFORM_H_

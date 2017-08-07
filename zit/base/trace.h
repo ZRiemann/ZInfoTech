@@ -75,6 +75,9 @@ ZAPI int zinfx(int flag, const char* msg, ...);
 #define zerr(fmt, ...) zerrx(g_ztrace_flag, fmt, ##__VA_ARGS__)
 #define zinf(fmt, ...) zinfx(g_ztrace_flag, fmt, ##__VA_ARGS__)
 
+//#define zprint(fmt, ...) zdbgx(g_ztrace_flag, fmt, ##__VA_ARGS__)
+
+
 #define ZDBG(fmt, ...)       zdbgx(g_ztrace_flag, "[ln:%04d fn:%s]\t" fmt,__LINE__,__FUNCTION__,##__VA_ARGS__)
 #define ZMSG(fmt, ...)       zmsgx(g_ztrace_flag, "[ln:%04d fn:%s]\t" fmt,__LINE__,__FUNCTION__,##__VA_ARGS__)
 #define ZWAR(fmt, ...)       zwarx(g_ztrace_flag, "[ln:%04d fn:%s]\t" fmt,__LINE__,__FUNCTION__,##__VA_ARGS__)

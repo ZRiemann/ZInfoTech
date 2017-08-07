@@ -3,6 +3,9 @@
 #include <zit/base/time.h>
 #include <zit/base/trace.h>
 
+#define ZMS_PER_SEC 1000
+#define ZUS_PER_SEC 1000000
+
 #ifdef ZSYS_POSIX
 #include <sys/time.h>
 #include <unistd.h>
@@ -58,7 +61,7 @@ time_t zstr2time(const char* strTime){
   char szTime[32];
   //%d-%d-%d %d:%d:%d
   sprintf(szTime,"%s", strTime);
-  
+
   szBegin = szTime;
   szEnd = strstr(szBegin,"-");
   *szEnd = 0;
@@ -75,7 +78,7 @@ time_t zstr2time(const char* strTime){
   szEnd = strstr(szBegin," ");
   *szEnd = 0;
   t.tm_mday = atoi(szBegin);
- 
+
   ++szEnd;
   szBegin = szEnd;
   szEnd = strstr(szBegin,":");
@@ -189,12 +192,13 @@ void zsleepus(int us){
 #ifdef ZSYS_POSIX
   usleep(us);
 #else//ZSYS_WINDOWS
-  // not support.
+  Sleep(us/1000);
 #endif
 }
 
 void *ztick(){
   int ret;
+#ifdef ZSYS_POSIX
   struct timeval *tv;
   tv = (struct timeval*)malloc(sizeof(struct timeval));
   if(tv){
@@ -204,9 +208,17 @@ void *ztick(){
       tv = NULL;
     }
   }
+#else
+  LARGE_INGETER* tv;
+  tv = (LARGE_INGETER*)calloc(1, sizeof(LARGE_INGETER));
+  if(tv){
+      QueryPerformanceCounter(tv); // window xp or later always success
+  }
+#endif
   return tv;
 }
-void ztock(void *handle, int *_sec, int *_usec){
+
+zerr_t ztock(void *handle, int *_sec, int *_usec){
 #ifdef ZSYS_POSIX
   struct timeval *tv;
   struct timeval tvend;
@@ -217,6 +229,9 @@ void ztock(void *handle, int *_sec, int *_usec){
   ztime_t end;
   ztime_t *ptm;
 
+  if(!handle){
+      return ZPARAM_INVALID;
+  }
   gettimeofday(&tvend,NULL);
   tv = (struct timeval*)handle;
 
@@ -226,7 +241,7 @@ void ztock(void *handle, int *_sec, int *_usec){
 
     ptm = &begin;
     localtime_r(&tv->tv_sec, &now);
-    
+
     ptm->year = now.tm_year + 1900;
     ptm->month = now.tm_mon + 1;
     ptm->day = now.tm_mday;
@@ -237,10 +252,10 @@ void ztock(void *handle, int *_sec, int *_usec){
     ptm->microsecond = tv->tv_usec%1000;
     ptm->nanosecond = 0;
     ptm->day_of_week = now.tm_wday;
-    
+
     ptm = &end;
     localtime_r(&tvend.tv_sec, &now);
-    
+
     ptm->year = now.tm_year + 1900;
     ptm->month = now.tm_mon + 1;
     ptm->day = now.tm_mday;
@@ -251,7 +266,7 @@ void ztock(void *handle, int *_sec, int *_usec){
     ptm->microsecond = tvend.tv_usec%1000;
     ptm->nanosecond = 0;
     ptm->day_of_week = now.tm_wday;
-  
+
 
     sec = (int)(tvend.tv_sec - tv->tv_sec);
     if(tvend.tv_usec < tv->tv_usec){
@@ -274,7 +289,26 @@ void ztock(void *handle, int *_sec, int *_usec){
   if(_usec){
     *_usec = usec;
   }
+  return ZOK;
 #else
-  // task delay windows
+  LARGE_INGETER *begin = (LARGE_INGETER*)handle;
+  LARGE_INTEGER end, escaped, frequency;
+
+  if(!handle){
+      return ZPARAM_INVALID;
+  }
+  QueryPerformanceCounter(&end);
+
+  QueryPerformanceFrequency(&frequency);
+  escaped = ((end.QuadPart - begin->QuadPart) * ZUS_PER_SEC)/frequency.QuadPart; // micro second
+
+  zdbg("interval: %d.%06d", escaped/ZUS_PER_SEC, escaped%ZUS_PER_SEC);
+  if(_sec){
+      *sec = escaped/ZUS_PER_SEC;
+  }
+  if(_usec){
+      *_usec = escaped%ZUS_PER_SEC;
+  }
+  return ZOK;
 #endif
 }

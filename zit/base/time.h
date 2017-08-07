@@ -1,5 +1,12 @@
 #ifndef _ZBASE_TIME_H_
 #define _ZBASE_TIME_H_
+/** @file zit/base/time.h
+ *   @note
+ *   @brief
+ *   @author  ZRiemann
+ *   @date   2016-02-03
+ *   @note
+ */
 
 #include <zit/base/type.h>
 #include <time.h>
@@ -14,17 +21,17 @@ ZAPI time_t zstr2time(const char* strTime);
 ZAPI void zconvert_time(uint64_t* time, int flag);
 
 typedef struct _ztime_t{
-int year;
-int month;
-int day;
-int hour;
-int minute;
-int second;
-int millisecond;
-int microsecond;
-int nanosecond;
-    
-int day_of_week;
+    int year;
+    int month;
+    int day;
+    int hour;
+    int minute;
+    int second;
+    int millisecond;
+    int microsecond;
+    int nanosecond;
+
+    int day_of_week;
 }ztime_t;
 
 typedef enum
@@ -54,54 +61,53 @@ ZAPI void zsleepms(int ms);
 ZAPI void zsleepus(int us);
 
 // time interval count
-ZAPI void *ztick();
-ZAPI void ztock(void *handle, int *sec, int *usec);
+typedef void *ztick_t;
+ZAPI ztick_t ztick();
+ZAPI zerr_t ztock(ztick_t handle, int *sec, int *usec);
 
 ZC_END
 
 
-/** @file zit/base/time.h
-*   @note 
-*   @brief   
-*   @author  ZRiemann
-*   @date   2016-02-03
-
-*   @note	
-*/
-/** @fn		char* zstr_time(time_t* tm, char* buf);
-*   @brief 	将tm转换为 本地可读时间格式 "yy-mm-dd hh:mm:ss"
-*   @param	time_t* tm [IN]
-*   @param  char* buf [OUT] 
-*	@return	传入的字符串指针
-*   @note   建议buf长度32
-*/
-/** @fn		char* zstr_now(char* buf);
-*   @brief 	本地可读时间格式 "yy-mm-dd hh:mm:ss" 当前时间
-*   @param	char* buf [OUT]
-*	@return	传入额字符串指针
-*   @note   建议buf长度32
-*/
-/** @fn		time_t ztm2time(struct tm* ptm)
-*   @brief  将tm 转换为 time_t
-*   @param	struct tm* ptm [IN]
-*	@return time_t 值
-*/
-/** @fn		void ztime2tm(struct tm* ptm,const time_t* time)
-*   @brief 	将time_t 转换为 tm
-*   @param	struct tm* ptm [OUT]
-*   @param  const time_t* time [IN]
-*	@return	
-*/
-/** @fn		time_t zstr2time(const char* strTime)
-*   @brief 	将本地可读时间格式 "yy-mm-dd hh:mm:ss" 转为 time_t
-*   @param	const char* strTime [IN] 本地可读时间
-*	@return	time_t 值
-*/
-/** @fn		void zconvert_time(unsigned __int64* time, int flag)
-*   @brief 	system / utc time convert
-*   @param	unsigned __int64* time [IN|OUT]
-*   @param  int flag [IN] flag: 0 - sys2utc 1 - utc2sys
-*	@return ZEOK	
-*/
+/**
+ * @fn char* zstr_time(time_t* tm, char* buf);
+ * @brief convert tm to local string trime "yy-mm-dd hh:mm:ss"
+ * @param [in] time_t* tm
+ * @param [out] char* buf
+ * @return return pointer to buf
+ * @note suggest buf size >= 32
+ */
+/**
+ * @fn char* zstr_now(char* buf);
+ * @brief "yy-mm-dd hh:mm:ss" format local time string
+ * @param [out] buf time string buffer
+ * @return buf
+ * @note suggest buf size >= 32
+ */
+/**
+ * @fn time_t ztm2time(struct tm* ptm)
+ * @brief  convert tm to time_t
+ * @param [in] ptm pointer to struct tm;
+ * @return time_t
+ */
+/**
+ * @fn void ztime2tm(struct tm* ptm,const time_t* time)
+ * @brief convert time_t to  tm
+ * @param [out] ptm
+ * @param [in] time
+ * @return void
+ */
+/**
+ * @fn time_t zstr2time(const char* strTime)
+ * @brief convert "yy-mm-dd hh:mm:ss" to time_t
+ * @param [in] local time string
+ * @return time_t
+ */
+/**
+ * @fn void zconvert_time(unsigned __int64* time, int flag)
+ * @brief system / utc time convert
+ * @param [in,out] unsigned __int64* time 
+ * @param [in] flag: 0 - sys2utc 1 - utc2sys
+ * @return ZEOK	
+ */
 
 #endif
