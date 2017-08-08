@@ -25,7 +25,7 @@ zerr_t zquen_popback(zcontainer_t cont, zvalue_t *out);
 zerr_t zquen_insert(zcontainer_t cont, zvalue_t in, zoperate compare, int condition);
 zerr_t zquen_erase(zcontainer_t cont, zvalue_t hint, zoperate compare, int condition);
 zerr_t zquen_foreach(zcontainer_t cont, zoperate op, zvalue_t hint);
-zsize_t zquen_size(zcontainer_t cont);
+size_t zquen_size(zcontainer_t cont);
 zerr_t zquen_back(zcontainer_t cont, zvalue_t *out);
 zerr_t zquen_front(zcontainer_t cont, zvalue_t *out);
 zerr_t zquen_swap(zcontainer_t *cont1, zcontainer_t *cont2);
@@ -128,7 +128,7 @@ zinline zerr_t zquen_foreach(zcontainer_t cont, zoperate op, zvalue_t hint){
     return ret;
 }
 
-zinline zsize_t zquen_size(zcontainer_t cont){
+zinline size_t zquen_size(zcontainer_t cont){
     zquen_t *que = (zquen_t*)cont;
     return zque1_size(que->cont);
 }

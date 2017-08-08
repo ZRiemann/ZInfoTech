@@ -25,7 +25,7 @@ zerr_t zlist_mt_popback(zcontainer_t cont, zvalue_t *out);
 zerr_t zlist_mt_insert(zcontainer_t cont, zvalue_t in, zoperate compare, int condition);
 zerr_t zlist_mt_erase(zcontainer_t cont, zvalue_t hint, zoperate compare, int condition);
 zerr_t zlist_mt_foreach(zcontainer_t cont, zoperate op, zvalue_t hint);
-zsize_t zlist_mt_size(zcontainer_t cont);
+size_t zlist_mt_size(zcontainer_t cont);
 zerr_t zlist_mt_back(zcontainer_t cont, zvalue_t *out);
 zerr_t zlist_mt_front(zcontainer_t cont, zvalue_t *out);
 zerr_t zlist_mt_swap(zcontainer_t *cont1, zcontainer_t *cont2);
@@ -128,7 +128,7 @@ zinline zerr_t zlist_mt_foreach(zcontainer_t cont, zoperate op, zvalue_t hint){
     return ret;
 }
 
-zinline zsize_t zlist_mt_size(zcontainer_t cont){
+zinline size_t zlist_mt_size(zcontainer_t cont){
     zlist_mt_t *list = (zlist_mt_t*)cont;
     return zlist_size(list->cont);
 }

@@ -16,6 +16,16 @@ typedef int32_t *zatm_t;
 typedef int64_t *zatm64_t;
 typedef void* zatmp_t;
 
+#ifdef ZSYS_WINDOWS
+#define zmem_align(alignment, size) _aligned_malloc(size,alignment)
+#define zmem_align64(size) _aligned_malloc(size, 64)
+#define zmem_align_free(ptr) _aligned_free(ptr)
+#else // ZSYS_POSIX
+#define zmem_align(alignment, size) memalign(alignment, size)
+#define zmem_align64(size) memalign(64, size)
+#define zmem_align_free(ptr) free(ptr)
+#endif
+
 #ifdef ZSYS_POSIX
 // gcc
 #define zatm_alloc(size) memalign(64, size)

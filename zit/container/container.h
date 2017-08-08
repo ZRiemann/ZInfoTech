@@ -28,7 +28,7 @@ zerr_t zcontainer_popback(zcontainer_t cont, zvalue_t *out);
 zerr_t zcontainer_insert(zcontainer_t cont, zvalue_t in, zoperate compare, int condition);
 zerr_t zcontainer_erase(zcontainer_t cont, zvalue_t hint, zoperate compare, int condition);
 zerr_t zcontainer_foreach(zcontainer_t cont, zoperate op, zvalue_t hint);
-zsize_t zcontainer_size(zcontainer_t cont);
+size_t zcontainer_size(zcontainer_t cont);
 zerr_t zcontainer_back(zcontainer_t cont, zvalue_t *out);
 zerr_t zcontainer_front(zcontainer_t cont, zvalue_t *out);
 zerr_t zcontainer_swap(zcontainer_t cont1, zcontainer_t cont2);
@@ -49,7 +49,7 @@ typedef zerr_t (*zcont_popback)(zcontainer_t cont, zvalue_t *out);
 typedef zerr_t (*zcont_insert)(zcontainer_t cont, zvalue_t in, zoperate compare, int condition);
 typedef zerr_t (*zcont_erase)(zcontainer_t cont, zvalue_t hint, zoperate compare, int condition);
 typedef zerr_t (*zcont_foreach)(zcontainer_t cont, zoperate op, zvalue_t hint);
-typedef zsize_t (*zcont_size)(zcontainer_t cont);
+typedef size_t (*zcont_size)(zcontainer_t cont);
 typedef zerr_t (*zcont_back)(zcontainer_t cont, zvalue_t *out);
 typedef zerr_t (*zcont_front)(zcontainer_t cont, zvalue_t *out);
 
@@ -201,7 +201,7 @@ zinline zerr_t zcontainer_foreach(zcontainer_t cont, zoperate op, zvalue_t hint)
     return(cnt->foreach(cnt->cont, op, hint));
 }
 
-zinline zsize_t zcontainer_size(zcontainer_t cont){
+zinline size_t zcontainer_size(zcontainer_t cont){
     zcont_t *cnt = (zcont_t*)cont;
     //ZASSERT(!cnt);
     return(cnt->size(cnt->cont));

@@ -69,12 +69,9 @@ typedef enum{
 typedef void* zvalue_t;
 typedef zvalue_t zptr_t;
 typedef zvalue_t zcontainer_t; // for all zit container
-
-typedef uint32_t zsize_t;
 typedef uint32_t zotype_t;
 typedef uint32_t zoid_t;
 typedef int32_t zerr_t;
-
 typedef zerr_t (*zoperate)(zvalue_t in, zvalue_t *out, zvalue_t hint); // any operate
 
 /* for all container value, caution in 64bit system:
@@ -85,16 +82,6 @@ typedef zerr_t (*zoperate)(zvalue_t in, zvalue_t *out, zvalue_t hint); // any op
  */
 
 #define ZCONVERT(dest, src) do{memset(&(dest),0,sizeof(dest));memcpy(&(dest),&(src),(sizeof(src)<sizeof(dest)?sizeof(src):sizeof(dest)));}while(0)
-
-#ifdef ZSYS_WINDOWS
-#define zmem_align(alignment, size) _aligned_malloc(size,alignment)
-#define zmem_align64(size) _aligned_malloc(size, 64)
-#define zmem_align_free(ptr) _aligned_free(ptr)
-#else // ZSYS_POSIX
-#define zmem_align(alignment, size) memalign(alignment, size)
-#define zmem_align64(size) memalign(64, size)
-#define zmem_align_free(ptr) free(ptr)
-#endif
 
 typedef union{
     zptr_t p;
@@ -127,12 +114,8 @@ typedef struct zchunk_s{
     struct zchunk_s *prev;
 }zchunk_t;
 
-#define OPARG zvalue_t in,zvalue_t *out,zvalue_t hint
-#define OPNULL NULL,NULL,NULL
-#define OPIN(in) (zvalue_t)in,NULL,NULL
-#define OPHINT(hint) NULL,NULL,(zvalue_t)hint
-#define ZOP_ARG OPARG
-#define ZOP_NULL OPNULL
+#define ZOP_ARG zvalue_t in,zvalue_t *out,zvalue_t hint
+#define ZOP_NULL NULL,NULL,NULL
 #define ZOP_IN(in) (zvalue_t)in,NULL,NULL
 #define ZOP_HINT(hint) NULL,NULL,(zvalue_t)hint
 
@@ -141,11 +124,6 @@ typedef struct zchunk_s{
 #else
 #define zprint(fmt, ...)
 #endif
-
-#define ZUSE_STATISTIC 0
-
-#define ZTSKMD_SEQUENCE 0
-#define ZTSKMD_NORMAL 1
 
 ZC_END
 
