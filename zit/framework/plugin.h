@@ -16,9 +16,9 @@
 #include <zit/base/filesys.h>
 
 int zplg_dummy(ZOP_ARG);
-inline int zplg_dummy(ZOP_ARG){return 0;}
+zinline int zplg_dummy(ZOP_ARG){return 0;}
 int zplg_notsupport(ZOP_ARG);
-inline int zplg_notsupport(ZOP_ARG){return -1;}
+zinline int zplg_notsupport(ZOP_ARG){return -1;}
 
 typedef struct zplugin_interface_s{
     zoperate init;
@@ -66,7 +66,7 @@ int zplg_operate(zplg_t *plg, zvalue_t *out, zvalue_t hint);
 /*
  * implement plugin
  */
-inline int zplg_scan(char path[512], const char *prefix, cbzftw ftw){
+zinline int zplg_scan(char path[512], const char *prefix, cbzftw ftw){
     return zftw_nr(path , ftw, (zvalue_t)prefix);
 }
 #if 0
@@ -84,7 +84,7 @@ int zplg_ftw(const char *pathname, zfstat_t *stat, int ftw_flag, zvalue_t hint){
 }
 #endif
 
-inline int zplg_open(zplg_itf_t *itf, const char *filename){
+zinline int zplg_open(zplg_itf_t *itf, const char *filename){
     zvalue_t sym;
     /* assert(itf,filename) */
     itf->dl = zdl_open(filename, RTLD_LAZY);
@@ -99,34 +99,34 @@ inline int zplg_open(zplg_itf_t *itf, const char *filename){
     return itf->dl ? ZOK : ZFAIL;
 }
 
-inline int zplg_close(zplg_itf_t *itf){
+zinline int zplg_close(zplg_itf_t *itf){
     return zdl_close(itf->dl);
 }
 
-inline int zplg_init(zplg_t *plg, zoperate cb, zvalue_t cb_hint, zvalue_t hint){
+zinline int zplg_init(zplg_t *plg, zoperate cb, zvalue_t cb_hint, zvalue_t hint){
     zvalue_t values[2];
     values[0] = (zvalue_t)cb;
     values[1] = cb_hint;
     return plg->itf_init((zvalue_t)values, &plg->handle, hint);
 }
 
-inline int zplg_fini(zplg_t *plg, zvalue_t *out, zvalue_t hint){
+zinline int zplg_fini(zplg_t *plg, zvalue_t *out, zvalue_t hint){
     return plg->itf_fini(plg->handle, out, hint);
 }
 
-inline int zplg_run(zplg_t *plg, zvalue_t *out, zvalue_t hint){
+zinline int zplg_run(zplg_t *plg, zvalue_t *out, zvalue_t hint){
     return plg->itf_run(plg->handle, out, hint);
 }
 
-inline int zplg_stop(zplg_t *plg, zvalue_t *out, zvalue_t hint){
+zinline int zplg_stop(zplg_t *plg, zvalue_t *out, zvalue_t hint){
     return plg->itf_stop(plg->handle, out, hint);
 }
 
-inline int zplg_operate(zplg_t *plg, zvalue_t *out, zvalue_t hint){
+zinline int zplg_operate(zplg_t *plg, zvalue_t *out, zvalue_t hint){
     return plg->itf_operate(plg->handle, out, hint);
 }
 
-inline int zplg_ability(zplg_itf_t *itf, zvalue_t *out, zvalue_t hint){
+zinline int zplg_ability(zplg_itf_t *itf, zvalue_t *out, zvalue_t hint){
     return itf->ability((zvalue_t)itf, out, hint);
 }
 

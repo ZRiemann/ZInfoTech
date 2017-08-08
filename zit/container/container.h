@@ -69,7 +69,7 @@ typedef struct zcontainer_s{
     int type;
 }zcont_t;
 
-inline zerr_t zcontainer_create(zcontainer_t *cont, int type){
+zinline zerr_t zcontainer_create(zcontainer_t *cont, int type){
     zerr_t ret = ZEOK;
     zcont_t *cnt;
     ZASSERT(!cont);
@@ -150,67 +150,69 @@ inline zerr_t zcontainer_create(zcontainer_t *cont, int type){
         ret = ZENOT_SUPPORT;
     }
     if(ZOK != ret){
-        free(cnt);
+        zmem_align_free(cnt);
         *cont = NULL;
     }
     return ret;
 }
-inline zerr_t zcontainer_destroy(zcontainer_t cont){
+zinline zerr_t zcontainer_destroy(zcontainer_t cont){
     zcont_t *cnt = (zcont_t*)cont;
     if(!cont){
         return ZEOK;
     }
-    return(cnt->destroy(cnt->cont));
+    cnt->destroy(cnt->cont);
+	zmem_align_free(cnt);
+	return ZEOK;
 }
 
-inline zerr_t zcontainer_push(zcontainer_t cont, zvalue_t in){
+zinline zerr_t zcontainer_push(zcontainer_t cont, zvalue_t in){
     zcont_t *cnt = (zcont_t*)cont;
     //ZASSERT(!cnt);
     return(cnt->push(cnt->cont, in));
 }
-inline zerr_t zcontainer_pop(zcontainer_t cont, zvalue_t *out){
+zinline zerr_t zcontainer_pop(zcontainer_t cont, zvalue_t *out){
     zcont_t *cnt = (zcont_t*)cont;
     //ZASSERT(!cnt);
     return(cnt->pop(cnt->cont, out));
 }
-inline zerr_t zcontainer_pushfront(zcontainer_t cont, zvalue_t in){
+zinline zerr_t zcontainer_pushfront(zcontainer_t cont, zvalue_t in){
     zcont_t *cnt = (zcont_t*)cont;
     //ZASSERT(!cnt);
     return(cnt->pushfront(cnt->cont, in));
 }
-inline zerr_t zcontainer_popback(zcontainer_t cont, zvalue_t *out){
+zinline zerr_t zcontainer_popback(zcontainer_t cont, zvalue_t *out){
     zcont_t *cnt = (zcont_t*)cont;
     //ZASSERT(!cnt);
     return(cnt->popback(cnt->cont, out));
 }
-inline zerr_t zcontainer_insert(zcontainer_t cont, zvalue_t in, zoperate compare, int condition){
+zinline zerr_t zcontainer_insert(zcontainer_t cont, zvalue_t in, zoperate compare, int condition){
     zcont_t *cnt = (zcont_t*)cont;
     //ZASSERT(!cnt);
     return(cnt->insert(cnt->cont, in, compare, condition));
 }
-inline zerr_t zcontainer_erase(zcontainer_t cont, zvalue_t in, zoperate compare, int condition){
+zinline zerr_t zcontainer_erase(zcontainer_t cont, zvalue_t in, zoperate compare, int condition){
     zcont_t *cnt = (zcont_t*)cont;
     //ZASSERT(!cnt);
     return(cnt->erase(cnt->cont, in, compare, condition));
 }
-inline zerr_t zcontainer_foreach(zcontainer_t cont, zoperate op, zvalue_t hint){
+zinline zerr_t zcontainer_foreach(zcontainer_t cont, zoperate op, zvalue_t hint){
     zcont_t *cnt = (zcont_t*)cont;
     //ZASSERT(!cnt);
     return(cnt->foreach(cnt->cont, op, hint));
 }
 
-inline zsize_t zcontainer_size(zcontainer_t cont){
+zinline zsize_t zcontainer_size(zcontainer_t cont){
     zcont_t *cnt = (zcont_t*)cont;
     //ZASSERT(!cnt);
     return(cnt->size(cnt->cont));
 }
 
-inline zerr_t zcontainer_back(zcontainer_t cont, zvalue_t *out){
+zinline zerr_t zcontainer_back(zcontainer_t cont, zvalue_t *out){
     zcont_t *cnt = (zcont_t*)cont;
     //ZASSERT(!cnt);
     return(cnt->back(cnt->cont, out));
 }
-inline zerr_t zcontainer_front(zcontainer_t cont, zvalue_t *out){
+zinline zerr_t zcontainer_front(zcontainer_t cont, zvalue_t *out){
     zcont_t *cnt = (zcont_t*)cont;
     //ZASSERT(!cnt);
     return(cnt->front(cnt->cont, out));

@@ -30,7 +30,7 @@ zerr_t zlist_mt_back(zcontainer_t cont, zvalue_t *out);
 zerr_t zlist_mt_front(zcontainer_t cont, zvalue_t *out);
 zerr_t zlist_mt_swap(zcontainer_t *cont1, zcontainer_t *cont2);
 
-inline zerr_t zlist_mt_create(zcontainer_t *cont){
+zinline zerr_t zlist_mt_create(zcontainer_t *cont){
     zerr_t ret;
     zlist_mt_t *list = (zlist_mt_t*)zmem_align64(sizeof(zlist_mt_t));
     do{
@@ -46,7 +46,7 @@ inline zerr_t zlist_mt_create(zcontainer_t *cont){
     return ret;
 }
 
-inline zerr_t zlist_mt_destroy(zcontainer_t cont){
+zinline zerr_t zlist_mt_destroy(zcontainer_t cont){
     zlist_mt_t *list;
     if(!cont){
         return ZEOK;
@@ -55,11 +55,11 @@ inline zerr_t zlist_mt_destroy(zcontainer_t cont){
     zlist_destroy(list->cont);
     zspin_fini(&list->front_spin);
     zspin_fini(&list->back_spin);
-    free(cont);
+    zmem_align_free(cont);
     return ZEOK;
 }
 
-inline zerr_t zlist_mt_push(zcontainer_t cont, zvalue_t in){
+zinline zerr_t zlist_mt_push(zcontainer_t cont, zvalue_t in){
     zerr_t ret;
     zlist_mt_t *list = (zlist_mt_t*)cont;
     zspin_lock(&list->back_spin);
@@ -68,7 +68,7 @@ inline zerr_t zlist_mt_push(zcontainer_t cont, zvalue_t in){
     return ret;
 }
 
-inline zerr_t zlist_mt_pop(zcontainer_t cont, zvalue_t *out){
+zinline zerr_t zlist_mt_pop(zcontainer_t cont, zvalue_t *out){
     zerr_t ret;
     zlist_mt_t *list = (zlist_mt_t*)cont;
     zspin_lock(&list->front_spin);
@@ -77,7 +77,7 @@ inline zerr_t zlist_mt_pop(zcontainer_t cont, zvalue_t *out){
     return ret;
 }
 
-inline zerr_t zlist_mt_pushfront(zcontainer_t cont, zvalue_t in){
+zinline zerr_t zlist_mt_pushfront(zcontainer_t cont, zvalue_t in){
     zerr_t ret;
     zlist_mt_t *list = (zlist_mt_t*)cont;
     zspin_lock(&list->front_spin);
@@ -86,7 +86,7 @@ inline zerr_t zlist_mt_pushfront(zcontainer_t cont, zvalue_t in){
     return ret;
 }
 
-inline zerr_t zlist_mt_popback(zcontainer_t cont, zvalue_t *out){
+zinline zerr_t zlist_mt_popback(zcontainer_t cont, zvalue_t *out){
     zerr_t ret;
     zlist_mt_t *list = (zlist_mt_t*)cont;
     zspin_lock(&list->back_spin);
@@ -95,7 +95,7 @@ inline zerr_t zlist_mt_popback(zcontainer_t cont, zvalue_t *out){
     return ret;
 }
 
-inline zerr_t zlist_mt_insert(zcontainer_t cont, zvalue_t in, zoperate compare, int condition){
+zinline zerr_t zlist_mt_insert(zcontainer_t cont, zvalue_t in, zoperate compare, int condition){
     zerr_t ret;
     zlist_mt_t *list = (zlist_mt_t*)cont;
     zspin_lock(&list->front_spin);
@@ -106,7 +106,7 @@ inline zerr_t zlist_mt_insert(zcontainer_t cont, zvalue_t in, zoperate compare, 
     return ret;
 }
 
-inline zerr_t zlist_mt_erase(zcontainer_t cont, zvalue_t hint, zoperate compare, int condition){
+zinline zerr_t zlist_mt_erase(zcontainer_t cont, zvalue_t hint, zoperate compare, int condition){
     zerr_t ret;
     zlist_mt_t *list = (zlist_mt_t*)cont;
     zspin_lock(&list->front_spin);
@@ -117,7 +117,7 @@ inline zerr_t zlist_mt_erase(zcontainer_t cont, zvalue_t hint, zoperate compare,
     return ret;
 }
 
-inline zerr_t zlist_mt_foreach(zcontainer_t cont, zoperate op, zvalue_t hint){
+zinline zerr_t zlist_mt_foreach(zcontainer_t cont, zoperate op, zvalue_t hint){
     zerr_t ret;
     zlist_mt_t *list = (zlist_mt_t*)cont;
     zspin_lock(&list->front_spin);
@@ -128,12 +128,12 @@ inline zerr_t zlist_mt_foreach(zcontainer_t cont, zoperate op, zvalue_t hint){
     return ret;
 }
 
-inline zsize_t zlist_mt_size(zcontainer_t cont){
+zinline zsize_t zlist_mt_size(zcontainer_t cont){
     zlist_mt_t *list = (zlist_mt_t*)cont;
     return zlist_size(list->cont);
 }
 
-inline zerr_t zlist_mt_back(zcontainer_t cont, zvalue_t *out){
+zinline zerr_t zlist_mt_back(zcontainer_t cont, zvalue_t *out){
     zerr_t ret;
     zlist_mt_t *list = (zlist_mt_t*)cont;
     zspin_lock(&list->back_spin);
@@ -142,7 +142,7 @@ inline zerr_t zlist_mt_back(zcontainer_t cont, zvalue_t *out){
     return ret;
 }
 
-inline zerr_t zlist_mt_front(zcontainer_t cont, zvalue_t *out){
+zinline zerr_t zlist_mt_front(zcontainer_t cont, zvalue_t *out){
     zerr_t ret;
     zlist_mt_t *list = (zlist_mt_t*)cont;
     zspin_lock(&list->front_spin);
@@ -151,7 +151,7 @@ inline zerr_t zlist_mt_front(zcontainer_t cont, zvalue_t *out){
     return ret;
 }
 
-inline zerr_t zlist_mt_swap(zcontainer_t *cont1, zcontainer_t *cont2){
+zinline zerr_t zlist_mt_swap(zcontainer_t *cont1, zcontainer_t *cont2){
     zlist_mt_t *list1 = (zlist_mt_t*)cont1;
     zlist_mt_t *list2 = (zlist_mt_t*)cont2;
     zspin_lock(&list1->front_spin);

@@ -30,7 +30,7 @@ zerr_t zquen_back(zcontainer_t cont, zvalue_t *out);
 zerr_t zquen_front(zcontainer_t cont, zvalue_t *out);
 zerr_t zquen_swap(zcontainer_t *cont1, zcontainer_t *cont2);
 
-inline zerr_t zquen_create(zcontainer_t *cont){
+zinline zerr_t zquen_create(zcontainer_t *cont){
     zerr_t ret;
     zquen_t *que = (zquen_t*)zmem_align64(sizeof(zquen_t));
     do{
@@ -46,7 +46,7 @@ inline zerr_t zquen_create(zcontainer_t *cont){
     return ret;
 }
 
-inline zerr_t zquen_destroy(zcontainer_t cont){
+zinline zerr_t zquen_destroy(zcontainer_t cont){
     zquen_t *que;
     if(!cont){
         return ZEOK;
@@ -55,11 +55,11 @@ inline zerr_t zquen_destroy(zcontainer_t cont){
     zque1_destroy(que->cont);
     zspin_fini(&que->front_spin);
     zspin_fini(&que->back_spin);
-    free(cont);
+    zmem_align_free(cont);
     return ZEOK;
 }
 
-inline zerr_t zquen_push(zcontainer_t cont, zvalue_t in){
+zinline zerr_t zquen_push(zcontainer_t cont, zvalue_t in){
     zerr_t ret;
     zquen_t *que = (zquen_t*)cont;
     zspin_lock(&que->back_spin);
@@ -68,7 +68,7 @@ inline zerr_t zquen_push(zcontainer_t cont, zvalue_t in){
     return ret;
 }
 
-inline zerr_t zquen_pop(zcontainer_t cont, zvalue_t *out){
+zinline zerr_t zquen_pop(zcontainer_t cont, zvalue_t *out){
     zerr_t ret;
     zquen_t *que = (zquen_t*)cont;
     zspin_lock(&que->front_spin);
@@ -77,7 +77,7 @@ inline zerr_t zquen_pop(zcontainer_t cont, zvalue_t *out){
     return ret;
 }
 
-inline zerr_t zquen_pushfront(zcontainer_t cont, zvalue_t in){
+zinline zerr_t zquen_pushfront(zcontainer_t cont, zvalue_t in){
     zerr_t ret;
     zquen_t *que = (zquen_t*)cont;
     zspin_lock(&que->front_spin);
@@ -86,7 +86,7 @@ inline zerr_t zquen_pushfront(zcontainer_t cont, zvalue_t in){
     return ret;
 }
 
-inline zerr_t zquen_popback(zcontainer_t cont, zvalue_t *out){
+zinline zerr_t zquen_popback(zcontainer_t cont, zvalue_t *out){
     zerr_t ret;
     zquen_t *que = (zquen_t*)cont;
     zspin_lock(&que->back_spin);
@@ -95,7 +95,7 @@ inline zerr_t zquen_popback(zcontainer_t cont, zvalue_t *out){
     return ret;
 }
 
-inline zerr_t zquen_insert(zcontainer_t cont, zvalue_t in, zoperate compare, int condition){
+zinline zerr_t zquen_insert(zcontainer_t cont, zvalue_t in, zoperate compare, int condition){
     zerr_t ret;
     zquen_t *que = (zquen_t*)cont;
     zspin_lock(&que->front_spin);
@@ -106,7 +106,7 @@ inline zerr_t zquen_insert(zcontainer_t cont, zvalue_t in, zoperate compare, int
     return ret;
 }
 
-inline zerr_t zquen_erase(zcontainer_t cont, zvalue_t hint, zoperate compare, int condition){
+zinline zerr_t zquen_erase(zcontainer_t cont, zvalue_t hint, zoperate compare, int condition){
     zerr_t ret;
     zquen_t *que = (zquen_t*)cont;
     zspin_lock(&que->front_spin);
@@ -117,7 +117,7 @@ inline zerr_t zquen_erase(zcontainer_t cont, zvalue_t hint, zoperate compare, in
     return ret;
 }
 
-inline zerr_t zquen_foreach(zcontainer_t cont, zoperate op, zvalue_t hint){
+zinline zerr_t zquen_foreach(zcontainer_t cont, zoperate op, zvalue_t hint){
     zerr_t ret;
     zquen_t *que = (zquen_t*)cont;
     zspin_lock(&que->front_spin);
@@ -128,12 +128,12 @@ inline zerr_t zquen_foreach(zcontainer_t cont, zoperate op, zvalue_t hint){
     return ret;
 }
 
-inline zsize_t zquen_size(zcontainer_t cont){
+zinline zsize_t zquen_size(zcontainer_t cont){
     zquen_t *que = (zquen_t*)cont;
     return zque1_size(que->cont);
 }
 
-inline zerr_t zquen_back(zcontainer_t cont, zvalue_t *out){
+zinline zerr_t zquen_back(zcontainer_t cont, zvalue_t *out){
     zerr_t ret;
     zquen_t *que = (zquen_t*)cont;
     zspin_lock(&que->back_spin);
@@ -142,7 +142,7 @@ inline zerr_t zquen_back(zcontainer_t cont, zvalue_t *out){
     return ret;
 }
 
-inline zerr_t zquen_front(zcontainer_t cont, zvalue_t *out){
+zinline zerr_t zquen_front(zcontainer_t cont, zvalue_t *out){
     zerr_t ret;
     zquen_t *que = (zquen_t*)cont;
     zspin_lock(&que->front_spin);
@@ -151,7 +151,7 @@ inline zerr_t zquen_front(zcontainer_t cont, zvalue_t *out){
     return ret;
 }
 
-inline zerr_t zquen_swap(zcontainer_t *cont1, zcontainer_t *cont2){
+zinline zerr_t zquen_swap(zcontainer_t *cont1, zcontainer_t *cont2){
     zquen_t *que1 = (zquen_t*)cont1;
     zquen_t *que2 = (zquen_t*)cont2;
     zspin_lock(&que1->front_spin);

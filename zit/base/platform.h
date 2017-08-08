@@ -28,18 +28,20 @@
 //#include <mswsock.h>
 //#include <process.h>
 //#include <ws2tcpip.h>
-#pragma warning(disable:4996 4047 4022 4244)
+#pragma warning(disable:4996 4047 4022 4244 4200 4005)
 
 #if (ZEXPORT == 0)
 #define ZAPI
 #elif (ZEXPORT == 1)
 #define ZAPI __declspec(dllexport)
+#define ZEXTERN __declspec(dllexport)
 #elif (ZEXPORT == 2)
 #define ZAPI __declspec(dllimport)
+#define ZEXTERN __declspec(dllimport)
 #endif
 
-#ifndef inline
-#define inline _inline
+#ifndef zinline
+#define zinline _inline
 #endif
 
 #elif(defined(ZSYS_POSIX))
@@ -51,7 +53,8 @@
 #else
 #define ZAPI
 #endif//__SUNPRO_C
-
+#define ZEXTERN extern
+#define zinline inline
 #endif // ZSYS_WINDOWS|ZSYS_POSIX
 
 #ifdef __cplusplus

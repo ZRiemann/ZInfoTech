@@ -22,8 +22,14 @@ static void list_1r1w_push_nocheck(zcontainer_t list, int begin, int end){
 
 
 static zerr_t tlist_compare(ZOP_ARG){
-    int sub = (int)(hint-in);
-    int *cmp = (int*)out;
+	int a, b;
+	int sub;
+	int *cmp = (int*)out;
+
+	ZCONVERT(a, hint);
+	ZCONVERT(b, in);
+	sub = a - b;
+    
     sub = sub ? (sub > 0 ? ZGREAT : ZLITTLE) : ZEQUAL;
     *cmp = sub;
     ZDBG("hint: %d in: %d cmp: %d", hint, in, sub);
@@ -34,6 +40,7 @@ static void list_1r1w_base(zcontainer_t list){
     zvalue_t val;
     int i;
 
+	val = NULL;
     ZDBG("dump each value:");
     zlist_foreach(list, dump_int, NULL);
     list_1r1w_push(list, 0, 256);

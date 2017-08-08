@@ -89,9 +89,11 @@ typedef zerr_t (*zoperate)(zvalue_t in, zvalue_t *out, zvalue_t hint); // any op
 #ifdef ZSYS_WINDOWS
 #define zmem_align(alignment, size) _aligned_malloc(size,alignment)
 #define zmem_align64(size) _aligned_malloc(size, 64)
+#define zmem_align_free(ptr) _aligned_free(ptr)
 #else // ZSYS_POSIX
 #define zmem_align(alignment, size) memalign(alignment, size)
 #define zmem_align64(size) memalign(64, size)
+#define zmem_align_free(ptr) free(ptr)
 #endif
 
 typedef union{

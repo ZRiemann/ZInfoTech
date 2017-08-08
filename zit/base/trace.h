@@ -51,7 +51,7 @@ ZAPI int zrandat(int begin, int end); // rand begin~end-1
 #define ZTRACE_FLAG_WAR 0x04
 #define ZTRACE_FLAG_ERR 0x08
 #define ZTRACE_FLAG_INF 0x10
-extern int g_ztrace_flag;
+ZEXTERN int g_ztrace_flag;
 
 typedef int (*ztrace)(int level, void* user, const char* msg);
 typedef int (*zgetbuf)(char **buf, int len);

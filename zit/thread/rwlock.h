@@ -28,7 +28,7 @@ int zrwlock_unlock(zrwlock_t* rwlck, int is_read);
 #include <zit/base/trace.h>
 #include <stdlib.h>
 
-inline int zrwlock_init(zrwlock_t* rwlck){
+zinline int zrwlock_init(zrwlock_t* rwlck){
   int ret = ZEOK;
 #ifdef ZSYS_POSIX
   ret = pthread_rwlock_init(rwlck, 0);
@@ -42,7 +42,7 @@ inline int zrwlock_init(zrwlock_t* rwlck){
   return ret;
 }
 
-inline int zrwlock_fini(zrwlock_t* rwlck){
+zinline int zrwlock_fini(zrwlock_t* rwlck){
   int ret = ZEOK;
 #ifdef ZSYS_POSIX
   ret = pthread_rwlock_destroy(rwlck);
@@ -55,7 +55,7 @@ inline int zrwlock_fini(zrwlock_t* rwlck){
   return ret;
 }
 
-inline int zrwlock_rdlock(zrwlock_t* rwlck){
+zinline int zrwlock_rdlock(zrwlock_t* rwlck){
   int ret = ZEOK;
 #ifdef ZSYS_POSIX
   ret = pthread_rwlock_rdlock(rwlck);// if(0 != ret) ret = ZEFUN_FAIL;
@@ -65,7 +65,7 @@ inline int zrwlock_rdlock(zrwlock_t* rwlck){
   return ret;
 }
 
-inline int zrwlock_tryrdlock(zrwlock_t* rwlck){
+zinline int zrwlock_tryrdlock(zrwlock_t* rwlck){
   int ret = ZEOK;
 #ifdef ZSYS_POSIX
   ret = pthread_rwlock_tryrdlock(rwlck);
@@ -78,7 +78,7 @@ inline int zrwlock_tryrdlock(zrwlock_t* rwlck){
   return ret;
 }
 
-inline int zrwlock_wrlock(zrwlock_t* rwlck){
+zinline int zrwlock_wrlock(zrwlock_t* rwlck){
   int ret = ZEOK;
 #ifdef ZSYS_POSIX
   ret = pthread_rwlock_wrlock(rwlck);// if(0 != ret) ret = ZEFUN_FAIL;
@@ -88,7 +88,7 @@ inline int zrwlock_wrlock(zrwlock_t* rwlck){
   return ret;
 }
 
-inline int zrwlock_trywrlock(zrwlock_t* rwlck){
+zinline int zrwlock_trywrlock(zrwlock_t* rwlck){
   int ret = ZEOK;
 #ifdef ZSYS_POSIX
   ret = pthread_rwlock_trywrlock(rwlck);
@@ -101,7 +101,7 @@ inline int zrwlock_trywrlock(zrwlock_t* rwlck){
   return ret;
 }
 
-inline int zrwlock_timedrdlock(zrwlock_t* rwlck, int sec){
+zinline int zrwlock_timedrdlock(zrwlock_t* rwlck, int sec){
   int ret = ZEOK;
 #ifdef ZSYS_POSIX
   struct timespec spec;
@@ -119,7 +119,7 @@ inline int zrwlock_timedrdlock(zrwlock_t* rwlck, int sec){
   return ret;
 }
 
-inline int zrwlock_timedwrlock(zrwlock_t* rwlck, int sec){
+zinline int zrwlock_timedwrlock(zrwlock_t* rwlck, int sec){
   int ret = ZEOK;
 #ifdef ZSYS_POSIX
   struct timespec spec;
@@ -138,7 +138,7 @@ inline int zrwlock_timedwrlock(zrwlock_t* rwlck, int sec){
   return ret;
 }
 
-inline int zrwlock_unlock(zrwlock_t* rwlck, int is_read){
+zinline int zrwlock_unlock(zrwlock_t* rwlck, int is_read){
   int ret = ZEOK;
 #ifdef ZSYS_POSIX
   ret = pthread_rwlock_unlock(rwlck);// if(0 != ret) ret = ZEFUN_FAIL;

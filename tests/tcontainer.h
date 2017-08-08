@@ -16,8 +16,13 @@ static void tcontainer_push_nocheck(zcontainer_t cont, int begin, int end){
 
 
 static zerr_t tcont_compare(ZOP_ARG){
-    int sub = (int)(hint-in);
-    int *cmp = (int*)out;
+	int a, b;
+	int sub;
+	int *cmp = (int*)out;
+
+	ZCONVERT(a, hint);
+	ZCONVERT(b, in);
+	sub = a - b;
     sub = sub ? (sub > 0 ? ZGREAT : ZLITTLE) : ZEQUAL;
     *cmp = sub;
     ZDBG("hint: %d in: %d cmp: %d", hint, in, sub);

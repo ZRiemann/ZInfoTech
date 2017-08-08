@@ -29,7 +29,7 @@ int zsem_getvalue(zsem_t* sem, int* value);
 #include <time.h>
 #include <stdlib.h>
 
-inline int zsem_init(zsem_t* sem, int value){
+zinline int zsem_init(zsem_t* sem, int value){
     int ret = ZEOK;
 #ifdef ZSYS_POSIX
     if(0 != (ret = sem_init(sem, 0, value))){
@@ -44,7 +44,7 @@ inline int zsem_init(zsem_t* sem, int value){
     return ret;
 }
 
-inline int zsem_fini(zsem_t* sem){
+zinline int zsem_fini(zsem_t* sem){
     int ret = ZEOK;
 #ifdef ZSYS_POSIX
     if(0 != sem_destroy(sem)){
@@ -58,7 +58,7 @@ inline int zsem_fini(zsem_t* sem){
     return ret;
 }
 
-inline int zsem_post(zsem_t* sem){
+zinline int zsem_post(zsem_t* sem){
     int ret = ZEOK;
 #ifdef ZSYS_POSIX
     if(0 != sem_post(sem)){
@@ -73,8 +73,8 @@ inline int zsem_post(zsem_t* sem){
 }
 
 #ifdef ZSYS_WINDOWS
-int zobj_wait(HANDLE h, int ms);
-inline int zobj_wait(HANDLE h, int ms){
+static int zobj_wait(HANDLE h, int ms);
+zinline int zobj_wait(HANDLE h, int ms){
     int ret = WaitForSingleObject(h, ms);
     switch(ret){
     case WAIT_OBJECT_0:ret = ZEOK;break;
@@ -87,7 +87,7 @@ inline int zobj_wait(HANDLE h, int ms){
 }
 #endif
 
-inline int zsem_wait(zsem_t* sem, int ms){
+zinline int zsem_wait(zsem_t* sem, int ms){
     int ret = ZEOK;
     //ZDBG("sem_wait begin...");
 #ifdef ZSYS_POSIX
@@ -129,7 +129,7 @@ inline int zsem_wait(zsem_t* sem, int ms){
     return ret;
 }
 
-inline int zsem_getvalue(zsem_t* sem, int* value){
+zinline int zsem_getvalue(zsem_t* sem, int* value){
     int ret = ZEOK;
 #ifdef ZSYS_POSIX
     if(0 != sem_getvalue(sem, value)){

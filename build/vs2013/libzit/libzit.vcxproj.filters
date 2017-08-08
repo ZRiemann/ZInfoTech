@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="..\..\..\src\convert.c">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\epoll.c">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\trace.c">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\ssl.c">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\tracelog.c">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\tracebkg.c">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\traceconsole.c">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\tracenet.c">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\tracering.c">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\type.c">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\time.c">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\socket.c">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\daemonize.c">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\module.c">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\src\filesys.c">
+      <Filter>src</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\..\zit\base\atomic.h">
+      <Filter>zit\base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\zit\base\config.h">
+      <Filter>zit\base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\zit\base\dlfcn.h">
+      <Filter>zit\base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\zit\base\error.h">
+      <Filter>zit\base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\zit\base\filesys.h">
+      <Filter>zit\base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\zit\base\inttypes.h">
+      <Filter>zit\base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\zit\base\trace.h">
+      <Filter>zit\base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\zit\base\type.h">
+      <Filter>zit\base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\zit\base\platform.h">
+      <Filter>zit\base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\zit\base\stdint.h">
+      <Filter>zit\base</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\zit\thread\spin.h">
+      <Filter>zit\thread</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\zit\thread\semaphore.h">
+      <Filter>zit\thread</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\zit\thread\rwlock.h">
+      <Filter>zit\thread</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\zit\thread\thread.h">
+      <Filter>zit\thread</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\zit\container\container.h">
+      <Filter>zit\container</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\zit\container\list.h">
+      <Filter>zit\container</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\zit\container\list_mt.h">
+      <Filter>zit\container</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\zit\container\queue.h">
+      <Filter>zit\container</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\zit\container\queue_mt.h">
+      <Filter>zit\container</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\zit\thread\mutex.h">
+      <Filter>zit\thread</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\zit\base\time.h">
+      <Filter>zit\base</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="zit">
+      <UniqueIdentifier>{5c04e997-5ede-4b06-968b-fa2457aa3a26}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src">
+      <UniqueIdentifier>{2b37aa15-7527-4ba5-9025-443015cef0ba}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="zit\base">
+      <UniqueIdentifier>{e42ff568-d1c4-4262-99dc-ea549d368aaa}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="zit\thread">
+      <UniqueIdentifier>{43fbe52c-db77-46d5-9998-caf9ed417bc8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="zit\container">
+      <UniqueIdentifier>{e6d0e804-ec0f-4f1a-b52f-a895529f5616}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

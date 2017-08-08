@@ -9,14 +9,18 @@
 #include <inttypes.h>
 #endif//ZSYS_WINDOWS
 
-typedef int zatmi_t;
-typedef uint32_t zatm32_t;
-typedef uint64_t zatm64_t;
+#include <malloc.h>
+
+typedef volatile int32_t zatm32_t;
+typedef int32_t *zatm_t;
+typedef int64_t *zatm64_t;
 typedef void* zatmp_t;
 
 #ifdef ZSYS_POSIX
 // gcc
 #define zatm_alloc(size) memalign(64, size)
+#define zatm_alloc_atm() (zatm_t)memalign(64, 32)
+#define zatm_alloc_atm64() (zatm64_t)memalign(64, 64)
 #define zatm_free(ptr) free(ptr)
 #define zatm_add(ptr, value) __sync_add_and_fetch(ptr, value)
 #define zatm_sub(ptr, value) __sync_sub_and_fetch(ptr, value)
@@ -30,26 +34,28 @@ typedef void* zatmp_t;
 
 #include <Windows.h>
 #define zatm_alloc(size) _aligned_malloc(size, 64)
-#define zatm_free(ptr) free(ptr)
-#define zatm_add(ptr, value) (sizeof(*ptr)==64 ? InterlockedExchangeAdd64(ptr, value) : InterlockedExchangeAdd(ptr, value))
-#define zatm_sub(ptr, value) (sizeof(*ptr)==64 ? InterlockedExchangeAdd(ptr, -(value)) : InterlockedExchangeAdd(ptr, -(value)))
-#define zatm_inc(ptr) (sizeof(*ptr)==64 ? InterlockedIncrement64(ptr) : InterlockedIncrement(ptr))
-#define zatm_dec(ptr) (sizeof(*ptr)==64 ? InterlockedDecrement64(ptr) : InterlockedDecrement(ptr))
-#define zatm_cas(ptr, oldval, newval) (sizeof(*ptr)==64 ? InterlockedCompareExchange64(ptr, newval, oldval) : InterlockedCompareExchange(ptr, newval, oldval))
-#define zatm_xchg(ptr, newval) (sizeof(*ptr)==64 ? InterlockedExchange64(ptr, newval) : InterlockedExchange(ptr, newval))
+#define zatm_alloc_atm() (zatm_t)_aligned_malloc(32, 64)
+#define zatm_alloc_atm64() (zatm64_t)_aligned_malloc(64, 64)
+#define zatm_free(ptr) _aligned_free(ptr)
+#define zatm_add(ptr, value) InterlockedExchangeAdd(ptr, value)
+#define zatm_sub(ptr, value) InterlockedExchangeAdd(ptr, -(value))
+#define zatm_inc(ptr) InterlockedIncrement(ptr)
+#define zatm_dec(ptr) InterlockedDecrement(ptr)
+#define zatm_cas(ptr, oldval, newval) InterlockedCompareExchange(ptr, newval, oldval)
+#define zatm_xchg(ptr, newval) InterlockedExchange(ptr, newval)
 #define zatm_xchg_ptr(ptr, newval) InterlockedExchangePointer(ptr, newval)
 
 #else // some embend code, no threads
 
-#define zatm_alloc(size)
-#define zatm_free(ptr)
-#define zatm_add(ptr, value)
-#define zatm_sub(ptr, value)
-#define zatm_inc(ptr)
-#define zatm_dec(ptr)
-#define zatm_cas(ptr, oldval, newval)
-#define zatm_xchg(ptr, newval)
-#define zatm_xchg_ptr(ptr, newval)
+#define zatm_alloc(size) cmalloc(1, size)
+#define zatm_free(ptr) free(ptr)
+#define zatm_add(ptr, value) (*ptr += value)
+#define zatm_sub(ptr, value) (*ptr -= value)
+#define zatm_inc(ptr) (++(*ptr))
+#define zatm_dec(ptr) (--(*ptr))
+#define zatm_cas(ptr, oldval, newval) (*ptr == oldval) ? *ptr = newval : oldval;
+#define zatm_xchg(ptr, newval) do{ptr ^= newval; newval ^= ptr; ptr ^= newval;}while(0)
+#define zatm_xchg_ptr(ptr, newval) do{ptr ^= newval; newval ^= ptr; ptr ^= newval;}while(0)
 
 #endif
 

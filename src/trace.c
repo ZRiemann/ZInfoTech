@@ -21,7 +21,7 @@
 static zgetbuf g_ztrace_getbuf = NULL;
 static ztrace g_ztrace = NULL;
 static void* g_ztrace_user = NULL;
-int g_ztrace_flag = 0x000000ff;
+ZAPI int g_ztrace_flag = 0x000000ff;
 
 int ztrace_reg(ztrace fn, void* user) {
   g_ztrace = fn;
@@ -299,26 +299,26 @@ static int zwin_lasterror(int code, char* buf, int buflen) {
 }
 #endif
 
-const int ZOK = ZEOK;// 0 // ZError OK
-const int ZFAIL = ZEFAIL;// (ZEMASK | 1) // ZError FAILED
-const int ZMEM_INSUFFICIENT = ZEMEM_INSUFFICIENT;// (ZEMASK | 2) // memory insufficient
-const int ZFUN_FAIL = ZEFUN_FAIL; // (ZEMASK | 3) // call function fail
-const int ZNOT_SUPPORT = ZENOT_SUPPORT;// (ZEMASK | 4) // not support
-const int ZPARAM_INVALID = ZEPARAM_INVALID; // (ZEMASK | 5) // parameter invalid
-const int ZAGAIN = ZEAGAIN;// (ZEMASK |6) // try again
-const int ZTIMEOUT = ZETIMEOUT;// (ZEMASK | 7) // operation time out
-const int ZNOT_EXIST = ZENOT_EXIST; // (ZEMASK | 8) // Device/object ot exist
-const int ZNOT_INIT = ZENOT_INIT;// (ZEMASK | 9)  // Device not init
-const int ZSTATUS_INVALID = ZESTATUS_INVALID;// (ZEMASK | 10)  // device status invalid
-const int ZMEM_OUTOFBOUNDS = ZEMEM_OUTOFBOUNDS;// (ZEMASK | 11) // memory out of bounds
-const int ZCMD_STOP = ZECMD_STOP;// (ZEMASK | 12) // return stop command
-const int ZCMP_EQUAL = ZECMP_EQUAL;// (ZEMASK | 13) // compare equal
-const int ZCMP_GREAT = ZECMP_GREAT;// (ZEMASK | 14) // compare great
-const int ZCMP_LITTLE = ZECMP_LITTLE;// (ZEMASK | 15) // compare little
-const int ZCMD_RESTART = ZECMD_RESTART; // 16
-const int ZEOF = ZE_EOF; //17
-const int ZCAST_FAIL = ZECAST_FAIL;// (ZMASK | 18) // cast type fail
-const int ZSOCK = ZESOCK_INVALID;// (ZEMASK | 19) // invalid socket
+ZAPI int ZOK = ZEOK;// 0 // ZError OK
+ZAPI int ZFAIL = ZEFAIL;// (ZEMASK | 1) // ZError FAILED
+ZAPI int ZMEM_INSUFFICIENT = ZEMEM_INSUFFICIENT;// (ZEMASK | 2) // memory insufficient
+ZAPI int ZFUN_FAIL = ZEFUN_FAIL; // (ZEMASK | 3) // call function fail
+ZAPI int ZNOT_SUPPORT = ZENOT_SUPPORT;// (ZEMASK | 4) // not support
+ZAPI int ZPARAM_INVALID = ZEPARAM_INVALID; // (ZEMASK | 5) // parameter invalid
+ZAPI int ZAGAIN = ZEAGAIN;// (ZEMASK |6) // try again
+ZAPI int ZTIMEOUT = ZETIMEOUT;// (ZEMASK | 7) // operation time out
+ZAPI int ZNOT_EXIST = ZENOT_EXIST; // (ZEMASK | 8) // Device/object ot exist
+ZAPI int ZNOT_INIT = ZENOT_INIT;// (ZEMASK | 9)  // Device not init
+ZAPI int ZSTATUS_INVALID = ZESTATUS_INVALID;// (ZEMASK | 10)  // device status invalid
+ZAPI int ZMEM_OUTOFBOUNDS = ZEMEM_OUTOFBOUNDS;// (ZEMASK | 11) // memory out of bounds
+ZAPI int ZCMD_STOP = ZECMD_STOP;// (ZEMASK | 12) // return stop command
+ZAPI int ZCMP_EQUAL = ZECMP_EQUAL;// (ZEMASK | 13) // compare equal
+ZAPI int ZCMP_GREAT = ZECMP_GREAT;// (ZEMASK | 14) // compare great
+ZAPI int ZCMP_LITTLE = ZECMP_LITTLE;// (ZEMASK | 15) // compare little
+ZAPI int ZCMD_RESTART = ZECMD_RESTART; // 16
+ZAPI int ZEOF = ZE_EOF; //17
+ZAPI int ZCAST_FAIL = ZECAST_FAIL;// (ZMASK | 18) // cast type fail
+ZAPI int ZSOCK = ZESOCK_INVALID;// (ZEMASK | 19) // invalid socket
 
 const char *errmap[] = {
   "ZE0-ok",

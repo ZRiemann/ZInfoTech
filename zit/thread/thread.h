@@ -42,7 +42,7 @@ uint32_t zthread_self();
 #include <zit/base/error.h>
 #include <zit/base/trace.h>
 
-inline zerr_t zthread_create(zthr_id_t* id, zproc_thr proc, void* param){
+zinline zerr_t zthread_create(zthr_id_t* id, zproc_thr proc, void* param){
     zerr_t ret = ZEOK;
 #ifdef ZSYS_POSIX
     if( 0 != (ret = pthread_create(id, NULL, proc, param)))ret = errno;
@@ -53,7 +53,7 @@ inline zerr_t zthread_create(zthr_id_t* id, zproc_thr proc, void* param){
   return ret;
 }
 
-inline zerr_t zthread_detach(zthr_id_t* id){
+zinline zerr_t zthread_detach(zthr_id_t* id){
       zerr_t ret = ZEOK;
 #ifdef ZSYS_POSIX
       if(0 != (ret = pthread_detach(*id)))ret = errno;
@@ -64,21 +64,28 @@ inline zerr_t zthread_detach(zthr_id_t* id){
   return ret;
 }
 
-inline zerr_t zthread_join(zthr_id_t* id){
+zinline zerr_t zthread_join(zthr_id_t* id){
       zerr_t ret = ZEOK;
       void* result = NULL;
       ZMSG("zthread_join(id:%p) begin...", id);
 #ifdef ZSYS_POSIX
       if( 0 != (ret = pthread_join(*id, &result)))ret = errno;
 #else//ZSYS_WINDOWS
-      ret = zobj_wait(*id, ZINFINITE);
+	  ret = WaitForSingleObject(*id, ZINFINITE);
+	  switch (ret){
+	  case WAIT_OBJECT_0:ret = ZEOK; break;
+	  case WAIT_TIMEOUT:ret = ZETIMEOUT; break;
+	  case WAIT_ABANDONED:ret = ZEFUN_FAIL; break;
+	  case WAIT_FAILED:ret = GetLastError(); break;
+	  default:ret = ZEFUN_FAIL; break;
+	  }
 #endif
       ZMSG("zthread_join(id:%p) end %s", id, zstrerr(ret));
       return ret;
 }
 
 
-inline zerr_t zthread_cancel(zthr_id_t* id){
+zinline zerr_t zthread_cancel(zthr_id_t* id){
     zerr_t ret = ZEOK;
     ZMSG("zthread_cancel(id:%p) begin...", id);
 #ifdef ZSYS_POSIX
@@ -90,7 +97,7 @@ inline zerr_t zthread_cancel(zthr_id_t* id){
     return ret;
 }
 
-inline uint32_t zthread_self(){
+zinline uint32_t zthread_self(){
 #ifdef ZSYS_WINDOWS
     return (uint32_t)GetCurrentThreadId();
 #else

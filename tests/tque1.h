@@ -5,6 +5,11 @@ static void tqueue_1r1w_push(zcontainer_t que, int begin, int end){
     for(int i = begin; i<end; ++i){
         ZCONVERT(val, i);
         zque1_push(que, val);
+#if 0
+		if (0 == (i & 0xfff)){
+			ZDBG("push<%d>", i);
+		}
+#endif
     }
 }
 
@@ -13,10 +18,11 @@ static void tqueue_1r1w_push_nocheck(zcontainer_t que, int begin, int end){
     for(int i = begin; i<end; ++i){
         //ZCONVERT(val, i);
         zque1_push(que, 0);
-        /*if( 0 == (i & 0xfffff)){
+#if 0
+        if( 0 == (i & 0xffff)){
              ZDBG("push<%d>", i);
         }
-        */
+#endif
     }
 }
 
@@ -24,6 +30,7 @@ static void tqueue_1r1w_base(zcontainer_t que){
     zvalue_t val;
     int i;
 
+	val = NULL;
     ZDBG("dump each value:");
     zque1_foreach(que, dump_int, NULL);
     tqueue_1r1w_push(que, 0, 256);
@@ -49,21 +56,19 @@ static void tqueue_1r1w_base(zcontainer_t que){
 zthr_ret_t ZCALL zproc_push_nocheck(void* que){
     ztick_t tick;
     int sec,usec;
-    int i = 1024*1024;
     tick = ztick();
     ZDBG("gegin push nocheck");
     tqueue_1r1w_push_nocheck(que, 0, 10000000);
     ZDBG("push down (push nocheck)");
     g_run = 0;
     ztock(tick, &sec, &usec);
-    ZDBG("zproc_push_nocheck(%d): %d.%06d", i, sec, usec);
+    ZDBG("zproc_push_nocheck: %d.%06d", sec, usec);
     return 0;
 }
 zthr_ret_t ZCALL zproc_pop_nocheck(void* que){
     ztick_t tick;
     int sec,usec;
     zvalue_t val;
-    //int i = 0;
     tick = ztick();
     ZDBG("begin pop nocheck");
     while(g_run){
@@ -74,20 +79,19 @@ zthr_ret_t ZCALL zproc_pop_nocheck(void* que){
     ZDBG("pop down (pop nocheck)");
     while(ZOK == zque1_pop(que, &val));
     ztock(tick, &sec, &usec);
-    ZDBG("zproc_pop_nocheck(%d): %d.%06d",0, sec, usec);
+    ZDBG("zproc_pop_nocheck: %d.%06d",sec, usec);
     return 0;
 }
 
 zthr_ret_t ZCALL zproc_push(void* que){
     ztick_t tick;
     int sec,usec;
-    int i = 1024*1024;
     tick = ztick();
     tqueue_1r1w_push(que, 0, 10000000);
     ZDBG("push down (push)");
     g_run = 0;
     ztock(tick, &sec, &usec);
-    ZDBG("zproc_push(%d): %d.%06d", i, sec, usec);
+    ZDBG("zproc_push: %d.%06d", sec, usec);
     return 0;
 }
 zthr_ret_t ZCALL zproc_pop(void* que){
@@ -100,16 +104,21 @@ zthr_ret_t ZCALL zproc_pop(void* que){
         if(ZOK == zque1_pop(que, &val)){
             ZCONVERT(i, val);
             if(i != (old+1)){
-                ZDBG("error val<i:%d old:%d", i , old);
+                ZDBG("error val<i:%d old:%d>", i , old);
             }
             old = i;
+#if 0
+			if (0 == (i & 0xfff)){
+				ZDBG("pop<%d>", i);
+			}
+#endif
         }
     }
     ZDBG("push down (pop)");
     while(ZOK == zque1_pop(que, &val)){
         ZCONVERT(i, val);
         if(i != (old+1)){
-            ZDBG("error val<i:%d old:%d", i , old);
+            ZDBG("error val<i:%d old:%d>", i , old);
         }
         old = i;
     }

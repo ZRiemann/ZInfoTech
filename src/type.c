@@ -5,14 +5,18 @@
  */
 #include "export.h"
 #include "auto_version.h"
+#include <zit/base/platform.h>
 #include <stdio.h>
 
+#ifdef ZSYS_WINDOWS
+#pragma warning(disable:4996)
+#endif
 int zversion(){
-    int version;
+	int version;
     version = major_version; version <<= 8;
     version |= minor_version; version <<= 8;
     version |= revision_version;
-  return version;
+	return version;
 }
 
 const char* zsystem(){

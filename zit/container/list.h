@@ -49,7 +49,7 @@ typedef struct zlist_s{
     znod_t *head; ///< list head node
     znod_t *tail; ///< list tail node
     znod_t *recycle; ///< recycle buffer
-    size_t *size; ///< list size, 64bit aligned pointer.
+    zatm_t size; ///< list size, 64bit aligned pointer.
     uint32_t rec_size; ///< recycle buffer size
     uint32_t rec_max_size; ///< max recycle buffer size, if > size just free buffer.
     zspinlock_t spin; ///< spin lock for recycle
@@ -59,7 +59,7 @@ zerr_t zlist_popnode(zlist_t *list, znod_t **nod);
 zerr_t zlist_pushnode(zlist_t *list, znod_t *nod);
 zerr_t zlist_freenode(znod_t *nod);
 
-inline zerr_t zlist_popnode(zlist_t *list,  znod_t **nod){
+zinline zerr_t zlist_popnode(zlist_t *list,  znod_t **nod){
     // ignore assert args
     zspin_lock(&list->spin);
     *nod = list->recycle;
@@ -73,7 +73,7 @@ inline zerr_t zlist_popnode(zlist_t *list,  znod_t **nod){
     }
     return (*nod) ? ZEOK : ZEMEM_INSUFFICIENT;
 }
-inline zerr_t zlist_pushnode(zlist_t *list,  znod_t *nod){
+zinline zerr_t zlist_pushnode(zlist_t *list,  znod_t *nod){
     zspin_lock(&list->spin);
     if(list->rec_size < list->rec_max_size){
         nod->next = NULL;
@@ -83,15 +83,15 @@ inline zerr_t zlist_pushnode(zlist_t *list,  znod_t *nod){
         zspin_unlock(&list->spin);
     }else{
         zspin_unlock(&list->spin);
-        free(nod);
+        zmem_align_free(nod);
     }
     return ZEOK;
 }
-inline zerr_t zlist_freenode(znod_t *back){
+zinline zerr_t zlist_freenode(znod_t *back){
     znod_t *nod = back;
     while(nod){
         back = back->prev;
-        free(nod);
+        zmem_align_free(nod);
         nod = back;
     }
     return ZEOK;
@@ -109,22 +109,22 @@ inline zerr_t zlist_freenode(znod_t *back){
  *         next  ----------->  next  -------->NULL
  *       }                    }
  */
-inline zerr_t zlist_create(zcontainer_t *cont){
+zinline zerr_t zlist_create(zcontainer_t *cont){
     zlist_t *list;
-    size_t *size;
+    zatm_t size;
     znod_t *head;
     znod_t *tail;
 
-    size = (size_t*)zmem_align64(sizeof(size_t));
+    size = (zatm_t)zatm_alloc_atm();
     *cont = zmem_align64(sizeof(zlist_t));
     head = (znod_t*)zmem_align64(sizeof(znod_t));
     tail = (znod_t*)zmem_align64(sizeof(znod_t));
 
     if(!*cont || !size || !head || !tail){
-        free(*cont);
-        free(size);
-        free(head);
-        free(tail);
+        zmem_align_free(*cont);
+        zatm_free(size);
+        zmem_align_free(head);
+        zmem_align_free(tail);
         return ZEMEM_INSUFFICIENT;
     }
     list = (zlist_t*)(*cont);
@@ -145,7 +145,7 @@ inline zerr_t zlist_create(zcontainer_t *cont){
     return ZOK;
 }
 
-inline zerr_t zlist_destroy(zcontainer_t cont){
+zinline zerr_t zlist_destroy(zcontainer_t cont){
     zlist_t *list = (zlist_t*)cont;
     if(!cont){
         return ZEOK;
@@ -153,12 +153,12 @@ inline zerr_t zlist_destroy(zcontainer_t cont){
     zlist_freenode(list->recycle);
     zlist_freenode(list->tail);
     zspin_fini(&list->spin);
-    free(list->size);
-    free(list);
+    zatm_free(list->size);
+    zmem_align_free(list);
     return ZOK;
 }
 
-inline zerr_t zlist_push(zcontainer_t cont, zvalue_t in){
+zinline zerr_t zlist_push(zcontainer_t cont, zvalue_t in){
     zlist_t *list;
     znod_t *nod;
     znod_t *tnod;
@@ -181,7 +181,7 @@ inline zerr_t zlist_push(zcontainer_t cont, zvalue_t in){
     zatm_inc(list->size); // increment list size
     return ZOK;
 }
-inline zerr_t zlist_pop(zcontainer_t cont, zvalue_t *out){
+zinline zerr_t zlist_pop(zcontainer_t cont, zvalue_t *out){
     zlist_t *list = (zlist_t*)cont;
     znod_t *nod = list->head;
 
@@ -198,7 +198,7 @@ inline zerr_t zlist_pop(zcontainer_t cont, zvalue_t *out){
     return ZEOK;
 }
 
-inline zerr_t zlist_pushfront(zcontainer_t cont, zvalue_t in){
+zinline zerr_t zlist_pushfront(zcontainer_t cont, zvalue_t in){
     zlist_t *list;
     znod_t *nod;
     znod_t *tnod;
@@ -222,7 +222,7 @@ inline zerr_t zlist_pushfront(zcontainer_t cont, zvalue_t in){
     return ZEOK;
 }
 
-inline zerr_t zlist_popback(zcontainer_t cont, zvalue_t *out){
+zinline zerr_t zlist_popback(zcontainer_t cont, zvalue_t *out){
     zlist_t *list = (zlist_t*)cont;
     znod_t *nod = list->tail;
 
@@ -239,7 +239,7 @@ inline zerr_t zlist_popback(zcontainer_t cont, zvalue_t *out){
     return ZEOK;
 }
 
-inline zerr_t zlist_insert(zcontainer_t cont, zvalue_t in, zoperate compare, int condition){
+zinline zerr_t zlist_insert(zcontainer_t cont, zvalue_t in, zoperate compare, int condition){
     // commit single thread access
     zlist_t *list = (zlist_t*)cont;
     znod_t *nod = list->head;
@@ -268,7 +268,7 @@ inline zerr_t zlist_insert(zcontainer_t cont, zvalue_t in, zoperate compare, int
     return ret;
 }
 
-inline zerr_t zlist_erase(zcontainer_t cont, zvalue_t hint, zoperate compare, int condition){
+zinline zerr_t zlist_erase(zcontainer_t cont, zvalue_t hint, zoperate compare, int condition){
     zlist_t *list = (zlist_t*)cont;
     znod_t *nod = list->head;
     znod_t *in_nod = NULL;
@@ -291,7 +291,7 @@ inline zerr_t zlist_erase(zcontainer_t cont, zvalue_t hint, zoperate compare, in
     return ret;
 }
 
-inline zerr_t zlist_foreach(zcontainer_t cont, zoperate op, zvalue_t hint){
+zinline zerr_t zlist_foreach(zcontainer_t cont, zoperate op, zvalue_t hint){
     zlist_t *list = (zlist_t*)cont;
     znod_t *nod = list->head;
 
@@ -302,10 +302,10 @@ inline zerr_t zlist_foreach(zcontainer_t cont, zoperate op, zvalue_t hint){
     return ZEOK;
 }
 
-inline zsize_t zlist_size(zcontainer_t cont){
+zinline zsize_t zlist_size(zcontainer_t cont){
     return *((zlist_t*)cont)->size;
 }
-inline zerr_t zlist_back(zcontainer_t cont, zvalue_t *out){
+zinline zerr_t zlist_back(zcontainer_t cont, zvalue_t *out){
     zlist_t *list = (zlist_t*)cont;
     if(*list->size){
         *out = list->tail->prev->value;
@@ -313,7 +313,7 @@ inline zerr_t zlist_back(zcontainer_t cont, zvalue_t *out){
     }
     return ZENOT_EXIST;
 }
-inline zerr_t zlist_front(zcontainer_t cont, zvalue_t *out){
+zinline zerr_t zlist_front(zcontainer_t cont, zvalue_t *out){
     zlist_t *list = (zlist_t*)cont;
     if(*list->size){
         *out = list->head->next->value;
@@ -322,7 +322,7 @@ inline zerr_t zlist_front(zcontainer_t cont, zvalue_t *out){
     return ZENOT_EXIST;
 }
 
-inline zerr_t zlist_swap(zcontainer_t *cont1, zcontainer_t *cont2){
+zinline zerr_t zlist_swap(zcontainer_t *cont1, zcontainer_t *cont2){
     *cont2 = zatm_xchg_ptr(cont1, *cont2);
     return ZEOK;
 }

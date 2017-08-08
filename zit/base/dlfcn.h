@@ -26,7 +26,7 @@ char * zdl_error(void); // NULL: no error
 /*
  * implement
  */
-inline zdl_t zdl_open(const char *filename, int flags){
+zinline zdl_t zdl_open(const char *filename, int flags){
 #ifdef ZSYS_POSIX
     zdl_t dl =  dlopen(filename, flags);
     return dlerror() ? NULL : dl;
@@ -35,7 +35,7 @@ inline zdl_t zdl_open(const char *filename, int flags){
 #endif
 }
 
-inline int zdl_close(zdl_t dl){
+zinline int zdl_close(zdl_t dl){
 #ifdef ZSYS_POSIX
     return dlclose(dl) ? ZFUN_FAIL : ZOK;
 #else
@@ -43,7 +43,7 @@ inline int zdl_close(zdl_t dl){
 #endif
 }
 
-inline zvalue_t zdl_sym(zdl_t dl, const char *symbol){
+zinline zvalue_t zdl_sym(zdl_t dl, const char *symbol){
     if(!dl){
         return NULL;
     }
@@ -56,7 +56,7 @@ inline zvalue_t zdl_sym(zdl_t dl, const char *symbol){
 }
 
 
-inline char * zdl_error(void){ // NULL: no error
+zinline char * zdl_error(void){ // NULL: no error
 #ifdef ZSYS_POSIX
     return dlerror();
 #else

@@ -80,6 +80,9 @@ int main(int argc, char** argv){
 #if ZTRACE_LOG
     ztrace_logctl(NULL,0); // close the log file.
 #endif
+#if 0
+	getchar();
+#endif
     return 0;
 }
 
