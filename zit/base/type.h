@@ -13,6 +13,7 @@ ZC_BEGIN
 #ifdef ZSYS_WINDOWS
 #include "inttypes.h"
 #elif defined(ZSYS_POSIX)
+#include <sys/types.h> // size_t
 #include <inttypes.h>
 #endif//ZSYS_WINDOWS
 
@@ -109,9 +110,9 @@ typedef struct znode_s{
 
 #define ZCHUNK_SIZE 4096
 typedef struct zchunk_s{
-    zvalue_t value[ZCHUNK_SIZE];
     struct zchunk_s *next;
     struct zchunk_s *prev;
+    zvalue_t value[]; // value[chunk_size]
 }zchunk_t;
 
 #define ZOP_ARG zvalue_t in,zvalue_t *out,zvalue_t hint

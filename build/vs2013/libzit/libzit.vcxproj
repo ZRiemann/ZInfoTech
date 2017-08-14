@@ -92,23 +92,7 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\src\convert.c" />
-    <ClCompile Include="..\..\..\src\daemonize.c" />
-    <ClCompile Include="..\..\..\src\epoll.c" />
-    <ClCompile Include="..\..\..\src\filesys.c" />
-    <ClCompile Include="..\..\..\src\module.c" />
-    <ClCompile Include="..\..\..\src\socket.c" />
-    <ClCompile Include="..\..\..\src\ssl.c" />
-    <ClCompile Include="..\..\..\src\time.c" />
-    <ClCompile Include="..\..\..\src\trace.c" />
-    <ClCompile Include="..\..\..\src\tracebkg.c" />
-    <ClCompile Include="..\..\..\src\traceconsole.c" />
-    <ClCompile Include="..\..\..\src\tracelog.c" />
-    <ClCompile Include="..\..\..\src\tracenet.c" />
-    <ClCompile Include="..\..\..\src\tracering.c" />
-    <ClCompile Include="..\..\..\src\type.c" />
-  </ItemGroup>
-  <ItemGroup>
+    <ClInclude Include="..\..\..\src\export.h" />
     <ClInclude Include="..\..\..\zit\base\atomic.h" />
     <ClInclude Include="..\..\..\zit\base\config.h" />
     <ClInclude Include="..\..\..\zit\base\dlfcn.h" />
@@ -130,6 +114,27 @@
     <ClInclude Include="..\..\..\zit\thread\semaphore.h" />
     <ClInclude Include="..\..\..\zit\thread\spin.h" />
     <ClInclude Include="..\..\..\zit\thread\thread.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\..\src\container.c" />
+    <ClCompile Include="..\..\..\src\convert.c" />
+    <ClCompile Include="..\..\..\src\daemonize.c" />
+    <ClCompile Include="..\..\..\src\dlfcn.c" />
+    <ClCompile Include="..\..\..\src\epoll.c" />
+    <ClCompile Include="..\..\..\src\filesys.c" />
+    <ClCompile Include="..\..\..\src\module.c" />
+    <ClCompile Include="..\..\..\src\socket.c" />
+    <ClCompile Include="..\..\..\src\ssl.c" />
+    <ClCompile Include="..\..\..\src\statistic.c" />
+    <ClCompile Include="..\..\..\src\thread.c" />
+    <ClCompile Include="..\..\..\src\time.c" />
+    <ClCompile Include="..\..\..\src\trace.c" />
+    <ClCompile Include="..\..\..\src\tracebkg.c" />
+    <ClCompile Include="..\..\..\src\traceconsole.c" />
+    <ClCompile Include="..\..\..\src\tracelog.c" />
+    <ClCompile Include="..\..\..\src\tracenet.c" />
+    <ClCompile Include="..\..\..\src\tracering.c" />
+    <ClCompile Include="..\..\..\src\type.c" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

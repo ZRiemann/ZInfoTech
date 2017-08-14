@@ -279,7 +279,6 @@ zerr_t ztock(void *handle, int *_sec, int *_usec){
 			"\nztick:%llu.%06lu\nztock:%llu.%06lu",
 			begin.hour, begin.minute, begin.second, begin.millisecond, begin.microsecond,end.hour, end.minute, end.second, end.millisecond, end.microsecond,sec,usec,
 			tv->tv_sec, tv->tv_usec, tvend.tv_sec, tvend.tv_usec);
-		free(handle);
 	}else{
 		usec = 0;
 		sec = 0;
@@ -290,6 +289,7 @@ zerr_t ztock(void *handle, int *_sec, int *_usec){
 	if(_usec){
 		*_usec = usec;
 	}
+    free(handle);
 	return ZOK;
 #else
 	LARGE_INTEGER *begin = (LARGE_INTEGER*)handle;
@@ -311,6 +311,7 @@ zerr_t ztock(void *handle, int *_sec, int *_usec){
 	if (_usec){
 		*_usec = usec;
 	}
+    free(handle);
 	return ZOK;
 #endif
 }

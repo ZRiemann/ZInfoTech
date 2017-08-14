@@ -1,10 +1,9 @@
 #ifndef _ZFR_OBJEDT_H_
 #define _ZFR_OBJEDT_H_
-/**@file zit/framework/object.h
+/**
+ * @file zit/framework/object.h
  * @biref zfr object definitions
- * @note
- * @email 25452483@qq.com
- * @history 2016-9-12 ZRiemann found
+ * @author Z.Riemann <Z.Riemann.g@gmail.com>
  */
 #include <zit/base/type.h>
 

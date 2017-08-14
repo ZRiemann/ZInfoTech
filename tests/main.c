@@ -138,7 +138,7 @@ static void tzdl_open(int argc, char **argv){
         zdbg("abcdefg not defined");
 #endif
 
-        dl = zdl_open("libtstso.so", RTLD_LAZY);
+        dl = zdl_open("libtstso.so");
         ZERRCBX(NULL, dl);
         zdbg("zdl_open(\"libtstso.so\", RTLD_LAZY); OK");
         tadd = (ztadd)zdl_sym(dl, "tstso_add");
@@ -235,25 +235,28 @@ void bkglog(int argc, char ** argv){
 
 void rwlock(int argc, char ** argv){
     zrwlock_t rwlock;
-    ZERRC(zrwlock_init(&rwlock));
-    ZERRC(zrwlock_rdlock(&rwlock));
-    ZERRC(zrwlock_rdlock(&rwlock));
-    ZERRC(zrwlock_rdlock(&rwlock));
-    ZERRC(zrwlock_unlock(&rwlock, 1));
-    ZERRC(zrwlock_unlock(&rwlock, 1));
-    ZERRC(zrwlock_timedwrlock(&rwlock, 5));
-    ZERRC(zrwlock_unlock(&rwlock, 0));
-    ZERRC(zrwlock_timedwrlock(&rwlock, 5));
-    ZERRC(zrwlock_unlock(&rwlock, 0));
-    ZERRC(zrwlock_wrlock(&rwlock));
-    ZERRC(zrwlock_unlock(&rwlock, 0));
-    ZERRC(zrwlock_tryrdlock(&rwlock));
-    ZERRC(zrwlock_unlock(&rwlock, 1));
-    ZERRC(zrwlock_trywrlock(&rwlock));
-    ZERRC(zrwlock_unlock(&rwlock, 0));
-    ZERRC(zrwlock_timedrdlock(&rwlock, 1));
-    ZERRC(zrwlock_unlock(&rwlock, 1));
-    ZERRC(zrwlock_timedwrlock(&rwlock, 1));
-    ZERRC(zrwlock_unlock(&rwlock, 0));
-    ZERRC(zrwlock_fini(&rwlock));
+    zerr_t ret;
+    ret = ZEOK;
+    zrwlock_init(&rwlock);
+    zrwlock_rdlock(&rwlock);
+    zrwlock_rdlock(&rwlock);
+    zrwlock_rdlock(&rwlock);
+    zrwlock_unlock(&rwlock, 1);
+    zrwlock_unlock(&rwlock, 1);
+    zrwlock_timedwrlock(&rwlock, 5, ret);
+    zrwlock_unlock(&rwlock, 0);
+    zrwlock_timedwrlock(&rwlock, 5, ret);
+    zrwlock_unlock(&rwlock, 0);
+    zrwlock_wrlock(&rwlock);
+    zrwlock_unlock(&rwlock, 0);
+    zrwlock_tryrdlock(&rwlock);
+    zrwlock_unlock(&rwlock, 1);
+    zrwlock_trywrlock(&rwlock);
+    zrwlock_unlock(&rwlock, 0);
+    zrwlock_timedrdlock(&rwlock, 1, ret);
+    zrwlock_unlock(&rwlock, 1);
+    zrwlock_timedwrlock(&rwlock, 1, ret);
+    zrwlock_unlock(&rwlock, 0);
+    zrwlock_fini(&rwlock);
+    ZERRC(ret);
 }

@@ -40,6 +40,16 @@ typedef void* zatmp_t;
 #define zatm_xchg(ptr, newval) __sync_lock_test_and_set (ptr, newval);
 #define zatm_xchg_ptr(ptr, newval) __sync_lock_test_and_set (ptr, newval);
 
+#define zatm_barrier() __sync_synchronize()
+
+#define zatm64_add(ptr, value) __sync_add_and_fetch(ptr, value)
+#define zatm64_sub(ptr, value) __sync_sub_and_fetch(ptr, value)
+#define zatm64_inc(ptr) __sync_add_and_fetch(ptr, 1)
+#define zatm64_dec(ptr) __sync_sub_and_fetch(ptr, 1)
+#define zatm64_cas(ptr, oldval, newval) __sync_val_compare_and_swap(type *ptr,oldval,newval)
+#define zatm64_xchg(ptr, newval) __sync_lock_test_and_set (ptr, newval);
+#define zatm64_xchg_ptr(ptr, newval) __sync_lock_test_and_set (ptr, newval);
+
 #elif defined(ZSYS_WINDOWS)
 
 #include <Windows.h>
@@ -55,6 +65,14 @@ typedef void* zatmp_t;
 #define zatm_xchg(ptr, newval) InterlockedExchange(ptr, newval)
 #define zatm_xchg_ptr(ptr, newval) InterlockedExchangePointer(ptr, newval)
 
+#define zatm64_add(ptr, value) InterlockedExchangeAdd64(ptr, value)
+#define zatm64_sub(ptr, value) InterlockedExchangeAdd64(ptr, -(value))
+#define zatm64_inc(ptr) InterlockedIncrement64(ptr)
+#define zatm64_dec(ptr) InterlockedDecrement64(ptr)
+#define zatm64_cas(ptr, oldval, newval) InterlockedCompareExchange64(ptr, newval, oldval)
+#define zatm64_xchg(ptr, newval) InterlockedExchange64(ptr, newval)
+#define zatm_barrier()
+
 #else // some embend code, no threads
 
 #define zatm_alloc(size) cmalloc(1, size)
@@ -66,6 +84,7 @@ typedef void* zatmp_t;
 #define zatm_cas(ptr, oldval, newval) (*ptr == oldval) ? *ptr = newval : oldval;
 #define zatm_xchg(ptr, newval) do{ptr ^= newval; newval ^= ptr; ptr ^= newval;}while(0)
 #define zatm_xchg_ptr(ptr, newval) do{ptr ^= newval; newval ^= ptr; ptr ^= newval;}while(0)
+#define zatm_barrier()
 
 #endif
 

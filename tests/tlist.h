@@ -181,7 +181,7 @@ static void list_1r1w(int argc, char **argv){
     zerr_t ret;
 
     ZDBG("testing listue_1r1w now...");
-    ret = zlist_create(&list); ZERRC(ret);
+    ret = zlist_create(&list, NULL); ZERRC(ret);
     // base test
     list_1r1w_base(list);
     // 1 read 1 write thread test

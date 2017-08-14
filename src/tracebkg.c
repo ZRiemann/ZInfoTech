@@ -59,6 +59,7 @@ static zerr_t free_buf(ZOP_ARG){
 
 int ztrace_bkgctl(ztrace cb){
     int ret;
+    int chunk_size = 960;
     ret = ZOK;
     intlen = sizeof(int);
     voidlen = sizeof(void*);
@@ -66,9 +67,9 @@ int ztrace_bkgctl(ztrace cb){
 
     zspin_init(&in_spin);
     zspin_init(&tq_spin);
-    zque1_create(&in);
-    zque1_create(&out);
-    zque1_create(&tq_buf);
+    zque1_create(&in, &chunk_size);
+    zque1_create(&out, &chunk_size);
+    zque1_create(&tq_buf, &chunk_size);
     zsem_init(&thr_sem, 0);
     zthread_create(&thr_id, zproc_trace, NULL);
     return ret;

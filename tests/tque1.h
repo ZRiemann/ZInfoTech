@@ -1,10 +1,29 @@
 #include <zit/container/queue.h>
+#include "tstatistic.h"
 
 static void tqueue_1r1w_push(zcontainer_t que, int begin, int end){
     zvalue_t val;
+#if ZUSE_STATISTIC
+    zstat_node_t node;
+#endif
     for(int i = begin; i<end; ++i){
+#if ZUSE_STATISTIC
+        zstatistic_push_hots(g_stat_hots, &node, SRI_QUE1, SFI_QUE1_PUSH);
+        //zsleepms(10);
+#endif
         ZCONVERT(val, i);
         zque1_push(que, val);
+#if ZUSE_STATISTIC
+        /* test dead lock begin, no pop */
+#if 0
+        if(i== 100){
+            // not pop hots, simulator deadlock 
+            break;
+        }
+#endif
+        /* test dead lock end */
+        zstatistic_pop_hots(&node);
+#endif
 #if 0
 		if (0 == (i & 0xfff)){
 			ZDBG("push<%d>", i);
@@ -26,6 +45,7 @@ static void tqueue_1r1w_push_nocheck(zcontainer_t que, int begin, int end){
     }
 }
 
+#if !ZUSE_STATISTIC
 static void tqueue_1r1w_base(zcontainer_t que){
     zvalue_t val;
     int i;
@@ -52,6 +72,7 @@ static void tqueue_1r1w_base(zcontainer_t que){
         dump_int(val, NULL, NULL);
     }
 }
+#endif
 
 zthr_ret_t ZCALL zproc_push_nocheck(void* que){
     ztick_t tick;
@@ -98,9 +119,16 @@ zthr_ret_t ZCALL zproc_pop(void* que){
     ztick_t tick;
     int sec,usec, i, old;
     zvalue_t val;
+#if ZUSE_STATISTIC
+    zstat_node_t node;
+#endif
     old = 0;
     tick = ztick();
+
     while(g_run){
+#if ZUSE_STATISTIC
+        zstatistic_push_hots(g_stat_hots, &node, SRI_QUE1, SFI_QUE1_POP);
+#endif
         if(ZOK == zque1_pop(que, &val)){
             ZCONVERT(i, val);
             if(i != (old+1)){
@@ -113,15 +141,31 @@ zthr_ret_t ZCALL zproc_pop(void* que){
 			}
 #endif
         }
+#if ZUSE_STATISTIC
+        zstatistic_pop_hots(&node);
+#endif
     }
     ZDBG("push down (pop)");
-    while(ZOK == zque1_pop(que, &val)){
+    while(1){
+#if ZUSE_STATISTIC
+    zstatistic_push_hots(g_stat_hots, &node, SRI_QUE1, SFI_QUE1_POP);
+#endif
+        if(ZOK != zque1_pop(que, &val)){
+#if ZUSE_STATISTIC
+        zstatistic_pop_hots(&node);
+#endif
+            break;
+        }
         ZCONVERT(i, val);
         if(i != (old+1)){
             ZDBG("error val<i:%d old:%d>", i , old);
         }
         old = i;
+#if ZUSE_STATISTIC
+        zstatistic_pop_hots(&node);
+#endif
     }
+
     ZCONVERT(i, val);
     ztock(tick, &sec, &usec);
     ZDBG("zproc_pop(%d): %d.%06d",i, sec, usec);
@@ -155,15 +199,23 @@ static void tqueue_1r1w(int argc, char **argv){
     // test queue 1read 1write
     zcontainer_t que;
     zerr_t ret;
-
+#if ZUSE_STATISTIC
+    int hots[] = {SFI_GLOBAL_SIZE, SFI_QUE1_SIZE};
+    zstatistic_init(&g_stat_hots, SRI_SIZE, hots);
+#endif
     ZDBG("testing queue_1r1w now...");
-    ret = zque1_create(&que); ZERRC(ret);
+    ret = zque1_create(&que, NULL); ZERRC(ret);
     // base test
+#if !ZUSE_STATISTIC
     tqueue_1r1w_base(que);
+#endif
     // 1 read 1 write thread test
     tqueue_1r1w_thr(que);
     tqueue_1r1w_thr_nocheck(que);
     ret = zque1_destroy(que); ZERRC(ret);
     ZDBG("testing queue_1r1w down.");
+#if ZUSE_STATISTIC
+    zstatistic_dump_file(g_stat_hots, SRI_SIZE, hots, NULL);
+    zstatistic_fini(&g_stat_hots, SRI_SIZE, hots);
+#endif
 }
-

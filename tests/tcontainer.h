@@ -173,7 +173,7 @@ static void tcontainer(int argc, char **argv){
 
     for(int i= 0; i<10; i++){
         ZDBG("testing container<%d> now...", i);
-        ret = zcontainer_create(&cont, i);
+        ret = zcontainer_create(&cont, i, NULL);
         if(ZOK != ret){
             ZDBG("container<%d> %s", i, zstrerr(ret));
             continue;
