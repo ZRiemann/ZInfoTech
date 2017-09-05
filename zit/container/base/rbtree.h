@@ -1,6 +1,29 @@
 #ifndef _Z_CONT_RB_TREEX_H_
 #define _Z_CONT_RB_TREEX_H_
-
+/*
+ *
+ * Copyright (c) 2016 by Z.Riemann ALL RIGHTS RESERVED
+ *
+ * Permission to use, copy, modify, distribute and sell this software
+ * and its documentation for any purpose is hereby granted without fee,
+ * provided that the above copyright notice appear in all copies and
+ * that both that copyright notice and this permission notice appear
+ * in supporting documentation.  Z.Riemann makes no
+ * representations about the suitability of this software for any
+ * purpose.  It is provided "as is" without express or implied warranty.
+ *
+ */
+/**
+ * @file zit/container/base/rbtree.h
+ * @brief A classical red-black tree implements
+ *
+ * - see https://github.com/prasanthmadhavan/Red-Black-Tree.git
+ * - extends
+ *   -# thread safe;
+ *   -# has memory allocate, support any type and structurs;
+ *   -# support multiple items by one key;
+ *   -# support hash compare, default key type is int32_t;
+ */
 #include <zit/base/type.h>
 #include <zit/base/atomic.h>
 #include <zit/container/base/alloc.h>
