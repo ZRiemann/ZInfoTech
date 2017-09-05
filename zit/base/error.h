@@ -5,6 +5,8 @@
  */
 #include <zit/base/type.h>
 
+ZC_BEGIN
+
 #define ZEMASK 0xff000000
 #define ZEOK 0 // ZError OK
 #define ZEFAIL (ZEMASK | 1) // ZError FAILED
@@ -56,5 +58,7 @@ ZEXTERN zerr_t ZSOCK;
 #define ZASSERTC(x,c) if(x)return(c)
 #define ZASSERT(x) if(x)return(ZEPARAM_INVALID)
 #define ZASSERTX(x) if(x)return
+
+ZC_END
 
 #endif

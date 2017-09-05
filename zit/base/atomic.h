@@ -5,15 +5,18 @@
 
 #ifdef ZSYS_WINDOWS
 #include "inttypes.h"
+typedef volatile long zatm32_t;
+typedef long* zatm_t;
+typedef __int64* zatm64_t;
 #elif defined(ZSYS_POSIX)
 #include <inttypes.h>
+typedef volatile int32_t zatm32_t;
+typedef int32_t *zatm_t;
+typedef int64_t *zatm64_t;
 #endif//ZSYS_WINDOWS
 
 #include <malloc.h>
 
-typedef volatile int32_t zatm32_t;
-typedef int32_t *zatm_t;
-typedef int64_t *zatm64_t;
 typedef void* zatmp_t;
 
 #ifdef ZSYS_WINDOWS
@@ -63,7 +66,7 @@ typedef void* zatmp_t;
 #define zatm_dec(ptr) InterlockedDecrement(ptr)
 #define zatm_cas(ptr, oldval, newval) InterlockedCompareExchange(ptr, newval, oldval)
 #define zatm_xchg(ptr, newval) InterlockedExchange(ptr, newval)
-#define zatm_xchg_ptr(ptr, newval) InterlockedExchangePointer(ptr, newval)
+#define zatm_xchg_ptr(ptr, newval) InterlockedExchangePointer((volatile PVOID*)ptr, (PVOID)newval)
 
 #define zatm64_add(ptr, value) InterlockedExchangeAdd64(ptr, value)
 #define zatm64_sub(ptr, value) InterlockedExchangeAdd64(ptr, -(value))

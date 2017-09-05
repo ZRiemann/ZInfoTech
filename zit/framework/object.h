@@ -1,3 +1,4 @@
+#if 0
 #ifndef _ZFR_OBJEDT_H_
 #define _ZFR_OBJEDT_H_
 /**
@@ -64,6 +65,9 @@ ZAPI zerr_t zdev_mount_init(zdev_t *dev, ZOP_ARG);
 ZAPI zerr_t zdev_mount_fini(zdev_t *dev, ZOP_ARG);
 ZAPI zerr_t zdev_mount_run(zdev_t *dev, ZOP_ARG);
 ZAPI zerr_t zdev_mount_stop(zdev_t *dev, ZOP_ARG);
+
 ZC_END
 
 #endif
+
+#endif // if 0

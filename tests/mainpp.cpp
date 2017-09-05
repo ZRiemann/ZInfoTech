@@ -10,6 +10,10 @@
 #include <string.h>
 #include <queue>
 #include <list>
+#include "tarray.h"
+#include "tmap.h"
+#include "tqueue.h"
+#include "ttree.h"
 
 static int g_run;
 static zspinlock_t g_spin;
@@ -21,8 +25,16 @@ int main(int argc, char** argv){
     zspin_init(&g_spin);
     if(argc >= 2 && strcmp("queue_1r1w", argv[1]) == 0){
         tqueue_1r1w(argc, argv);
+    }else if(argc >= 2 && strcmp("tree", argv[1]) == 0){
+        ttree(argc, argv);
+    }else if(argc >= 2 && strcmp("map", argv[1]) == 0){
+        tmap(argc, argv);
+    }else if(argc >= 2 && strcmp("queue", argv[1]) == 0){
+        tqueue(argc, argv);
     }else if(argc >= 2 && strcmp("list_1r1w", argv[1]) == 0){
         tlist_1r1w(argc, argv);
+    }else if(argc >= 2 && strcmp("array", argv[1]) == 0){
+        tarray(argc, argv);
     }else{
         zdbg("param error");
     }

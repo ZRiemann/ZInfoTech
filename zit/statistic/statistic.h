@@ -55,6 +55,11 @@
 #include <zit/base/atomic.h>
 #include <zit/base/time.h>
 #include <zit/thread/thread.h>
+#include <zit/container/map.h>
+#include <zit/container/queue.h>
+#include <zit/thread/spin.h>
+
+ZC_BEGIN
 /**
  * @brief A object function call counter and frequency recode
  */
@@ -64,24 +69,64 @@ typedef struct zstatistic_hotspot_s{
     zatm_t hots_idx; ///< last hotspot index
     ztime_stamp_t hotspot[256]; ///< hotspot vector
     uint64_t real_time[256]; ///< function real time
-    zatm_t stack_idx; /// thread stack idx
-    uint32_t tid_stack[256]; ///< thread call stack [1-push,0-pop | tid_t]
-}zstat_hots_t;
+}zststc_hots_t;
 
 typedef struct zstatistic_node_s{
-    zstat_hots_t *hots;
+    zststc_hots_t *hots;
+    zcontainer_t que;
     ztime_stamp_t begin;
     ztime_stamp_t end;
     uint64_t interval;
     int idx;
     ztid_t tid;
-}zstat_node_t;
+}zststc_node_t;
 
-ZAPI zerr_t zstatistic_init(zstat_hots_t ***hots, int n, int *size);
-ZAPI zerr_t zstatistic_fini(zstat_hots_t ***hots, int n, int *size);
-ZAPI void  zstatistic_push_hots(zstat_hots_t **hots, zstat_node_t *node, int sri, int sfi);
-ZAPI void zstatistic_pop_hots(zstat_node_t *node);
-ZAPI void zstatistic_dump_file(zstat_hots_t **hots, int n, int *size, const char* path);
+typedef struct zstatistic_s{
+    zststc_hots_t **hots;
+    int hots_size;
+    int* hots_fns;
+
+    zmap_t *thr_stack; /** thread call stack*/
+    char ***sfn; /** statistic function name */
+    zspinlock_t spin; /** spin lock */
+}zststc_t;
+
+ZAPI zerr_t zststc_init(zststc_t *stc, int hots_size, int *hots_fns);
+ZAPI zerr_t zststc_fini(zststc_t *stc);
+ZAPI void zststc_dump_org(zststc_t *stc, const char *path);
+ZAPI void zststc_add_thrs(zststc_t *stc, const char *thr_name);
+#define ZSTSTC_MAKE_SFN(stc, i, j) stc.sfn[i][j] = (char*)(SFN_##i##j)
+
+zinline void zststc_push(zststc_node_t *node, zststc_t *stc, int sri, int sfi){
+    node->hots = &(stc->hots[sri][sfi]);
+    node->tid = zthread_self();
+    if(stc->thr_stack->size){
+        zany_t key = {0};
+        zpair_t *pair = NULL;
+        key.u32 = node->tid;
+        zmap_find(stc->thr_stack, key, &pair, NULL);
+        zque1_push(pair->value.p, (zvalue_t)stc->sfn[sri][sfi]);
+        node->que = pair->value.p;
+    }else{
+        node->que = NULL;
+    }
+    ztime_stamp(&node->begin);
+}
+
+zinline void zststc_pop(zststc_node_t *node){
+    ztime_stamp(&node->end);
+    zatm64_inc(node->hots->hits);
+    ztime_interval(&node->begin,  &node->end, &node->interval);
+    node->idx = zatm_inc(node->hots->hots_idx) & 0xff;
+    node->hots->hotspot[node->idx] = node->begin;
+    node->hots->real_time[node->idx] = node->interval;
+    zatm64_add(node->hots->total_time, node->interval);
+    if(node->que){
+        zque1_popback(node->que, NULL);
+    }
+}
+
+ZC_END
 
 #if 0 // sample
 // zit_statistic.h
@@ -95,11 +140,15 @@ zstat_hots_t** g_hots_res;
 #define SFI_GLOBAL 0
 
 #define SFI_A_fa 0 // statistic function index A::fa
+#define SFN_10 "A::fa"// Statistic Funciton Name A::fa
 #define SFI_A_fa1 1 // statistic function index A::fa1
-#define SFI_A_SIZE 3
+#define SFN_11 "A::fa1"// Statistic Funciton Name A::fa1
+#define SFI_A_SIZE 2
 
 #define SFI_B_fb 0
+#define SFN_20 "B::fb"// Statistic Funciton Name A::fa1
 #define SFI_B_fb1 1
+#define SFN_21 "b::fb1"// Statistic Funciton Name A::fa1
 #define SFI_B_SIZE 2
 
 extern zstat_hots_t **g_stat_hots; // try use singleton pattern
@@ -148,9 +197,16 @@ public:
 zstat_res_t **g_stat_res; // try use singleton pattern
 void main(){
     int hots[] = {SFI_GLOBAL, SFI_A_SIZE, SFI_B_SIZE};
-    zstatistic_init(&g_stat_res, SRI_SIZE, hots);
+    zststc_init(&g_ststc, SRI_SIZE, hots);
+    ZSTSTC_MAKE_SFN(g_ststc, 1, 0);
+    ZSTSTC_MAKE_SFN(g_ststc, 1, 1);
+    ZSTSTC_MAKE_SFN(g_ststc, 2, 0);
+    ZSTSTC_MAKE_SFN(g_ststc, 2, 1);
+
     //...
-    zstatistic_fini(&g_stat_res, SRI_SIZE, hots);
+    zststc_dump_org(&g_ststc, "/tmp/demo_");
+    zststc_fini(&g_ststc);
+
 }
 #endif // if 0
 

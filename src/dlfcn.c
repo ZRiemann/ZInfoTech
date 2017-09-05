@@ -2,13 +2,18 @@
 #include <zit/base/dlfcn.h>
 #include <zit/base/filesys.h>
 #include <zit/base/error.h>
+#include <zit/base/trace.h>
 /*
  * implement
  */
 zdl_t zdl_open(const char *filename){
 #ifdef ZSYS_POSIX
     zdl_t dl =  dlopen(filename, RTLD_LAZY);
-    return dlerror() ? NULL : dl;
+    //return dlerror() ? NULL : dl;
+    if(!dl){
+        ZDBG("%s", dlerror());
+    }
+    return dl;
 #else
     return LoadLibrary(filename);
 #endif

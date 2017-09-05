@@ -21,8 +21,9 @@
 #	$(CC) -g -Wl,-rpath=. -L$(BIN_DIR) -lzit -lpthread -lrt -D_REENTRANT $^ -o $@
 
 BIN_DIR=../$(BIN_NAME)
-ZIT_LIB= module.o time.o traceconsole.o tracelog.o  trace.o type.o socket.o filesys.o convert.o tracebkg.o container.o thread.o dlfcn.o statistic.o
-ZIT_TST= main.o
+ZIT_LIB= module.o time.o traceconsole.o tracelog.o  trace.o type.o socket.o filesys.o convert.o tracebkg.o container.o thread.o dlfcn.o statistic.o epoll.o rbtree.o
+#ZIT_TST= main.o tmulti_define.o
+ZIT_TST= main.o tmulti_define.o
 #ZIT_FLAGS='-pthread -lrt -D_REENTRANT'
 
 .PHONY : all

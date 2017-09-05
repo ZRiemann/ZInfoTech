@@ -49,6 +49,7 @@ ZAPI zsock_t zsocket(int domain, int type, int protocol);
 ZAPI int zsockclose(zsock_t sock);
 // active connect
 ZAPI int zinet_addr(zsockaddr_in *addr, const char *host, uint16_t port);
+ZAPI int zinet_str(zsockaddr_in *addr, char *host, uint16_t *port);
 ZAPI int zconnect(zsock_t sock, const ZSA *addr, int len);
 ZAPI int zrecv(zsock_t sock, char *buf, int len, int flags);
 ZAPI int zsend(zsock_t sock, const char *buf, int len, int flags);

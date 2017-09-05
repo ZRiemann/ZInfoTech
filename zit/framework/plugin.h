@@ -15,6 +15,8 @@
 #include <zit/base/dlfcn.h>
 #include <zit/base/filesys.h>
 
+ZC_BEGIN
+
 typedef struct zplugin_interface_s{
     zoperate init;
     zoperate fini;
@@ -58,6 +60,8 @@ ZAPI zerr_t zplg_operate(zplg_t *plg, zvalue_t *out, zvalue_t hint);
 
 ZAPI zerr_t zplg_dummy(ZOP_ARG);
 ZAPI zerr_t zplg_notsupport(ZOP_ARG);
+
+ZC_END
 
 #if 0
 int zplg_ftw(const char *pathname, zfstat_t *stat, int ftw_flag, zvalue_t hint){

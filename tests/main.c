@@ -20,7 +20,11 @@ static int g_run;
 #include "tque1.h"
 #include "tlist.h"
 #include "tcontainer.h"
-
+#include "tarray.h"
+#include "tmap.h"
+#include "tqueue.h"
+#include "tepoll.h"
+#include "ttree.h"
 static void bkglog(int argc, char ** argv);
 static void rwlock(int argc, char ** argv);
 static void tzdl_open(int argc, char **argv);
@@ -36,6 +40,30 @@ int ztst_trace(int level, void* user, const char* msg){
     return ZEOK;
 }
 
+#if 0
+static void ztst_memcp(){
+	uint64_t i = 0;
+	uint64_t j = 0;
+    uint64_t k = 0;
+	ztick_t tick = ztick();
+	for (i = 0; i < 0xfffffffff; ++i){
+		j = i;
+		k += j;
+	}
+	ztock(tick, NULL, NULL);
+	printf("%llu\n", (long long unsigned int)k); /* interval:17.966358 */
+    k = 0;
+	tick = ztick();
+	for (i = 0; i < 0xfffffffff; ++i){
+		memcpy(&j, &i, sizeof(uint64_t));
+		k += j;
+	}
+	ztock(tick, NULL, NULL);
+	printf("%llu\n", (long long unsigned int)k); /* interval:17.961942 */
+	getchar();
+}
+#endif
+
 int main(int argc, char** argv){
 #if ZTRACE_LOG
     ztrace_logctl("ztest.log",80*1024*1024);
@@ -47,16 +75,30 @@ int main(int argc, char** argv){
     ztrace_reg(ztrace_console, 0);
 #endif
     //ztrace_reg_0copy(ztrace_0cpy_bkg, 0, ztrace_bkgbuf);
-
-    zdbg("\n zit_test bkglog <lognum>"
-         "\n zit_test rwlock"
-         "\n zit_test zdl_open"
-         "\n zit-test plugin"
-        "\n zit_test queue_1r1w"
-        "\n zit_test list_1r1w"
-        "\n zit_test container");
-    if(argc >= 2 && strcmp("bkglog", argv[1]) == 0){
+    zdbg("\n bkglog <lognum>"
+         "\n rwlock"
+         "\n zdl_open"
+         "\n plugin"
+         "\n queue_1r1w"
+         "\n list_1r1w"
+         "\n container"
+         "\n array <size>"
+         "\n map <size>"
+         "\n queue <chunk_size> <value_size>"
+         "\n tree <numbers>"
+         "\n epoll echo_svr_cli <ehco_number> <client_threads> <conn_per_thr>");
+    if(argc >= 2 && strcmp("array", argv[1]) == 0){
+        tarray(argc, argv);
+    }else if(argc >= 2 && strcmp("tree", argv[1]) == 0){
+        ttree(argc, argv);
+    }else if(argc >= 2 && strcmp("bkglog", argv[1]) == 0){
         bkglog(argc, argv);
+    }else if(argc >= 2 && strcmp("epoll", argv[1]) == 0){
+        tepoll(argc, argv);
+    }else if(argc >= 2 && strcmp("queue", argv[1]) == 0){
+        tqueue(argc, argv);
+    }else if(argc >= 2 && strcmp("map", argv[1]) == 0){
+        tmap(argc, argv);
     }else if(argc >= 2 && strcmp("rwlock", argv[1]) == 0){
         rwlock(argc, argv);
     }else if(argc >= 2 && strcmp("zdl_open", argv[1]) == 0){

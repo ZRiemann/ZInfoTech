@@ -25,47 +25,21 @@ ZC_BEGIN
 #endif//__cplusplus
 #endif//NULL
 
-#ifndef ZTRUE
 #define ZTRUE 1
-#endif
-#ifndef ZFALSE
 #define ZFALSE 0
-#endif
-
-#ifndef ZMAX_PATH
 #define ZMAX_PATH 256
-#endif
-
-#ifndef ZFRONT
 #define ZFRONT 0
-#endif
-#ifndef ZBACK
 #define ZBACK 1
-#endif
-
-#ifndef ZEQUAL
 #define ZEQUAL 0
-#endif
-#ifndef ZGREAT
 #define ZGREAT 1
-#endif
-#ifndef ZLITTLE
 #define ZLITTLE -1
-#endif
-
-typedef enum{
-    ZUNINIT = 0,
-    ZINIT,
-    ZRUN,
-    ZSTOPING, // begin stop 
-    ZSTOP    // end stop
-}zstatus_t;
 
 #define ZSTAT_FINI 0
 #define ZSTAT_INIT 1
 #define ZSTAT_RUN 2
 #define ZSTAT_STOP 3
 #define ZSTAT_PENDING 4 // not in any status while switch status
+#define ZSTAT_BUSY ZSTAT_PENDING
 
 typedef void* zvalue_t;
 typedef zvalue_t zptr_t;
@@ -94,12 +68,14 @@ typedef union{
     int64_t i64;
     uint64_t u64;
 }zany_t;// any base type
+#define ZANY_CMP(any1, any2) (any1.i64 - any2.i64)
 
 typedef struct zpair_s{
     zany_t key;
-    zvalue_t value;
-    //zvalue_t hint;
+    zany_t value;
 }zpair_t;
+//#define ZPVU64 pair->value.u64
+
 
 typedef struct znode_s{
     zvalue_t value;
@@ -115,12 +91,14 @@ typedef struct zchunk_s{
     zvalue_t value[]; // value[chunk_size]
 }zchunk_t;
 
+
 #define ZOP_ARG zvalue_t in,zvalue_t *out,zvalue_t hint
 #define ZOP_NULL NULL,NULL,NULL
 #define ZOP_IN(in) (zvalue_t)in,NULL,NULL
 #define ZOP_HINT(hint) NULL,NULL,(zvalue_t)hint
 
 #if 0
+#include <stdio.h>
 #define zprint(fmt, ...) printf("[ln:%4d fn:%s]\t" fmt, __LINE__, __FUNCTION__, ##__VA_ARGS__)
 #else
 #define zprint(fmt, ...)

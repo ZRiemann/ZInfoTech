@@ -99,6 +99,7 @@ zerr_t zsem_wait(zsem_t* sem, int ms){
             return ret;
         }
         ts.tv_sec += sec;
+        ts.tv_nsec %= ZNANO_SEC;
         ts.tv_nsec += ns;
         ts.tv_sec += (ts.tv_nsec/ZNANO_SEC);
         ts.tv_nsec %=ZNANO_SEC;
@@ -181,6 +182,7 @@ ZAPI zerr_t zthread_join(zthr_id_t* id){
 	  case WAIT_FAILED:ret = GetLastError(); break;
 	  default:ret = ZEFUN_FAIL; break;
 	  }
+      if(0 == CloseHandle(*id))ret = GetLastError();
 #endif
       ZMSG("zthread_join(id:%p) end %s", id, zstrerr(ret));
       return ret;
