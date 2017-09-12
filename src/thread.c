@@ -125,6 +125,7 @@ zerr_t zsem_wait(zsem_t* sem, int ms){
         ret = sem_wait(sem);
         if(-1 == ret ){
             ret = errno;
+            ZERRC(ret);
         }
     }
 

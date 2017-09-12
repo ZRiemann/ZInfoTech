@@ -54,13 +54,13 @@ zinline zbtnode_t* uncle(zbtnode_t* n) {
     return sibling(n->parent);
 }
 
-
+/*
 zinline zbtnode_t* lookup_node(zbtree_t *t, zbtnode_t *key) {
     zbtnode_t* n = NULL;
     zspin_lock(&t->spin);
     n = t->root;
     while (n != NULL) {
-        int comp_result = zrbtree_compare(t, n, key);
+        int comp_result = zrbtree_compare_node(t, n, key);
         if (comp_result == 0) {
             zspin_unlock(&t->spin);
             return n;
@@ -74,7 +74,7 @@ zinline zbtnode_t* lookup_node(zbtree_t *t, zbtnode_t *key) {
     zspin_unlock(&t->spin);
     return n;
 }
-
+*/
 zinline void replace_node(zbtree_t *t, zbtnode_t* oldn, zbtnode_t* newn) {
     if (oldn->parent == NULL) {
         t->root = newn;
@@ -256,14 +256,22 @@ zerr_t zrbtree_insert(zbtree_t *t, zbtnode_t *inserted_node) {
         t->root = inserted_node;
     } else {
         zbtnode_t* n = t->root;
+        //ZDBG("before positon insert:");
         while (1) {
             int comp_result = zrbtree_compare_node(t, n, inserted_node);
             if (comp_result == 0) {
                 if(t->multiple){
                     /* multi insert */
-                    inserted_node->next = n->next;
-                    n->next = inserted_node;
+                    while(n->next){
+                        n = n->next;
+                    }
+                    n->next = inserted_node; /* support multi insert if inserted_node is a list */
+                    zspin_unlock(&t->spin);
+                    //ZDBG("mulit item");
+                    return 0;
                 }else{
+                    ZDBG("equal item refer<ptr:%p key:%d> <==> inserted_node<ptr:%p key:%d>",
+                         n, zrbn_key(n), inserted_node, zrbn_key(inserted_node));
                     zspin_unlock(&t->spin);
                     return -1;
                 }
@@ -286,19 +294,47 @@ zerr_t zrbtree_insert(zbtree_t *t, zbtnode_t *inserted_node) {
         }
         inserted_node->parent = n;
     }
+    //ZDBG("before rebalance insert: ptr<%p>", inserted_node);
+    //zrbtree_print(t);
     insert_case1(t, inserted_node);
+    //ZDBG("after rebalance insert: ptr<%p>", inserted_node);
+    //zrbtree_print(t);
     //verify_properties(t);
+    //ZDBG("insert node<ptr:%p>", inserted_node);
     zspin_unlock(&t->spin);
     return 0;
 }
+
 zerr_t zrbtree_erase(zbtree_t *t, zbtnode_t *key) {
     zbtnode_t* child;
-    zbtnode_t* n = lookup_node(t, key);
-    if (n == NULL) return -1;
+    int comp_result;
+    zbtnode_t *n;
+
     zspin_lock(&t->spin);
+    /* look up node */
+    //ZDBG("before erase<%d>:", zrbn_key(key));
+    //zrbtree_print(t);
+    n = t->root;
+    while (n != NULL) {
+        comp_result = zrbtree_compare_node(t, n, key);
+        if (comp_result == 0) {
+            //zspin_unlock(&t->spin);
+            break;
+        } else if (comp_result > 0) {
+            n = n->left;
+        } else {
+            assert(comp_result < 0);
+            n = n->right;
+        }
+    }
+    if (n == NULL){
+        zspin_unlock(&t->spin);
+        return -1;
+    }
+    /* erase node */
     if (n->left != NULL && n->right != NULL) {
         zbtnode_t* pred = maximum_node(n->left);
-        //n->key   = pred->key;
+#if 0
         memcpy(n->data, pred->data, t->data_size);
         if(t->multiple){
             child = n->next;
@@ -306,6 +342,178 @@ zerr_t zrbtree_erase(zbtree_t *t, zbtnode_t *key) {
             pred->next = child;
         }
         n = pred;
+#else
+        zbtnode_t *tmp = pred->parent;
+        enum rbtree_node_color tmp_color = pred->color;
+        pred->color = n->color;
+        n->color = tmp_color;
+
+        if(pred->parent){
+            pred == pred->parent->left ? (pred->parent->left = n) : (pred->parent->right = n);
+        }
+        if(n->parent){
+            n == n->parent->left ? (n->parent->left = pred) : (n->parent->right = pred);
+        }
+        pred->parent = n->parent;
+        n->parent = tmp;
+
+        tmp = pred->left;
+        if(pred->left){
+            pred->left->parent = n;
+        }
+        if(n->left){
+            n->left->parent = pred;
+        }
+        pred->left = n->left;
+        n->left = tmp;
+
+        tmp = pred->right;
+        if(pred->right){
+            pred->right->parent = n;
+        }
+        if(n->right){
+            n->right->parent = pred;
+        }
+        pred->right = n->right;
+        n->right = tmp;
+        memcpy(n->data, pred->data, t->data_size);
+        if(!pred->parent){
+            t->root = pred;
+        }
+        //ZDBG("after swap n<%d>:", zrbn_key(n));
+        //zrbtree_print(t);
+#endif
+    }
+
+    assert(n->left == NULL || n->right == NULL);
+    //child = n->right == NULL ? n->left  : n->right;
+    child = n->right ? n->right : n->left;
+    if (node_color(n) == BLACK) {
+        n->color = node_color(child);
+        delete_case1(t, n);
+    }
+    replace_node(t, n, child);
+    if (n->parent == NULL && child != NULL)
+        child->color = BLACK;
+    while(n){
+        /* multiple recycle */
+        //ZDBG("push_node<ptr:%p>", n);
+        zrbtree_push_node(t, &n);
+        n = n->next;
+    }
+    //ZDBG("after erase<%d>:", zrbn_key(key));
+    //zrbtree_print(t);
+    //verify_properties(t);
+    zspin_unlock(&t->spin);
+    return 0;
+}
+
+zerr_t zrbtree_erasex(zbtree_t *t, zbtnode_t *key, zoperate compare){
+    zbtnode_t* child = NULL;
+    zbtnode_t *prev = NULL;
+    zbtnode_t* n = NULL;
+    zerr_t ret = 0;
+    zerr_t comp_result = ZEQUAL;
+
+    zspin_lock(&t->spin);
+    /* look up node */
+    n = t->root;
+    while (n != NULL) {
+        comp_result = zrbtree_compare_node(t, n, key);
+        if (comp_result == 0) {
+            zspin_unlock(&t->spin);
+            break;
+        } else if (comp_result > 0) {
+            n = n->left;
+        } else {
+            assert(comp_result < 0);
+            n = n->right;
+        }
+    }
+    if (n == NULL){
+        zspin_unlock(&t->spin);
+        return -1;
+    }
+    /* erase node */
+    /*
+     * compare equal node
+     */
+    child = n;
+    prev = NULL;
+    while(child){
+        if(ZEQUAL == (ret = compare((zvalue_t)child->data, NULL, (zvalue_t)key->data))){
+            if(prev){
+                prev->next = child->next; /* just erase node from list */
+                zrbtree_push_node(t, &child);
+            }
+            break;
+        }
+        prev = child;
+        child = child->next;
+    }
+    if(ZEQUAL == ret){
+        if(prev != NULL){
+            zspin_unlock(&t->spin);
+            return 0;
+        }//else{erase single node. as fllow}
+    }else{
+        /* Not find node. do nothing */
+        zspin_unlock(&t->spin);
+        return -1;
+    }
+    /*
+     * erase single node.
+     */
+    if (n->left != NULL && n->right != NULL) {
+        zbtnode_t* pred = maximum_node(n->left);
+        //n->key   = pred->key;
+#if 0
+        memcpy(n->data, pred->data, t->data_size);
+        if(t->multiple){
+            child = n->next;
+            n->next = pred->next;
+            pred->next = child;
+        }
+        n = pred;
+#else
+        zbtnode_t *tmp = pred->parent;
+        enum rbtree_node_color tmp_color = pred->color;
+        pred->color = n->color;
+        n->color = tmp_color;
+
+        if(pred->parent){
+            pred == pred->parent->left ? (pred->parent->left = n) : (pred->parent->right = n);
+        }
+        if(n->parent){
+            n == n->parent->left ? (n->parent->left = pred) : (n->parent->right = pred);
+        }
+        pred->parent = n->parent;
+        n->parent = tmp;
+
+        tmp = pred->left;
+        if(pred->left){
+            pred->left->parent = n;
+        }
+        if(n->left){
+            n->left->parent = pred;
+        }
+        pred->left = n->left;
+        n->left = tmp;
+
+        tmp = pred->right;
+        if(pred->right){
+            pred->right->parent = n;
+        }
+        if(n->right){
+            n->right->parent = pred;
+        }
+        pred->right = n->right;
+        n->right = tmp;
+        memcpy(n->data, pred->data, t->data_size);
+        if(!pred->parent){
+            t->root = pred;
+        }
+#endif
     }
 
     assert(n->left == NULL || n->right == NULL);
@@ -324,5 +532,42 @@ zerr_t zrbtree_erase(zbtree_t *t, zbtnode_t *key) {
     }
     //verify_properties(t);
     zspin_unlock(&t->spin);
+    return 0;
+}
+
+zerr_t zrbtree_pop_front(zbtree_t *t, zbtnode_t **node,
+                         zoperate condition, zvalue_t hint){
+    zbtnode_t* child;
+    zbtnode_t *n;
+
+    zspin_lock(&t->spin);
+
+    n = t->root;
+    if (n == NULL){
+        zspin_unlock(&t->spin);
+        return -1;
+    }
+    while (n->left) {
+        n = n->left; /* get minimum */
+    }
+
+    if(condition && (ZOK != condition((zvalue_t)n->data, NULL, hint))){
+        zspin_unlock(&t->spin);
+        return -1;
+    }
+    /* erase node */
+    assert(n->left == NULL || n->right == NULL);
+    //child = n->right == NULL ? n->left  : n->right;
+    child = n->right ? n->right : n->left;
+    if (node_color(n) == BLACK) {
+        n->color = node_color(child);
+        delete_case1(t, n);
+    }
+    replace_node(t, n, child);
+    if (n->parent == NULL && child != NULL)
+        child->color = BLACK;
+    zspin_unlock(&t->spin);
+    *node = n;
+    (*node)->left = (*node)->right = (*node)->parent = NULL;
     return 0;
 }

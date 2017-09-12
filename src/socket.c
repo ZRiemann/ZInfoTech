@@ -92,7 +92,7 @@ int zsockclose(zsock_t sock){
     ret = close(sock);
     ret = (ret < 0)?errno:ZOK;
 #endif
-    ZDBG("close socket<%d> %s", sock, zstrerr(ret));
+    ZDBG("close socket<fd:%d> %s", sock, zstrerr(ret));
     return(ret);
 }
 
@@ -217,7 +217,7 @@ int zsend(zsock_t sock, const char *buf, int len, int flags){
     while(sended != len){
 #if ZTRACE_SOCKET
         //ZDBG("before send<sock:%d, buf:%p, len:%d, flags:%d>", sock, buf+sended, len-sended, flags);
-        sock_dump(buf, len);
+        sock_dump(buf+sended, len-sended);
 #endif
         ret = send(sock, buf+sended, len-sended, flags);
 #if ZTRACE_SOCKET
@@ -384,7 +384,7 @@ int zlisten(zsock_t sock, int listenq){
 }
 
 zsock_t zaccept(zsock_t sock, ZSA *addr, int *addrlen){
-    int ret;
+    zerr_t ret;
     zsock_t sk;
 #ifdef ZSYS_WINDOWS
     sk = accept(sock, addr, addrlen);
@@ -393,7 +393,7 @@ zsock_t zaccept(zsock_t sock, ZSA *addr, int *addrlen){
     sk = accept(sock, addr, (socklen_t*)addrlen);
     ret = (sk < 0) ? errno : ZOK;
 #endif
-    ZERRC(ret);
+    ZDBG("accept <fd:%d> %s", sk, zstrerr(ret));
     return(sk);
 }
 

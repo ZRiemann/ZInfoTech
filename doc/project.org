@@ -26,3 +26,5 @@
      OP*
 4. <2017-08-23 Wed> add zit/container/base/queue.h
    zit/container/base is memory optimized container, not use zvalue_t or zany_t; 
+** 2917-09
+1. <2017-09-12 Tue> add epoll heart beat;

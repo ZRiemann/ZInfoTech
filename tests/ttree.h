@@ -19,17 +19,18 @@ static void ttree_vs_map(int cnt){
     zerr_t ret = ZEOK;
     zbtree_t *tree = 0;
     zbtnode_t *node = NULL;
+    zbtnode_t *tmp_nod = NULL;
     int i = 0;
     int *insert_array = NULL;
     int insert_cnt = 0;
     int max_rand = cnt * 10;
     ztick_t tick = NULL;
     int key;
-    
+
     /* prepare random insert nodes */
     ZDBG("Preparing %d rand keys: node_size<%d> value_size<%d>", cnt, sizeof(zbtnode_t), sizeof(int32_t));
     i = sizeof(zbtnode_t) + sizeof(int32_t);
-    ret = zrbtree_create(&tree, i, 4096); ZERRC(ret);/* 80KB */
+    ret = zrbtree_create(&tree, i, 4096, NULL, 0); ZERRC(ret);/* 80KB */
     insert_array = (int*)calloc(cnt, sizeof(int));
     while(insert_cnt < cnt){
         if(ZOK != (zrbtree_get_node(tree, &node))){
@@ -48,7 +49,7 @@ static void ttree_vs_map(int cnt){
     zrbtree_destroy(tree);
     /* Insert nodes*/
     i = sizeof(zbtnode_t) + sizeof(int32_t);
-    zrbtree_create(&tree, i, 4096); ZERRC(ret);
+    zrbtree_create(&tree, i, 4096, NULL, 0); ZERRC(ret);
     ZDBG("Begin insert %d random nodes to red-black tree:", cnt);
     tick = ztick();
     for(i=0; i<cnt; ++i){
@@ -73,14 +74,18 @@ static void ttree_vs_map(int cnt){
 
     ZDBG("Begin find %d random nodes from red-black tree:", cnt);
     zrbtree_get_node(tree, &node);
+    zrbtree_get_node(tree, &tmp_nod);
     tick = ztick();
     for(i=0; i<cnt; ++i){
-        if(ZOK != zrbtree_find(tree, (zbtnode_t*)&insert_array[i], &node)){
-            ZDBG("not find data<%d>", insert_array[i]);
-        }
+        zrbn_key(tmp_nod) = insert_array[i];
+        zrbtree_find(tree, tmp_nod, &node);
+        //if(ZOK != zrbtree_find(tree, tmp_nod, &node)){
+        //    ZDBG("not find data<%d>", insert_array[i]);
+        //}
     }
     ztock(tick, NULL, NULL);
     zrbtree_push_node(tree, &node);
+    zrbtree_push_node(tree, &tmp_nod);
 
     ZDBG("Begin find %d random nodes from map:", cnt);
     std::map<int, int>::iterator it;
@@ -99,13 +104,16 @@ static void ttree_vs_map(int cnt){
     fclose(pf);
 #endif
     ZDBG("Begin erase %d random nodes from red-black tree:", cnt);
+    zrbtree_get_node(tree, &tmp_nod);
     tick = ztick();
     for(i=0; i<cnt; ++i){
         //ZDBG("Erase key<%d>", insert_array[i]);
-        zrbtree_erase(tree, (zbtnode_t*)&insert_array[i]);
+        zrbn_key(tmp_nod) = insert_array[i];
+        zrbtree_erase(tree, tmp_nod);
         //zrbtree_print(tree);
     }
     ztock(tick, NULL, NULL);
+    zrbtree_push_node(tree, &tmp_nod);
 
     ZDBG("Begin erase %d random nodes from map:", cnt);
     tick = ztick();
@@ -118,7 +126,7 @@ static void ttree_vs_map(int cnt){
     if(cnt < 10000){
     ZDBG("test erase 1/2 and insert full loop");
     i = sizeof(zbtnode_t) + sizeof(int32_t);
-    ret = zrbtree_create(&tree, i, 4096);
+    ret = zrbtree_create(&tree, i, 4096, NULL, 0);
 
     for(i=0; i<cnt; ++i){
         zrbtree_get_node(tree, &node);
@@ -129,13 +137,15 @@ static void ttree_vs_map(int cnt){
     printf("\n");
     zrbtree_foreach(tree->root, 0, ttree_print_key32, NULL);
     printf("\n");
+    zrbtree_get_node(tree, &tmp_nod);
     for(int round = 0; round < 10000; ++round){
         if(!(round & 0xff)){
             printf("round<%d>", round);
         }
         for(i=cnt/2; i<cnt; ++i){
             //zrbtree_print(tree);
-            if(ZOK != zrbtree_erase(tree, (zbtnode_t*)&insert_array[i])){
+            zrbn_key(tmp_nod) = insert_array[i];
+            if(ZOK != zrbtree_erase(tree, tmp_nod)){
                 ZDBG("FAILED Erase array[%d]:<%d>", i, insert_array[i]);
             }
         }
@@ -155,6 +165,7 @@ static void ttree_vs_map(int cnt){
         }
         //zrbtree_print(tree);
     }
+    zrbtree_push_node(tree, &tmp_nod);
     zrbtree_print(tree);
     printf("\n");
     zrbtree_foreach(tree->root, 0, ttree_print_key32, NULL);
@@ -182,9 +193,10 @@ static void talloc(){
 static void tprint_tree(int key){
     zbtree_t *tree = NULL;
     zbtnode_t *node = NULL;
+    zbtnode_t *tmp_nod = NULL;
     zbtnode_t *refer = NULL;
 
-    zrbtree_create(&tree, sizeof(zbtnode_t) + sizeof(int32_t), 4096);
+    zrbtree_create(&tree, sizeof(zbtnode_t) + sizeof(int32_t), 4096, NULL, 0);
 
     zrbtree_get_node(tree, &node);
     zrbn_key(node) = 30;
@@ -295,7 +307,10 @@ static void tprint_tree(int key){
 
     zrbtree_print(tree);
     ZDBG("After erase: %d", key);
-    zrbtree_erase(tree, (zbtnode_t*)&key);
+    zrbtree_get_node(tree, &tmp_nod);
+    zrbn_key(tmp_nod) = key;
+    zrbtree_erase(tree, tmp_nod);
+    zrbtree_push_node(tree, &tmp_nod);
     zrbtree_print(tree);
     zrbtree_destroy(tree);
 }
@@ -311,7 +326,7 @@ static void ttree_insert(){
     zbtree_t *tree = NULL;
     zbtnode_t *node = NULL;
 
-    zrbtree_create(&tree, sizeof(zbtnode_t) + sizeof(int32_t), 4096);
+    zrbtree_create(&tree, sizeof(zbtnode_t) + sizeof(int32_t), 4096, NULL, 0);
 
     node = zrbtree_key_node(tree, 50);
     zrbtree_insert(tree, node);

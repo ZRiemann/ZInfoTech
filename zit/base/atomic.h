@@ -18,11 +18,13 @@
 #ifdef ZSYS_WINDOWS
 #include "inttypes.h"
 typedef volatile long zatm32_t;
+typedef volatile __int64 zatmv64_t;
 typedef long* zatm_t;
 typedef __int64* zatm64_t;
 #elif defined(ZSYS_POSIX)
 #include <inttypes.h>
 typedef volatile int32_t zatm32_t;
+typedef volatile int64_t zatmv64_t;
 typedef int32_t *zatm_t;
 typedef int64_t *zatm64_t;
 #endif//ZSYS_WINDOWS
@@ -51,7 +53,8 @@ typedef void* zatmp_t;
 #define zatm_sub(ptr, value) __sync_sub_and_fetch(ptr, value)
 #define zatm_inc(ptr) __sync_add_and_fetch(ptr, 1)
 #define zatm_dec(ptr) __sync_sub_and_fetch(ptr, 1)
-#define zatm_cas(ptr, oldval, newval) __sync_val_compare_and_swap(type *ptr,oldval,newval)
+#define zatm_cas(ptr, oldval, newval) __sync_val_compare_and_swap(ptr,oldval,newval)
+#define zatm_bcas(ptr, oldval, newval) __sync_bool_compare_and_swap(ptr,oldval,newval)
 #define zatm_xchg(ptr, newval) __sync_lock_test_and_set (ptr, newval);
 #define zatm_xchg_ptr(ptr, newval) __sync_lock_test_and_set (ptr, newval);
 
@@ -77,6 +80,7 @@ typedef void* zatmp_t;
 #define zatm_inc(ptr) InterlockedIncrement(ptr)
 #define zatm_dec(ptr) InterlockedDecrement(ptr)
 #define zatm_cas(ptr, oldval, newval) InterlockedCompareExchange(ptr, newval, oldval)
+#define zatm_bcas(ptr, oldval, newval) (oldval == InterlockedCompareExchange(ptr, newval, oldval))
 #define zatm_xchg(ptr, newval) InterlockedExchange(ptr, newval)
 #define zatm_xchg_ptr(ptr, newval) InterlockedExchangePointer((volatile PVOID*)ptr, (PVOID)newval)
 

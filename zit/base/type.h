@@ -54,6 +54,10 @@ ZC_BEGIN
 #define ZSTAT_PENDING 4 // not in any status while switch status
 #define ZSTAT_BUSY ZSTAT_PENDING
 
+#define zst_offset(st, member) ((long)&((st*)0)->member)
+#define zmember2st(st, member, pm) ((char*)pm - zst_offset(st, member))
+#define zst2member(st, member, pst) ((char*)pm + zst_offset(st, member))
+
 typedef void* zvalue_t;
 typedef zvalue_t zptr_t;
 typedef zvalue_t zcontainer_t; // for all zit container
