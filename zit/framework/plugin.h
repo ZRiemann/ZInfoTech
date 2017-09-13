@@ -7,8 +7,9 @@
  *  C program = tructure + algorithm;
  *  C code = data + interface;
  *
- * @email 25452483@qq.com
- * @history
+ * @author Z.Riemann <Z.Riemann.g(at)gmail.com>
+ *
+ * @par
  *  2017-07-05 ZRiemann found
  */
 #include <zit/base/type.h>
@@ -18,6 +19,8 @@
 ZC_BEGIN
 
 typedef struct zplugin_interface_s{
+    zoperate global_init; /* call once while zplg_open */
+    zoperate global_fini; /* call once before zplg_close */
     zoperate init;
     zoperate fini;
     zoperate run;
@@ -27,14 +30,13 @@ typedef struct zplugin_interface_s{
 
     // private member, user never access
     zdl_t dl; // plugin handle
-
+    zvalue_t handle; // user defined data
     zotype_t type; // plugin type
     zotype_t version; // 0x00<major><minor><revision>
 }zplg_itf_t;
 
 typedef struct zplugin_s{
     zplg_itf_t *itf;
-
     // private member, user never access
     zvalue_t handle;
 }zplg_t;
@@ -49,14 +51,17 @@ typedef struct zplugin_s{
 ZAPI zerr_t zplg_scan(char path[512], const char *prefix, cbzftw ftw);
 ZAPI zerr_t zplg_open(zplg_itf_t *itf, const char *filename);
 ZAPI zerr_t zplg_ability(zplg_itf_t *itf, zvalue_t *out, zvalue_t hint);
+ZAPI zerr_t zplg_itf_init(zplg_itf_t *itf, zvalue_t in,
+                             zvalue_t *out, zvalue_t hint);
+ZAPI zerr_t zplg_itf_fini(zplg_itf_t *itf);
 ZAPI zerr_t zplg_close(zplg_itf_t *itf);
 // plugin operates
-ZAPI zerr_t zplg_init(zplg_t *plg, zoperate cb, zvalue_t cb_hint, zvalue_t hint);
+ZAPI zerr_t zplg_init(zplg_t *plg, zoperate cb,
+                      zvalue_t cb_hint, zvalue_t hint);
 ZAPI zerr_t zplg_fini(zplg_t *plg, zvalue_t *out, zvalue_t hint);
 ZAPI zerr_t zplg_run(zplg_t *plg, zvalue_t *out, zvalue_t hint);
 ZAPI zerr_t zplg_stop(zplg_t *plg, zvalue_t *out, zvalue_t hint);
 ZAPI zerr_t zplg_operate(zplg_t *plg, zvalue_t *out, zvalue_t hint);
-
 
 ZAPI zerr_t zplg_dummy(ZOP_ARG);
 ZAPI zerr_t zplg_notsupport(ZOP_ARG);
@@ -64,7 +69,8 @@ ZAPI zerr_t zplg_notsupport(ZOP_ARG);
 ZC_END
 
 #if 0
-int zplg_ftw(const char *pathname, zfstat_t *stat, int ftw_flag, zvalue_t hint){
+int zplg_ftw(const char *pathname, zfstat_t *stat,
+             int ftw_flag, zvalue_t hint){
     const char *prefix = (const char*)hint;
 
     if((ftw_flag == FTW_F) && strstr(prefix)                            \

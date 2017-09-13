@@ -77,6 +77,8 @@ zerr_t zplg_open(zplg_itf_t *itf, const char *filename){
     /* assert(itf,filename) */
     itf->dl = zdl_open(filename);
     /* assert(dl)*/
+    itf->global_init = (sym = zdl_sym(itf->dl, "global_init")) ? (zoperate)sym : zplg_dummy;
+    itf->global_fini = (sym = zdl_sym(itf->dl, "global_fini")) ? (zoperate)sym : zplg_dummy;
     itf->init = (sym = zdl_sym(itf->dl, "init")) ? (zoperate)sym : zplg_dummy;
     itf->fini = (sym = zdl_sym(itf->dl, "fini")) ? (zoperate)sym : zplg_dummy;
     itf->run = (sym = zdl_sym(itf->dl, "run")) ? (zoperate)sym : zplg_dummy;
@@ -91,6 +93,12 @@ zerr_t zplg_close(zplg_itf_t *itf){
     return zdl_close(itf->dl);
 }
 
+zerr_t zplg_itf_init(zplg_itf_t *itf, zvalue_t in, zvalue_t *out, zvalue_t hint){
+    return itf->global_init((zvalue_t)itf, out, hint);
+}
+zerr_t zplg_itf_fini(zplg_itf_t *itf){
+    return itf->global_fini((zvalue_t)itf, NULL, NULL);
+}
 zerr_t zplg_init(zplg_t *plg, zoperate cb, zvalue_t cb_hint, zvalue_t hint){
     zvalue_t values[2];
     values[0] = (zvalue_t)cb;
