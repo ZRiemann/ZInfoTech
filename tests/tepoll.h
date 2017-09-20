@@ -8,9 +8,30 @@
  * epoll echo_svr_cli <ehco_number> <client_threads> <conn_per_thr>
  */
 #define ZECHO_PORT 9900
+#define BUF_SIZE 512
 static int g_echo_number;
 static int g_conn_per_thr;
-
+static void simu_cli(int argc, char **argv){
+    // epoll simu_cli <port>
+    int ret = 0;
+    int port = atoi(argv[3]);
+    zsock_t fd = zsocket(AF_INET, SOCK_STREAM, 0);
+    if(ZOK != zconnectx(fd, "127.0.0.1", port, 0, -1)){
+        zsockclose(fd);
+        return;
+    }
+    char send_buf[BUF_SIZE] = {0};
+    char recv_buf[BUF_SIZE] = {0};
+    zsock_nonblock(fd, 0); // set block socket;
+    // heart beat
+    sprintf(send_buf,"CFFC0111B0000100");
+    send(fd, send_buf, strlen(send_buf), 0);
+    ZDBG("send: %s", send_buf);
+    ret = recv(fd, recv_buf, BUF_SIZE, 0);
+    recv_buf[ret] = 0;
+    ZDBG("recv: %s", recv_buf);
+    zsockclose(fd);
+}
 static zthr_ret_t ZCALL zproc_echo_cli(zvalue_t param){
     /* One connection first.*/
     int i;
@@ -103,7 +124,7 @@ static zthr_ret_t ZCALL zproc_heart_beat_cli(zvalue_t param){
     zsock_t *fds;
     int nfd = 0;
     int idx = 0;
-    char buf[512];
+    char buf[BUF_SIZE];
 
     zsleepsec(1);
     fds = (zsock_t*)calloc(g_conn_per_thr, sizeof(zsock_t));
@@ -125,7 +146,7 @@ static zthr_ret_t ZCALL zproc_heart_beat_cli(zvalue_t param){
             //zprint("sock<%d> begin send<num: %d>\n", fds[idx], i);
             send(fds[idx], &i, sizeof(int), 0);
             //zprint("sock<%d> begin recv...\n", fds[idx]);
-            j = recv(fds[idx], buf, 512, 0);
+            j = recv(fds[idx], buf, BUF_SIZE, 0);
             ZDBG("sock<%d> receive<bytes:%d>", fds[idx], j);
             zsleepms(200);
         }
@@ -134,7 +155,7 @@ static zthr_ret_t ZCALL zproc_heart_beat_cli(zvalue_t param){
     for(i=0; i<3; ++i){
         // rounds
         for(idx = 0; idx < nfd; ++idx){
-            j = recv(fds[idx], buf, 512, 0);
+            j = recv(fds[idx], buf, BUF_SIZE, 0);
             ZDBG("sock<%d> receive heart beat<bytes:%d>", fds[idx], j);
             send(fds[idx], buf, j, 0);
         }
@@ -143,7 +164,7 @@ static zthr_ret_t ZCALL zproc_heart_beat_cli(zvalue_t param){
     ZDBG("just receive and not reply, simulate off line....");
     for(i=0; i<1024; ++i){
         for(idx = 0; idx < nfd; ++idx){
-            j = recv(fds[idx], buf, 512, 0);
+            j = recv(fds[idx], buf, BUF_SIZE, 0);
             ZDBG("sock<%d> receive heart beat<bytes:%d> and not reply!", fds[idx], j);
             if(j == 0){
                 int down = 1;
@@ -391,6 +412,8 @@ static void tepoll(int argc, char **argv){
             zthread_join(&clis[client_threads]);
         }
         ZDBG("client down.");
+    }else if(0 == strcmp("simu_cli", argv[2])){
+        simu_cli(argc, argv);
     }else{
         ZERRC(ZNOT_SUPPORT);
     }

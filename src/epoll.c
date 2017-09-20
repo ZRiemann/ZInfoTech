@@ -95,7 +95,7 @@ static zerr_t zemq_hb_cmp_fd(ZOP_ARG){
     return ret;
 }
 
-zerr_t zemq_init(zemq_t *emq, const char *addr, int32_t port, zvalue_t *hint,
+zerr_t zemq_init(zemq_t *emq, const char *addr, int32_t port, zvalue_t hint,
                  int32_t alloc_buf_size){
     if(!emq || (port < 0 && port > 65535)){
         return ZPARAM_INVALID;
@@ -217,7 +217,7 @@ zinline void zemq_foreach_ssn(zemq_t *emq, zoperate op, zvalue_t hint){
     zrbtree_foreach(emq->sessions->root, 0, op, hint);
 }
 
-zinline zerr_t zemq_get_buf(zemq_t *emq, zssn_t *ssn, int is_read){
+zerr_t zemq_get_buf(zemq_t *emq, zssn_t *ssn, int is_read){
     zvalue_t *buf = (zvalue_t*)(is_read ? &ssn->recv_buf : &ssn->send_buf);
     if(!*buf){
         //is_read ? (ssn->recv_buf_len = 0) : (ssn->send_buf_len = 0);
@@ -226,7 +226,7 @@ zinline zerr_t zemq_get_buf(zemq_t *emq, zssn_t *ssn, int is_read){
     return ZEOK;
 }
 
-zinline zerr_t zemq_push_buf(zemq_t *emq, zssn_t *ssn, int is_read){
+zerr_t zemq_push_buf(zemq_t *emq, zssn_t *ssn, int is_read){
     zvalue_t buf = NULL;
     if(is_read){
         buf = ssn->recv_buf;
@@ -855,6 +855,9 @@ static zthr_ret_t ZCALL zproc_worker(void* param){
                 time(&emq->last_idle);
             }
         }
+    }
+    if(emq->down_work){
+        emq->down_work((zvalue_t)emq, NULL, NULL);
     }
     ZDBG("emq.zproc_worker exit now.\n");
     return 0;

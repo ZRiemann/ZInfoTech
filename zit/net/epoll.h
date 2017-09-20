@@ -61,6 +61,7 @@ typedef struct zioevent_message_queue_s{
     /* workers */
     zoperate do_work; /** worker threads */
     zoperate idle_work; /** idle_worker */
+    zoperate down_work; /* call before worker thread down */
     zatm32_t idle_status; /** idle_worker 1-busy 0-idle */
     time_t last_idle; /** last idle time */
     time_t last_syn_idle; /** last sync idle work timestamp */
@@ -106,11 +107,14 @@ typedef struct zsession_s{
     int32_t send_buf_len; /** send buffer length */
     zspinlock_t spin_send; /** lock parallel send */
     /* status control */
-    zatm32_t status; /** message busy(1) or idle(0), pull_in check*/
+    zatm32_t status; /** IO status message busy(1) or idle(0),
+                      *  pull_in check*/
+    zatm32_t work_status; /** user define work status */
     zspinlock_t spin_status; /** sessions status change lock */
     /* heart beat control */
     time_t last_operate; /** last receive timestamp */
-    time_t heart_beat_stamp; /** next heart beat timestamp, key of heart_beat_ssn */
+    time_t heart_beat_stamp; /** next heart beat timestamp,
+                              *  key of heart_beat_ssn */
     /* statistic */
     zatm32_t recv_hits; /** single thread receive, worker check */
     zatm32_t send_hits; /** single thread send (reuse IO thread)*/
@@ -136,7 +140,7 @@ ZAPI zerr_t zepoll_ctl(int epfd, int op, int fd, struct epoll_event *evt);
 ZAPI zerr_t zepoll_wait(int epfd, struct epoll_event *evt, int maxevents,
                         int timeout);
 ZAPI zerr_t zemq_init(zemq_t *emq, const char *addr, int32_t port,
-                      zvalue_t *hint, int32_t alloc_buf_size);
+                      zvalue_t hint, int32_t alloc_buf_size);
 ZAPI zerr_t zemq_fini(zemq_t *emq, zvalue_t *hint);
 ZAPI zerr_t zemq_run(zemq_t *emq, zvalue_t *hint);
 ZAPI zerr_t zemq_stop(zemq_t *emq, zvalue_t *hint);
@@ -145,6 +149,13 @@ ZAPI zerr_t zemq_send(zemq_t *emq, zssn_t *ssn, char *buf, int len);
 ZAPI zerr_t zemq_ssn_ctl(zemq_t *emq, zssn_ctl_t *ctl,
                          zssn_t *ssn, int op, uint32_t events);
 ZAPI zerr_t zemq_hb_format(ZOP_ARG);
+
+ZAPI zerr_t zemq_get_buf(zemq_t *emq, zssn_t *ssn, int is_read);
+ZAPI zerr_t zemq_push_buf(zemq_t *emq, zssn_t *ssn, int is_read);
+
+zinline void zemq_clear_buf(zssn_t *ssn, int is_read){
+    is_read ? (ssn->recv_buf_len = 0) : (ssn->send_buf_len = 0);
+}
 #endif /* ZSYS_POSIX */
 
 ZC_END

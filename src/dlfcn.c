@@ -21,7 +21,7 @@
  */
 zdl_t zdl_open(const char *filename){
 #ifdef ZSYS_POSIX
-    zdl_t dl =  dlopen(filename, RTLD_LAZY);
+    zdl_t dl =  dlopen(filename, RTLD_NOW);/* RTLD_LAZY cause segment fault */
     //return dlerror() ? NULL : dl;
     if(!dl){
         ZDBG("%s", dlerror());
@@ -93,7 +93,7 @@ zerr_t zplg_close(zplg_itf_t *itf){
     return zdl_close(itf->dl);
 }
 
-zerr_t zplg_itf_init(zplg_itf_t *itf, zvalue_t in, zvalue_t *out, zvalue_t hint){
+zerr_t zplg_itf_init(zplg_itf_t *itf, zvalue_t *out, zvalue_t hint){
     return itf->global_init((zvalue_t)itf, out, hint);
 }
 zerr_t zplg_itf_fini(zplg_itf_t *itf){
@@ -103,6 +103,7 @@ zerr_t zplg_init(zplg_t *plg, zoperate cb, zvalue_t cb_hint, zvalue_t hint){
     zvalue_t values[2];
     values[0] = (zvalue_t)cb;
     values[1] = cb_hint;
+    ZDBG("[bug-pb-plg], <in:%p,out:%p,hint:%p>", values, &plg->handle, hint);
     return plg->itf_init((zvalue_t)values, &plg->handle, hint);
 }
 

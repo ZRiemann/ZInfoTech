@@ -132,6 +132,26 @@ int zinet_str(zsockaddr_in *addr, char *host, uint16_t *port){
 #endif
     return ZOK;
 }
+
+int zgetpeername(zsock_t sock, zsockaddr_in *addr, char *host, uint16_t *port){
+    int ret = ZOK;
+#ifdef ZSYS_WINDOWS
+    ZERRC(ZNOT_SUPPORT);
+#else
+    socklen_t len = sizeof(zsockaddr_in);
+    if(!(ret = getpeername(sock, (ZSA*)addr, &len)))
+    {
+        if(host && port){
+            sprintf(host, "%s", inet_ntoa(addr->sin_addr));
+            *port = ntohs(addr->sin_port);
+        }
+    }else{
+        ret = errno;
+    }
+#endif
+    ZERRCX(ret);
+    return ret;
+}
 int zconnect(zsock_t sock, const ZSA *addr, int len){
     int ret;
 

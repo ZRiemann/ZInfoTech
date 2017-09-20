@@ -51,8 +51,7 @@ typedef struct zplugin_s{
 ZAPI zerr_t zplg_scan(char path[512], const char *prefix, cbzftw ftw);
 ZAPI zerr_t zplg_open(zplg_itf_t *itf, const char *filename);
 ZAPI zerr_t zplg_ability(zplg_itf_t *itf, zvalue_t *out, zvalue_t hint);
-ZAPI zerr_t zplg_itf_init(zplg_itf_t *itf, zvalue_t in,
-                             zvalue_t *out, zvalue_t hint);
+ZAPI zerr_t zplg_itf_init(zplg_itf_t *itf, zvalue_t *out, zvalue_t hint);
 ZAPI zerr_t zplg_itf_fini(zplg_itf_t *itf);
 ZAPI zerr_t zplg_close(zplg_itf_t *itf);
 // plugin operates
