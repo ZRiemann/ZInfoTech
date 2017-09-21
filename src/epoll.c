@@ -533,7 +533,7 @@ zerr_t zemq_ssn_ctl(zemq_t *emq, zssn_ctl_t *ctl,
 }
 static zthr_ret_t ZCALL zproc_emq(void* param){
     zemq_t *emq = (zemq_t*)param;
-    struct epoll_event events[ZMAX_EVENTS] = {0};
+    struct epoll_event events[ZMAX_EVENTS];
     zsock_t listenfd = ZINVALID_SOCKET;
     zsock_t curfd = ZINVALID_SOCKET;
     zsock_t ctlfd = ZINVALID_SOCKET;
@@ -864,6 +864,7 @@ static zthr_ret_t ZCALL zproc_worker(void* param){
 }
 zerr_t zemq_run(zemq_t *emq, zvalue_t *hint){
     zerr_t ret = pipe(emq->pipe);
+    int i = 0;
     if(0 == ret){
         /* create worker threads */
         int actual_workers = 0;
@@ -873,7 +874,7 @@ zerr_t zemq_run(zemq_t *emq, zvalue_t *hint){
             emq->worker_num = 32;
         }
         emq->workers = (zthr_id_t*)calloc(emq->worker_num, sizeof(zthr_id_t));
-        for(int i=0; i<emq->worker_num; ++i){
+        for(i=0; i<emq->worker_num; ++i){
             if(ZOK == zthread_create(&emq->workers[i], zproc_worker, (zvalue_t)emq)){
                 ++actual_workers;
             }else{
@@ -897,6 +898,7 @@ static zerr_t zemq_release_conn(ZOP_ARG){
 
 zerr_t zemq_stop(zemq_t *emq, zvalue_t *hint){
     int exit = 1;
+    int i = 0;
     zssn_ctl_t ctl;
     /* control exit poll thread */
     zemq_ssn_ctl(emq, &ctl, NULL, 0, 0);
@@ -912,7 +914,7 @@ zerr_t zemq_stop(zemq_t *emq, zvalue_t *hint){
         exit = 0;
         emq->is_run = &exit;
     }
-    for(int i=0; i<emq->worker_num; ++i){
+    for(i=0; i<emq->worker_num; ++i){
         zthread_join(&emq->workers[i]);
     }
     return ZEOK;

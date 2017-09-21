@@ -102,8 +102,10 @@ void zststc_add_thrs(zststc_t *stc, const char *thr_name){
     ztid_t tid = zthread_self();
     zcontainer_t que = NULL;
     int capacity = 32;
-    zpair_t pair = {0};
+    zpair_t pair;
 
+    pair.key.i64 = 0;
+    pair.value.i64 = 0;
     zque1_create(&que, (zvalue_t)&capacity);
     zque1_push(que, (zvalue_t)thr_name);
     pair.key.u32 = tid;
@@ -118,15 +120,16 @@ static void zstatistic_dump_hots_org(FILE *pf, zststc_hots_t *hots){
     int idx;
     char ts_str[64];
     ztime_stamp_t *ts;
+    int i = 0;
     fprintf(pf, "  - hits:\t%lu\n", *hots->hits);
     fprintf(pf, "  - total_time:\t%lu(us)\n", *hots->total_time);
     idx = *hots->hots_idx & 0xff;
     fprintf(pf, "  - real time:\n");
-    for(int i=0; i<256; ++i){
+    for(i=0; i<256; ++i){
         fprintf(pf, "%s%llu", i%16 ? " " : "\n    ", (long long unsigned int)hots->real_time[(i+idx+1)&0xff]);
     }
     fprintf(pf, "\n  - hotspot:\n");
-    for(int i=0; i<256; ++i){
+    for(i=0; i<256; ++i){
         ts = &hots->hotspot[(i+idx+1)&0xff];
         ztime_ts2str(ts, ts_str);
         fprintf(pf, "%s%s", i%8 ? " " : "\n    ", ts_str);

@@ -202,7 +202,8 @@ zinline zerr_t zmap_erase(zmap_t *map, zany_t key, zany_t *value){
 }
 
 zinline zerr_t zmap_foreach(zmap_t *map, zoperate op, zvalue_t hint){
-    for(uint32_t i=0; i<map->size; ++i){
+    uint32_t i;
+    for(i=0; i<map->size; ++i){
         op((zvalue_t)&(map->pair[i].value), NULL, hint);
     }
     return ZEOK;
