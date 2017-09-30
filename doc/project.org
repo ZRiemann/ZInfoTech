@@ -14,7 +14,7 @@
      + [ ] optimize trace implement;
        use queue memory buffer;
      + [ ] task framework;
-     + [ ] remove dicard contained
+     + [ ] remove discard container
 
 * framework 
   - statictic
@@ -33,4 +33,5 @@
 ** 2917-09
 1. <2017-09-12 Tue> add epoll heart beat;
 2. <2017-09-29 Fri> tag v1.1.0 plan v1.2.0;
-   zit/container/base/alloc.h limit allocator max memory upper boundary.
+   zit/container/base/alloc.h limit allocator max memory upper boundary;
+   remove discard container;

@@ -571,3 +571,380 @@ zerr_t zrbtree_pop_front(zbtree_t *t, zbtnode_t **node,
     (*node)->left = (*node)->right = (*node)->parent = NULL;
     return 0;
 }
+
+zerr_t zrbtree_create(zbtree_t **tree, int32_t node_size, int32_t capacity,
+                      zoperate compare, int is_mutiple){
+    int ret = ZEOK;
+    zalloc_t *alc = NULL;
+    zbtree_t *tr = (zbtree_t*)calloc(1, sizeof(zbtree_t));
+    zalloc_create(&alc, node_size, capacity, 512 * 1024 *1024);
+    if(tr && alc){
+        tr->root = NULL;
+        tr->alloc = alc;
+        tr->data_size = node_size - (int32_t)sizeof(zbtnode_t);
+        tr->cmp = compare;
+        tr->multiple = is_mutiple;
+        *tree = tr;
+        zspin_init(&tr->spin);
+    }else{
+        free(tr);
+        zalloc_destroy(alc);
+    }
+    return ret;
+}
+
+zerr_t zrbtree_destroy(zbtree_t *tree){
+    if(tree){
+        zspin_fini(&tree->spin);
+        zalloc_destroy(tree->alloc);
+        free(tree);
+    }
+    return ZEOK;
+}
+
+void zrbtree_printx(zbtree_t *tree, zoperate format){
+    zbtnode_t *refer = tree->root;
+    zbtnode_t *parent = NULL;
+    zbtnode_t *tmp_nod = NULL;
+    int level = 0;
+    int i = 0;
+    char buf[512];
+    const char *prefix_line[128] = {0};
+    const char *arrow_red = "---> ";
+    const char *arrow_blk = "-->> ";
+    const char *arrow_space = "     ";
+
+    const char *left_flag = "  |";
+    const char *left_arrow = "  \\";
+    const char *left_space = "   ";
+
+    printf("\n red-black tree:\n");
+    prefix_line[level] = NULL;
+    if(!refer){
+        printf("tree is empty.\n");
+        return;
+    }
+    if(zrbn_is_red(refer)){
+        printf("ERROR: root is not black node.\n");
+    }
+    zspin_lock(&tree->spin);
+    for(;;){
+        if(level == 0 && prefix_line[level] == left_space){
+            break; /* print down */
+        }
+        if(format){
+            tmp_nod = refer;
+            buf[0] = 0;
+            while(tmp_nod){
+                format((zvalue_t)tmp_nod->data, NULL, buf + strlen(buf));
+                tmp_nod = tmp_nod->next;
+            }
+            printf("%s", buf);
+        }else{
+            printf("%03d", zrbn_key(refer));
+        }
+        if(refer->left){
+            /* has left sub tree , set left flag*/
+            prefix_line[level] = left_flag;
+        }else{
+            prefix_line[level] = left_space; /* No left tree, set down flag*/
+        }
+
+        while(refer->right){
+            if(level > 124){
+                printf("\n WARNING:\n Too much level, can not print more.\n");
+                zspin_unlock(&tree->spin);
+                return;
+            }
+            /* Forward right to end, print all right nodes*/
+            parent = refer;
+            refer = refer->right;
+            if(refer->parent != parent){
+                printf("\n******************* refer<parent:%p> != parent<%p> ******************\n", refer->parent, parent);
+            }
+            if(format){
+                tmp_nod = refer;
+                buf[0] = 0;
+                while(tmp_nod){
+                    format((zvalue_t)tmp_nod->data, NULL, buf + strlen(buf));
+                    tmp_nod = tmp_nod->next;
+                }
+                printf("%s%s", zrbn_is_black(refer) ? arrow_blk : arrow_red, buf);
+            }else{
+                printf("%s%03d", zrbn_is_black(refer) ? arrow_blk : arrow_red, zrbn_key(refer));
+            }
+            /* make prefix line */
+            prefix_line[++level] = arrow_space;
+            prefix_line[++level] = refer->left ? left_flag : left_space;
+        }
+        printf("\n");
+        for(i=0; i<=level; ++i){
+            if(prefix_line[i] == left_arrow){
+                prefix_line[i] = left_space;
+            }else if(prefix_line[i] == arrow_red || prefix_line[i] == arrow_blk){
+                prefix_line[i] = arrow_space;
+            }
+        }
+        for(;;){
+            /* look back upon left */
+            if(prefix_line[level] == left_flag){
+                parent = refer;
+                refer = refer->left;
+                if(refer->parent != parent){
+                    printf("\n******************* refer<parent:%p> != parent<%p> ******************\n", refer->parent, parent);
+                }
+                prefix_line[level] = left_arrow;
+                for(i=0; i<=level; ++i){
+                    printf("%s", prefix_line[i]);
+                }
+                prefix_line[++level] = zrbn_is_black(refer) ? arrow_blk : arrow_red;
+                printf("%s", prefix_line[level]);
+                ++level;
+                break;
+            }
+            level -= 2;
+            refer = refer->parent;
+            if(level < 0 || !refer){
+                zspin_unlock(&tree->spin);
+                return;
+            }
+        }
+    }
+    zspin_unlock(&tree->spin);
+}
+
+/**
+ * @brief print a red-black tree
+ *  0  1    2  3    4  5    6          level
+ *  030-->> 070-->> 085---> 090
+ *    |       |       \---> 080
+ *    |       \---> 060 --> 065
+ *    |               \-->> 050 --> 055
+ *    |                       \---> 040
+ *    \-->> 015 ->> 020
+ *            \-->> 010
+ *                    \---> 005
+ */
+void zrbtree_print(zbtree_t *tree){
+    zbtnode_t *refer = tree->root;
+    zbtnode_t *parent = NULL;
+    int level = 0;
+    int i = 0;
+    const char *prefix_line[128] = {0};
+    const char *arrow_red = "---> ";
+    const char *arrow_blk = "-->> ";
+    const char *arrow_space = "     ";
+
+    const char *left_flag = "  |";
+    const char *left_arrow = "  \\";
+    const char *left_space = "   ";
+
+    printf("\n red-black tree:\n");
+    prefix_line[level] = NULL;
+    if(!refer){
+        printf("tree is empty.\n");
+        return;
+    }
+    if(zrbn_is_red(refer)){
+        printf("ERROR: root is not black node.\n");
+    }
+    zspin_lock(&tree->spin);
+    for(;;){
+        if(level == 0 && prefix_line[level] == left_space){
+            break; /* print down */
+        }
+        printf("%03d", zrbn_key(refer));
+        if(refer->left){
+            /* has left sub tree , set left flag*/
+            prefix_line[level] = left_flag;
+        }else{
+            prefix_line[level] = left_space; /* No left tree, set down flag*/
+        }
+
+        while(refer->right){
+            if(level > 124){
+                printf("\n WARNING:\n Too much level, can not print more.\n");
+                zspin_unlock(&tree->spin);
+                return;
+            }
+            /* Forward right to end, print all right nodes*/
+            parent = refer;
+            refer = refer->right;
+            if(refer->parent != parent){
+                printf("\n******************* refer<parent:%p> != parent<%p> ******************\n", refer->parent, parent);
+            }
+            printf("%s%03d", zrbn_is_black(refer) ? arrow_blk : arrow_red, zrbn_key(refer));
+            /* make prefix line */
+            prefix_line[++level] = arrow_space;
+            prefix_line[++level] = refer->left ? left_flag : left_space;
+        }
+        printf("\n");
+        for(i=0; i<=level; ++i){
+            if(prefix_line[i] == left_arrow){
+                prefix_line[i] = left_space;
+            }else if(prefix_line[i] == arrow_red || prefix_line[i] == arrow_blk){
+                prefix_line[i] = arrow_space;
+            }
+        }
+        for(;;){
+            /* look back upon left */
+            if(prefix_line[level] == left_flag){
+                parent = refer;
+                refer = refer->left;
+                if(refer->parent != parent){
+                    printf("\n******************* refer<parent:%p> != parent<%p> ******************\n", refer->parent, parent);
+                }
+                prefix_line[level] = left_arrow;
+                for(i=0; i<=level; ++i){
+                    printf("%s", prefix_line[i]);
+                }
+                prefix_line[++level] = zrbn_is_black(refer) ? arrow_blk : arrow_red;
+                printf("%s", prefix_line[level]);
+                ++level;
+                break;
+            }
+            level -= 2;
+            refer = refer->parent;
+            if(level < 0 || !refer){
+                zspin_unlock(&tree->spin);
+                return;
+            }
+        }
+    }
+    zspin_unlock(&tree->spin);
+}
+
+void zrbtree_foreach(zbtnode_t *root, int order, zoperate do_each, zvalue_t hint){
+    zbtnode_t *refer = root;
+    zbtnode_t *child = NULL;
+    if(refer){
+        if(order == 1){
+            child = refer;
+            while(child){
+                do_each((zvalue_t)child->data, NULL, hint);
+                child = child->next;
+            }
+        }
+        zrbtree_foreach(refer->left, order, do_each, hint);
+        if(order == 0){
+            child = refer;
+            while(child){
+                do_each((zvalue_t)child->data, NULL, hint);
+                child = child->next;
+            }
+        }
+        zrbtree_foreach(refer->right, order, do_each, hint);
+        if(order != 0 && order != 1){
+            child = refer;
+            while(child){
+                do_each((zvalue_t)child->data, NULL, hint);
+                child = child->next;
+            }
+        }
+    }
+}
+
+/* red-black tree property:
+ * 1. Each node is either red or black:
+ * 2. The root node is black.
+ * 3. All leaves (shown as NIL in the above diagram) are black and contain no
+ *    data. Since we represent these empty leaves using NULL, this property is
+ *    implicitly assured by always treating NULL as black.
+ *    To this end we create a node_color() helper function:
+ * 4. Every red node has two children, and both are black (or equivalently,
+ *    the parent of every red node is black).
+ * 5. All paths from any given node to its leaf nodes contain ithe same number
+ *    of black node.
+ */
+static zerr_t zrbtree_property1(zbtnode_t *node){
+    int ret = ZOK;
+    if(!node){
+        return ZOK;
+    }
+    if(zrbn_is_black(node) || zrbn_is_red(node)){
+        if(ZOK == (ret = zrbtree_property1(node->left))){
+            ret = zrbtree_property1(node->right);
+        }
+    }else{
+        ret = ZPARAM_INVALID;
+        ZERR("Node<key:%d> not black or red color.", zrbn_key(node));
+    }
+    return ret;
+}
+
+static zerr_t zrbtree_property2(zbtree_t *tree){
+    return zrbn_is_black(tree->root) ? ZOK : ZPARAM_INVALID;
+}
+
+static zerr_t zrbtree_property4(zbtnode_t *node){
+    int ret = ZPARAM_INVALID;
+    do{
+        if(!node){
+            ret = ZOK;
+            break;
+        }
+        if(zrbn_is_red(node)){
+            if(!zrbn_is_black(node->left)){
+                break;
+            }
+            if(!zrbn_is_black(node->right)){
+                break;
+            }
+            if(!zrbn_is_black(node->parent)){
+                break;
+            }
+        }
+        if(ZOK != (ret = zrbtree_property4(node->left))){
+            break;
+        }
+        if(ZOK != (ret = zrbtree_property4(node->right))){
+            break;
+        }
+        ret = ZOK;
+    }while(0);
+    return ret;
+}
+
+static zerr_t zrbtree_property5_helper(zbtnode_t *node, int black_count,
+                                       int *path_black_count){
+    int ret = ZOK;
+    if(zrbn_is_black(node)){
+        black_count++;
+    }
+    if(!node){
+        if(-1 == *path_black_count){
+            *path_black_count = black_count;
+        }else{
+            ret = (black_count == *path_black_count) ? ZOK : ZPARAM_INVALID;
+        }
+        return ret;
+    }
+    if(ZOK == (ret = zrbtree_property5_helper(node->left, black_count, path_black_count))){
+        ret = zrbtree_property5_helper(node->right, black_count, path_black_count);
+    }
+    return ret;
+}
+static zerr_t zrbtree_property5(zbtnode_t *node){
+    int black_count_path = -1;
+    return zrbtree_property5_helper(node, 0, &black_count_path);
+}
+
+zerr_t zrbtree_verify(zbtree_t *tree){
+    zerr_t ret = ZOK;
+    do{
+        if(ZOK != (ret = zrbtree_property1(tree->root))){
+            break;
+        }
+        if(ZOK != (ret = zrbtree_property2(tree))){
+            break;
+        }
+        if(ZOK != (ret = zrbtree_property4(tree->root))){
+            break;
+        }
+        if(ZOK != (ret = zrbtree_property5(tree->root))){
+            break;
+        }
+    }while(0);
+    ZERRCX(ret);
+    return ret;
+}

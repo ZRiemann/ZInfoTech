@@ -355,6 +355,43 @@ zinline zerr_t zqueue_lock_pop_back(zqueue_t *que, zvalue_t *pval, zspinlock_t *
     return ZEOK;
 }
 
+/**
+ * @brief 0 memcopy push
+ *
+ * zvalue_t val;
+ * zqueue_back_pos(que, &val);
+ * init val...
+ */
+zinline zerr_t zqueue_lock_back_pos(zqueue_t *que, zvalue_t *pval, zspinlock_t *spin){
+    zspin_lock(spin);
+    *pval = (zvalue_t)(que->end_chunk->value + que->end_pos);
+    que->end_pos += que->value_size;
+    if(que->end_pos < que->chunk_length){
+        /* current chunk has enough space */
+        zatm_inc(que->size);
+        zspin_unlock(spin);
+        return ZEOK;
+    }else{
+        /* allocate new chunk */
+        zchkx_t *chunk = (zchkx_t*) zatm_xchg_ptr(&que->spare_chunk, NULL);
+        if(!chunk){
+            chunk = ZCHUNK_ALLOCX(que->chunk_length);
+        }
+        if(!chunk){
+            zspin_unlock(spin);
+            return ZEMEM_INSUFFICIENT;
+        }
+        chunk->prev = que->end_chunk;
+        chunk->next = NULL;
+        que->end_chunk->next = chunk;
+        que->end_chunk = chunk;
+        que->end_pos = 0;
+        zatm_inc(que->size);
+    }
+    zspin_unlock(spin);
+    return ZEOK;
+}
+
 ZC_END
 
 #endif

@@ -11,6 +11,7 @@
  * purpose.  It is provided "as is" without express or implied warranty.
  *
  */
+#if 0
 #include "export.h"
 #include <zit/statistic/statistic.h>
 #include <zit/base/error.h>
@@ -172,3 +173,4 @@ void zststc_dump_org(zststc_t *stc, const char *path){
 
     fclose(pf);
 }
+#endif

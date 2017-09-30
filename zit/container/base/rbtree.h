@@ -28,6 +28,7 @@
 #include <zit/base/atomic.h>
 #include <zit/container/base/alloc.h>
 #include <zit/thread/spin.h>
+
 ZC_BEGIN
 
 enum rbtree_node_color { RED, BLACK };

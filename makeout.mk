@@ -21,10 +21,8 @@
 #	$(CC) -g -Wl,-rpath=. -L$(BIN_DIR) -lzit -lpthread -lrt -D_REENTRANT $^ -o $@
 
 BIN_DIR=../$(BIN_NAME)
-ZIT_LIB= module.o time.o traceconsole.o tracelog.o  trace.o type.o socket.o filesys.o convert.o tracebkg.o container.o thread.o dlfcn.o statistic.o epoll.o rbtree.o
-#ZIT_TST= main.o tmulti_define.o
-ZIT_TST= main.o tmulti_define.o
-#ZIT_FLAGS='-pthread -lrt -D_REENTRANT'
+ZIT_LIB= module.o time.o traceconsole.o tracelog.o  trace.o type.o socket.o filesys.o convert.o thread.o dlfcn.o statistic.o epoll.o rbtree.o
+ZIT_TST= main.o
 
 .PHONY : all
 all : $(BIN_DIR)/$(ZIT_VER)
@@ -39,6 +37,8 @@ test :
 	cd $(BIN_DIR) && rm -f $(ZIT_SONAME) $(ZIT_NAME)  && ln -s $(ZIT_VER) $(ZIT_SONAME) && ln -s $(ZIT_SONAME) $(ZIT_NAME)
 	$(CC) $(GDB) -Wl,-rpath=.:make/$(VER) -L$(BIN_DIR) -o $(BIN_DIR)/zit_test $(ZIT_TST) -lzit -pthread -ldl -lrt
 	g++ $(GDB) -Wl,-rpath=.:make/$(VER) -L$(BIN_DIR) -I../.. -o $(BIN_DIR)/zpp_test ../../tests/mainpp.cpp -lzit -pthread -ldl -lrt
+
+
 
 .PHONY : arm_test
 arm_test : $(ZIT_TST)

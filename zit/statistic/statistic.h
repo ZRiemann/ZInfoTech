@@ -64,12 +64,13 @@
  *    base: 0.695355 , 0.584226 , 0.505325 0.505328  50   0
  *    hots: 4.810858 , 4.790505 , 7.787826 4.787829  479  429
  */
+#if 0
 #include <zit/base/type.h>
 #include <zit/base/atomic.h>
 #include <zit/base/time.h>
 #include <zit/thread/thread.h>
-#include <zit/container/map.h>
-#include <zit/container/queue.h>
+#include <zit/container/base/rbtree.h>
+#include <zit/container/base/queue.h>
 #include <zit/thread/spin.h>
 
 ZC_BEGIN
@@ -86,7 +87,7 @@ typedef struct zstatistic_hotspot_s{
 
 typedef struct zstatistic_node_s{
     zststc_hots_t *hots;
-    zcontainer_t que;
+    zqueue_t que;
     ztime_stamp_t begin;
     ztime_stamp_t end;
     uint64_t interval;
@@ -99,7 +100,7 @@ typedef struct zstatistic_s{
     int hots_size;
     int* hots_fns;
 
-    zmap_t *thr_stack; /** thread call stack*/
+    zrbtree_t *thr_stack; /** thread call stack*/
     char ***sfn; /** statistic function name */
     zspinlock_t spin; /** spin lock */
 }zststc_t;
@@ -223,4 +224,5 @@ void main(){
 }
 #endif // if 0
 
+#endif 0
 #endif
