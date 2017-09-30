@@ -1,7 +1,7 @@
 #ifndef _ZTST_QUEUE_H_
 #define _ZTST_QUEUE_H_
 
-#include <zit/container/base/queue.h>
+#include <zit/container/queue.h>
 #ifdef __cplusplus
 #include <queue>
 #endif

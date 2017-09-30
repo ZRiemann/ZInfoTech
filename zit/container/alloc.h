@@ -19,7 +19,7 @@
  */
 #include <zit/base/type.h>
 #include <zit/base/error.h>
-#include <zit/container/base/queue.h>
+#include <zit/container/queue.h>
 #include <zit/thread/spin.h>
 #include <stdlib.h>
 

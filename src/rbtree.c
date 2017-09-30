@@ -21,7 +21,7 @@
 Properties 4 and 5 together guarantee that no path in the tree is more than about twice as long as any other path, which guarantees that it has O(log n) height.
 */
 #include "export.h"
-#include <zit/container/base/rbtree.h>
+#include <zit/container/rbtree.h>
 #include <zit/base/atomic.h>
 #include <zit/thread/spin.h>
 #include <zit/base/trace.h>

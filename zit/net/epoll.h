@@ -37,9 +37,9 @@
 #include <zit/thread/thread.h>
 #include <zit/thread/semaphore.h>
 #include <zit/thread/spin.h>
-#include <zit/container/base/queue.h>
-#include <zit/container/base/rbtree.h> /** as map */
-#include <zit/container/base/alloc.h>
+#include <zit/container/queue.h>
+#include <zit/container/rbtree.h>
+#include <zit/container/alloc.h>
 #include <zit/base/atomic.h>
 
 ZC_BEGIN

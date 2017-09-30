@@ -14,7 +14,7 @@
  *
  */
 /**
- * @file zit/container/base/rbtree.h
+ * @file zit/container/rbtree.h
  * @brief A classical red-black tree implements
  *
  * - see https://github.com/prasanthmadhavan/Red-Black-Tree.git
@@ -26,7 +26,7 @@
  */
 #include <zit/base/type.h>
 #include <zit/base/atomic.h>
-#include <zit/container/base/alloc.h>
+#include <zit/container/alloc.h>
 #include <zit/thread/spin.h>
 
 ZC_BEGIN

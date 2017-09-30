@@ -1,5 +1,4 @@
 #include <stdio.h>
-#if 0
 #include <zit/base/error.h>
 #include <zit/base/trace.h>
 #include <zit/base/time.h>
@@ -17,7 +16,7 @@
 #include "ttree.h"
 
 int main(int argc, char** argv){
-    ztrace_reg(ztst_trace, 0);
+    ztrace_reg(ztrace_console, 0);
 
     zdbg("\n queue <chunk_size> <value_size>"
          "\n tree <numbers>"
@@ -35,7 +34,4 @@ int main(int argc, char** argv){
     zdbg("all testing down.");
     return 0;
 }
-#endif
-int main(int argc, char** argv){
-    return 0;
-}
+
