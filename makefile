@@ -6,10 +6,10 @@ else ifeq ($(VER), release)
 else
 $(warning default debug module)
 $(warning useage: make VER={debug|release})
-	VER=debug
-	GDB=-g
-#	VER=release
-#	GDB=-O3 -fno-strict-aliasing
+#	VER=debug
+#	GDB=-g
+	VER=release
+	GDB=-O3 -fno-strict-aliasing
 endif
 
 BIN_NAME=$(VER)

@@ -124,7 +124,7 @@ int zrandin(int max){
     return (rand()%max);
 }
 
-ZAPI int zrandat(int begin, int end){
+int zrandat(int begin, int end){
     return (begin + (rand()%(begin-end)));
 }
 

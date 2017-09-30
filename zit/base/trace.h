@@ -17,27 +17,27 @@
  * @file zit/base/trace.h
  * @brief trace message
  * @note
-comment config:
-#include <zit/base/trace.h>
-#include <zit/utility/traceconsole.h>
-#include <zit/utility/tracelog.h>
-#include <zit/utility/tracebkg.h>
-
-int zit_trace(int level, void* user, const char* msg){
-  //ztrace_console(level, user, msg);
-  ztrace_log(level, user, msg); // FILE* not thread safe, need background write.
-  return ZEOK;
-}
-
-int main(int argc, char** argv){  
-  ztrace_logctl("zit.log",64*1024*1024);
-  ztrace_bkgctl(zit_trace);
-  ztrace_reg(ztrace_bkg, 0); // thread safe
-  //...
-  ztrace_bkgend();
-  ztrace_logctl(NULL,0); // close the log file.
-}
-*/
+ * comment config:
+ * #include <zit/base/trace.h>
+ * #include <zit/utility/traceconsole.h>
+ * #include <zit/utility/tracelog.h>
+ * #include <zit/utility/tracebkg.h>
+ * 
+ * int zit_trace(int level, void* user, const char* msg){
+ * //ztrace_console(level, user, msg);
+ * ztrace_log(level, user, msg); // FILE* not thread safe, need background write.
+ * return ZEOK;
+ * }
+ *
+ * int main(int argc, char** argv){  
+ * ztrace_logctl("zit.log",64*1024*1024);
+ * ztrace_bkgctl(zit_trace);
+ * ztrace_reg(ztrace_bkg, 0); // thread safe
+ * //...
+ * ztrace_bkgend();
+ * ztrace_logctl(NULL,0); // close the log file.
+ * }
+ */
 
 #include "platform.h"
 #include <zit/base/error.h>
