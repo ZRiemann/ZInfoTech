@@ -1,6 +1,6 @@
 # ZInfoTech/doc/project.org 
 * tasks
-** TODO libzit [33%]
+** TODO libzit [66%]
    - [X] zit/framesork/plugin 
      + [X] code: support inline/dll mode
      + [X] test:
@@ -8,9 +8,13 @@
        - [X] case2: dynamic link call dynamic link;
          CAUTION: zdl_open() in zdl_open() dll file must be register to lib dir;
      <2017-07-06 Thu>
-   - [ ] add statistic framework;
+   - [X] add statistic framework;
    - [ ] about coroutine
-   - [+]
+   - [+] v1.2.0
+     + [ ] optimize trace implement;
+       use queue memory buffer;
+     + [ ] task framework;
+     + [ ] remove dicard contained
 
 * framework 
   - statictic
@@ -28,3 +32,5 @@
    zit/container/base is memory optimized container, not use zvalue_t or zany_t; 
 ** 2917-09
 1. <2017-09-12 Tue> add epoll heart beat;
+2. <2017-09-29 Fri> tag v1.1.0 plan v1.2.0;
+   zit/container/base/alloc.h limit allocator max memory upper boundary.

@@ -187,7 +187,7 @@ zerr_t zmsgx(int flag, const char* msg, ...){
         va_end(arglist);
         buf[offset++] = '\n';
         buf[offset] = 0;
-        g_ztrace(offset, g_ztrace_user, buf);    
+        g_ztrace(offset, g_ztrace_user, buf);
     }
     return ZEOK;
 }

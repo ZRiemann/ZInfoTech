@@ -181,7 +181,7 @@ static void ttree_vs_map(int cnt){
 static void talloc(){
     zalloc_t *alc = 0;
     int32_t *i32 = 0;
-    zalloc_create(&alc, (int)sizeof(int32_t), 1024);
+    zalloc_create(&alc, (int)sizeof(int32_t), 1024, 0);
     zalloc_pop(alc, (zvalue_t*)&i32);
     *i32 = 32;
     zalloc_push(alc, (zvalue_t*)&i32);

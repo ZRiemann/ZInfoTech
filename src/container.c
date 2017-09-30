@@ -944,7 +944,7 @@ zerr_t zrbtree_create(zbtree_t **tree, int32_t node_size, int32_t capacity,
     int ret = ZEOK;
     zalloc_t *alc = NULL;
     zbtree_t *tr = (zbtree_t*)calloc(1, sizeof(zbtree_t));
-    zalloc_create(&alc, node_size, capacity);
+    zalloc_create(&alc, node_size, capacity, 512 * 1024 *1024);
     if(tr && alc){
         tr->root = NULL;
         tr->alloc = alc;

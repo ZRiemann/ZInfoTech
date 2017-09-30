@@ -114,7 +114,7 @@ zerr_t zemq_init(zemq_t *emq, const char *addr, int32_t port, zvalue_t hint,
     zrbtree_create(&emq->heart_beats,
                    (int32_t)(sizeof(zbtnode_t) + sizeof(zvalue_t)),
                    256, zemq_hb_cmp_stamp, 1);
-    zalloc_create(&emq->buf_alloc, alloc_buf_size, 256);
+    zalloc_create(&emq->buf_alloc, alloc_buf_size, 256, 256*1024*1024);
     zsem_init(&emq->sem_emq, 0);
     zspin_init(&emq->spin_in);
     zspin_init(&emq->spin_out);
