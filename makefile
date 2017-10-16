@@ -23,7 +23,7 @@ BIN_DIR=$(OUT_NAME)/$(BIN_NAME)
 INST_DIR=/usr/local/lib
 ZIT_NAME=libzit.so
 VERSION_MAJOR=1
-VERSION_MINOR=1
+VERSION_MINOR=2
 VERSION_REVISION=0
 VERSION_DATE=$(shell date '+20%y%m%d')
 # base => alpha => beta => RC => relaease

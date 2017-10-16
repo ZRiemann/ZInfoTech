@@ -133,7 +133,7 @@ zerr_t zdbgx(int flag, const char* msg, ...){
         va_list arglist;
         int offset;
         //char buf[ZTRACE_BUF_SIZE];
-#if ZTRACE_0COPY    
+#if ZTRACE_0COPY
         char local_buf[ZTRACE_BUF_SIZE];
         char *buf;
         if(g_ztrace_getbuf){
@@ -213,13 +213,13 @@ zerr_t zwarx(int flag, const char* msg, ...){
         zstr_systime_now(buf,ZTP_MILLISEC);
         offset = strlen(buf);
         offset += sprintf(buf+offset, " WAR:");
-    
+
         va_start(arglist, msg);
         offset += vsnprintf(buf+offset, ZTRACE_BUF_SIZE-offset, msg, arglist);
         va_end(arglist);
         buf[offset++] = '\n';
         buf[offset] = 0;
-        g_ztrace(offset, g_ztrace_user, buf);    
+        g_ztrace(offset, g_ztrace_user, buf);
     }
     return ZEOK;
 }
@@ -228,8 +228,8 @@ zerr_t zerrx(int flag, const char* msg, ...){
     if (g_ztrace && (flag & ZTRACE_FLAG_ERR)) {
         va_list arglist;
         int offset;
-        //char buf[ZTRACE_BUF_SIZE];
-#if ZTRACE_0COPY    
+
+#if ZTRACE_0COPY
         char local_buf[ZTRACE_BUF_SIZE];
         char *buf;
         if(g_ztrace_getbuf){
@@ -260,8 +260,8 @@ zerr_t zinfx(int flag, const char* msg, ...){
     if (g_ztrace && (flag & ZTRACE_FLAG_INF)) {
         va_list arglist;
         int offset;
-        //char buf[ZTRACE_BUF_SIZE];
-#if ZTRACE_0COPY    
+
+#if ZTRACE_0COPY
         char local_buf[ZTRACE_BUF_SIZE];
         char *buf;
         if(g_ztrace_getbuf){
@@ -283,6 +283,31 @@ zerr_t zinfx(int flag, const char* msg, ...){
         va_end(arglist);
         buf[offset++] = '\n';
         buf[offset] = 0;
+        g_ztrace(offset, g_ztrace_user, buf);
+    }
+    return ZEOK;
+}
+
+zerr_t zorg(const char* msg, ...){
+    if (g_ztrace && (g_ztrace_flag & ZTRACE_FLAG_DBG)) {
+        va_list arglist;
+        int offset = 0;
+#if ZTRACE_0COPY
+        char local_buf[ZTRACE_BUF_SIZE];
+        char *buf;
+        if(g_ztrace_getbuf){
+            if(ZOK != g_ztrace_getbuf(&buf, ZTRACE_BUF_SIZE)){
+                return ZMEM_INSUFFICIENT;
+            }
+        }else{
+            buf = local_buf;
+        }
+#else
+        char buf[ZTRACE_BUF_SIZE];
+#endif
+        va_start(arglist, msg);
+        offset += vsnprintf(buf, ZTRACE_BUF_SIZE, msg, arglist);
+        va_end(arglist);
         g_ztrace(offset, g_ztrace_user, buf);
     }
     return ZEOK;

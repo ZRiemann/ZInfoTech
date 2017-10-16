@@ -34,12 +34,12 @@
 #include <zit/base/type.h>
 #include <zit/base/error.h>
 #include <zit/base/trace.h>
+#include <zit/memory/alloc.h>
 #include <zit/thread/thread.h>
 #include <zit/thread/semaphore.h>
 #include <zit/thread/spin.h>
 #include <zit/container/queue.h>
 #include <zit/container/rbtree.h>
-#include <zit/container/alloc.h>
 #include <zit/base/atomic.h>
 
 ZC_BEGIN

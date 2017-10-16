@@ -52,7 +52,7 @@ ZAPI void zdump_bin(char *out, int size, const unsigned char *bin, int *len);
 ZAPI int zrandin(int max); // rand 0~max-1
 ZAPI int zrandat(int begin, int end); // rand begin~end-1
 
-#define ZTRACE_BUF_SIZE 4096
+#define ZTRACE_BUF_SIZE 512
 #define ZTRACE_LEVEL_DBG 0
 #define ZTRACE_LEVEL_MSG 1
 #define ZTRACE_LEVEL_WAR 2
@@ -66,7 +66,7 @@ ZAPI int zrandat(int begin, int end); // rand begin~end-1
 #define ZTRACE_FLAG_INF 0x10
 ZEXTERN int g_ztrace_flag;
 
-typedef int (*ztrace)(int level, void* user, const char* msg);
+typedef int (*ztrace)(int msg_len, void* user, const char* msg);
 typedef int (*zgetbuf)(char **buf, int len);
 
 ZAPI int ztrace_reg(ztrace fn, void* user);
@@ -81,6 +81,7 @@ ZAPI int zmsgx(int flag, const char* msg, ...);
 ZAPI int zwarx(int flag, const char* msg, ...);
 ZAPI int zerrx(int flag, const char* msg, ...);
 ZAPI int zinfx(int flag, const char* msg, ...);
+ZAPI int zorg(const char* msg, ...);
 
 #define zdbg(fmt, ...) zdbgx(g_ztrace_flag, fmt, ##__VA_ARGS__)
 #define zmsg(fmt, ...) zmsgx(g_ztrace_flag, fmt, ##__VA_ARGS__)

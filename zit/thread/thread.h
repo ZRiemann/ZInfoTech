@@ -21,12 +21,14 @@ ZC_BEGIN
 typedef uint32_t ztid_t;  // thread_self()
 
 #ifdef ZSYS_POSIX
+#include <unistd.h>
 #include <pthread.h>
 #include <sys/syscall.h>
 #define ZCALL
 #define ZINFINITE -1
 typedef pthread_t zthr_id_t; // not use UINT, 64bit system will cause jion fault.
 typedef void* zthr_ret_t;
+/* zinline ztid_t zthread_self(){return syscall(SYS_gettid);} */
 #define zthread_self() (ztid_t)syscall(SYS_gettid)
 #else
 #include <windows.h>
@@ -34,6 +36,7 @@ typedef void* zthr_ret_t;
 #define ZINFINITE INFINITE
 typedef unsigned int zthr_ret_t;
 typedef HANDLE zthr_id_t;
+/* zinline ztid_tzthread_self(){return GetCurrentThreadId();} */
 #define zthread_self() (ztid_t)GetCurrentThreadId()
 #endif
 

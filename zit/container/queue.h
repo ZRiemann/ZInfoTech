@@ -1,5 +1,5 @@
-#ifndef _ZCONT_BASE_QUEUE_H_
-#define _ZCONT_BASE_QUEUE_H_
+#ifndef _ZCONT_QUEUE_H_
+#define _ZCONT_QUEUE_H_
 /*
  *
  * Copyright (c) 2016 by Z.Riemann ALL RIGHTS RESERVED
@@ -14,7 +14,7 @@
  *
  */
 /**
- * @file zit/container/base/queue.h
+ * @file zit/container/queue.h
  * @brief a chunk based queue
  *
  * @par
@@ -31,16 +31,16 @@
 #include <string.h>
 
 ZC_BEGIN
-typedef struct zchunkx_s{
-    struct zchunkx_s *next;
-    struct zchunkx_s *prev;
+typedef struct zchunk_s{
+    struct zchunk_s *next;
+    struct zchunk_s *prev;
     char value[];
-}zchkx_t;
+}zchk_t;
 
 typedef struct zqueue_s{
-    zchkx_t *begin_chunk;
-    zchkx_t *end_chunk;
-    zchkx_t *spare_chunk;
+    zchk_t *begin_chunk;
+    zchk_t *end_chunk;
+    zchk_t *spare_chunk;
     zatm_t size;
     int32_t begin_pos;
     int32_t end_pos;
@@ -49,10 +49,10 @@ typedef struct zqueue_s{
     int32_t chunk_length; /** chunk_size * value_size, space 2 time*/
 }zqueue_t;
 
-#define ZCHUNK_ALLOCX(size) (zchkx_t*)zmem_align64(sizeof(zchkx_t) + (size));
+#define ZCHUNK_ALLOCX(size) (zchk_t*)zmem_align64(sizeof(zchk_t) + (size));
 
 zinline zerr_t zqueue_create(zqueue_t **queue, int32_t chunk_size, int32_t value_size){
-    zchkx_t *chunk = ZCHUNK_ALLOCX(chunk_size * value_size);
+    zchk_t *chunk = ZCHUNK_ALLOCX(chunk_size * value_size);
     zqueue_t *que = (zqueue_t*)zmem_align64(sizeof(zqueue_t));
     zatm_t size = zatm_alloc_atm();
     if(chunk && que && size){
@@ -76,7 +76,7 @@ zinline zerr_t zqueue_create(zqueue_t **queue, int32_t chunk_size, int32_t value
 }
 
 zinline void zqueue_destroy(zqueue_t *queue){
-    zchkx_t *chunk = NULL;
+    zchk_t *chunk = NULL;
     if(!queue){
         return;
     }
@@ -87,7 +87,7 @@ zinline void zqueue_destroy(zqueue_t *queue){
         chunk = queue->begin_chunk;
     }
     zmem_align_free(chunk);
-    chunk = (zchkx_t*) zatm_xchg_ptr(&queue->spare_chunk, NULL);
+    chunk = (zchk_t*) zatm_xchg_ptr(&queue->spare_chunk, NULL);
     zmem_align_free(chunk);
     zatm_free(queue->size);
     zmem_align_free(queue);
@@ -101,7 +101,7 @@ zinline zerr_t zqueue_push(zqueue_t *que, zvalue_t value){
         zatm_inc(que->size);
         return ZEOK;
     }else{
-        zchkx_t *chunk = (zchkx_t*) zatm_xchg_ptr(&que->spare_chunk, NULL);
+        zchk_t *chunk = (zchk_t*) zatm_xchg_ptr(&que->spare_chunk, NULL);
         if(!chunk){
             chunk = ZCHUNK_ALLOCX(que->chunk_length);
         }
@@ -128,11 +128,11 @@ zinline zerr_t zqueue_pop(zqueue_t *que, zvalue_t *pval){
     }
     que->begin_pos += que->value_size;
     if(que->begin_pos == que->chunk_length){
-        zchkx_t *chunk = que->begin_chunk;
+        zchk_t *chunk = que->begin_chunk;
         que->begin_chunk = que->begin_chunk->next;
         que->begin_chunk->prev = NULL;
         que->begin_pos = 0;
-        chunk = (zchkx_t*) zatm_xchg_ptr(&que->spare_chunk, chunk);
+        chunk = (zchk_t*) zatm_xchg_ptr(&que->spare_chunk, chunk);
         zmem_align_free(chunk);
     }
     return ZEOK;
@@ -141,7 +141,7 @@ zinline zerr_t zqueue_pop(zqueue_t *que, zvalue_t *pval){
 zinline zerr_t zqueue_push_front(zqueue_t *que, zvalue_t value){
     que->begin_pos -= que->value_size;
     if(que->begin_pos < 0){
-        zchkx_t *chunk = (zchkx_t*) zatm_xchg_ptr(&que->spare_chunk, NULL);
+        zchk_t *chunk = (zchk_t*) zatm_xchg_ptr(&que->spare_chunk, NULL);
         if(!chunk){
             chunk = ZCHUNK_ALLOCX(que->chunk_length);
         }
@@ -165,11 +165,11 @@ zinline zerr_t zqueue_pop_back(zqueue_t *que, zvalue_t *pval){
     zatm_dec(que->size);
     que->end_pos -= que->value_size;
     if(que->end_pos < 0){
-        zchkx_t *chunk = que->end_chunk;
+        zchk_t *chunk = que->end_chunk;
         que->end_chunk = que->end_chunk->prev;
         que->end_chunk->next = NULL;
         que->end_pos = que->chunk_length - que->value_size;
-        chunk = (zchkx_t*) zatm_xchg_ptr(&que->spare_chunk, chunk);
+        chunk = (zchk_t*) zatm_xchg_ptr(&que->spare_chunk, chunk);
         zmem_align_free(chunk);
     }
     if(pval){
@@ -181,7 +181,7 @@ zinline zerr_t zqueue_pop_back(zqueue_t *que, zvalue_t *pval){
 zinline zerr_t zqueue_foreach(zqueue_t *que, zoperate op, zvalue_t hint){
     int pos = que->begin_pos;
     int end = 0;
-    zchkx_t *chunk = que->begin_chunk;
+    zchk_t *chunk = que->begin_chunk;
     if(!op || !que){
         return ZEPARAM_INVALID;
     }
@@ -227,7 +227,7 @@ zinline zerr_t zqueue_back_pos(zqueue_t *que, zvalue_t *pval){
         zatm_inc(que->size);
         return ZEOK;
     }else{
-        zchkx_t *chunk = (zchkx_t*) zatm_xchg_ptr(&que->spare_chunk, NULL);
+        zchk_t *chunk = (zchk_t*) zatm_xchg_ptr(&que->spare_chunk, NULL);
         if(!chunk){
             chunk = ZCHUNK_ALLOCX(que->chunk_length);
         }
@@ -265,115 +265,12 @@ zinline zerr_t zqueue_lock_push(zqueue_t *que, zvalue_t value, zspinlock_t *spin
     memcpy(que->end_chunk->value + que->end_pos, value, que->value_size);
     que->end_pos += que->value_size;
     if(que->end_pos < que->chunk_length){
-        zspin_unlock(spin);
         zatm_inc(que->size);
+        zspin_unlock(spin);
+        //printf("lock_push<que:%p, size:%d>\n", que, *que->size);
         return ZEOK;
     }else{
-        zchkx_t *chunk = (zchkx_t*) zatm_xchg_ptr(&que->spare_chunk, NULL);
-        if(!chunk){
-            chunk = ZCHUNK_ALLOCX(que->chunk_length);
-        }
-        if(!chunk){
-            return ZEMEM_INSUFFICIENT;
-        }
-        chunk->prev = que->end_chunk;
-        chunk->next = NULL;
-        que->end_chunk->next = chunk;
-        que->end_chunk = chunk;
-        que->end_pos = 0;
-        zspin_unlock(spin);
-        zatm_inc(que->size);
-    }
-    return ZEOK;
-}
-
-zinline zerr_t zqueue_lock_pop(zqueue_t *que, zvalue_t *pval, zspinlock_t *spin){
-    zspin_lock(spin);
-    if(!*que->size){
-        zspin_unlock(spin);
-        return ZENOT_EXIST;
-    }
-    zatm_dec(que->size);
-    if(pval){
-        *pval = (zvalue_t)(que->begin_chunk->value + que->begin_pos);
-    }
-    que->begin_pos += que->value_size;
-    if(que->begin_pos == que->chunk_length){
-        zchkx_t *chunk = que->begin_chunk;
-        que->begin_chunk = que->begin_chunk->next;
-        que->begin_chunk->prev = NULL;
-        que->begin_pos = 0;
-        chunk = (zchkx_t*) zatm_xchg_ptr(&que->spare_chunk, chunk);
-        zmem_align_free(chunk);
-    }
-    zspin_unlock(spin);
-    return ZEOK;
-}
-
-zinline zerr_t zqueue_lock_push_front(zqueue_t *que, zvalue_t value, zspinlock_t *spin){
-    zspin_lock(spin);
-    que->begin_pos -= que->value_size;
-    if(que->begin_pos < 0){
-        zchkx_t *chunk = (zchkx_t*) zatm_xchg_ptr(&que->spare_chunk, NULL);
-        if(!chunk){
-            chunk = ZCHUNK_ALLOCX(que->chunk_length);
-        }
-        if(!chunk){
-            return ZEMEM_INSUFFICIENT;
-        }
-        chunk->next = que->begin_chunk;
-        chunk->prev = NULL;
-        que->begin_chunk->prev = chunk;
-        que->begin_chunk = chunk;
-        que->begin_pos = que->chunk_length - que->value_size;
-    }
-    memcpy(que->begin_chunk->value + que->begin_pos, value, que->value_size);
-    zspin_unlock(spin);
-    zatm_inc(que->size);
-}
-
-zinline zerr_t zqueue_lock_pop_back(zqueue_t *que, zvalue_t *pval, zspinlock_t *spin){
-    zspin_lock(spin);
-    if(!*que->size){
-        zspin_unlock(spin);
-        return ZENOT_EXIST;
-    }
-    zatm_dec(que->size);
-    que->end_pos -= que->value_size;
-    if(que->end_pos < 0){
-        zchkx_t *chunk = que->end_chunk;
-        que->end_chunk = que->end_chunk->prev;
-        que->end_chunk->next = NULL;
-        que->end_pos = que->chunk_length - que->value_size;
-        chunk = (zchkx_t*) zatm_xchg_ptr(&que->spare_chunk, chunk);
-        zmem_align_free(chunk);
-    }
-    if(pval){
-        *pval = (zvalue_t)(que->end_chunk->value + que->end_pos);
-    }
-    zspin_unlock(spin);
-    return ZEOK;
-}
-
-/**
- * @brief 0 memcopy push
- *
- * zvalue_t val;
- * zqueue_back_pos(que, &val);
- * init val...
- */
-zinline zerr_t zqueue_lock_back_pos(zqueue_t *que, zvalue_t *pval, zspinlock_t *spin){
-    zspin_lock(spin);
-    *pval = (zvalue_t)(que->end_chunk->value + que->end_pos);
-    que->end_pos += que->value_size;
-    if(que->end_pos < que->chunk_length){
-        /* current chunk has enough space */
-        zatm_inc(que->size);
-        zspin_unlock(spin);
-        return ZEOK;
-    }else{
-        /* allocate new chunk */
-        zchkx_t *chunk = (zchkx_t*) zatm_xchg_ptr(&que->spare_chunk, NULL);
+        zchk_t *chunk = (zchk_t*) zatm_xchg_ptr(&que->spare_chunk, NULL);
         if(!chunk){
             chunk = ZCHUNK_ALLOCX(que->chunk_length);
         }
@@ -387,11 +284,161 @@ zinline zerr_t zqueue_lock_back_pos(zqueue_t *que, zvalue_t *pval, zspinlock_t *
         que->end_chunk = chunk;
         que->end_pos = 0;
         zatm_inc(que->size);
+        zspin_unlock(spin);
+    }
+    return ZEOK;
+}
+
+zinline zerr_t zqueue_lock_pop(zqueue_t *que, zvalue_t *pval, zspinlock_t *spin){
+    zspin_lock(spin);
+    if(!*que->size){
+        zspin_unlock(spin);
+        return ZENOT_EXIST;
+    }
+    zatm_dec(que->size);
+    if(pval){
+        *pval = (zvalue_t)(que->begin_chunk->value + que->begin_pos);
+        //printf("lock_pop<que:%p, size:%d>\n", que, *que->size);
+    }
+    que->begin_pos += que->value_size;
+    if(que->begin_pos == que->chunk_length){
+        zchk_t *chunk = que->begin_chunk;
+        que->begin_chunk = que->begin_chunk->next;
+        que->begin_chunk->prev = NULL;
+        que->begin_pos = 0;
+        chunk = (zchk_t*) zatm_xchg_ptr(&que->spare_chunk, chunk);
+        zmem_align_free(chunk);
     }
     zspin_unlock(spin);
     return ZEOK;
 }
 
+zinline zerr_t zqueue_lock_push_front(zqueue_t *que, zvalue_t value, zspinlock_t *spin){
+    zspin_lock(spin);
+    que->begin_pos -= que->value_size;
+    if(que->begin_pos < 0){
+        zchk_t *chunk = (zchk_t*) zatm_xchg_ptr(&que->spare_chunk, NULL);
+        if(!chunk){
+            chunk = ZCHUNK_ALLOCX(que->chunk_length);
+        }
+        if(!chunk){
+            zspin_unlock(spin);
+            return ZEMEM_INSUFFICIENT;
+        }
+        chunk->next = que->begin_chunk;
+        chunk->prev = NULL;
+        que->begin_chunk->prev = chunk;
+        que->begin_chunk = chunk;
+        que->begin_pos = que->chunk_length - que->value_size;
+    }
+    memcpy(que->begin_chunk->value + que->begin_pos, value, que->value_size);
+    zatm_inc(que->size);
+    zspin_unlock(spin);
+    return ZEOK;
+}
+
+zinline zerr_t zqueue_lock_pop_back(zqueue_t *que, zvalue_t *pval, zspinlock_t *spin){
+    zspin_lock(spin);
+    if(!*que->size){
+        zspin_unlock(spin);
+        return ZENOT_EXIST;
+    }
+    zatm_dec(que->size);
+    que->end_pos -= que->value_size;
+    if(que->end_pos < 0){
+        zchk_t *chunk = que->end_chunk;
+        que->end_chunk = que->end_chunk->prev;
+        que->end_chunk->next = NULL;
+        que->end_pos = que->chunk_length - que->value_size;
+        chunk = (zchk_t*) zatm_xchg_ptr(&que->spare_chunk, chunk);
+        zmem_align_free(chunk);
+    }
+    if(pval){
+        *pval = (zvalue_t)(que->end_chunk->value + que->end_pos);
+    }
+    zspin_unlock(spin);
+    return ZEOK;
+}
+
+/**
+ * @brief 0 memcopy push
+ *
+ * @par useage
+ *      0 memcopy push
+ *      zvalue_t val;
+ *      if(ZOK == (ret = zqueue_lock_back_pos(que, &val, spin))){
+ *          do something with val...
+ *          zqueue_unlock_lock_back_pos(que, spin);
+ *      }
+ *
+ *      0 memory no lock pop
+ *      if(ZOK == zqueue_front(que, &val)){
+ *          do something with val...
+ *          zqueue_pop(que, NULL);
+ *      }
+ *
+ *      0 memory locked pop
+ *      if(ZOK == zqueue_lock_front(que, &val)){
+ *          do something with val...
+ *          zqueue_unlock_front(que, &val);
+ *      }
+ */
+zinline zerr_t zqueue_lock_back_pos(zqueue_t *que, zvalue_t *pval,
+                                    zspinlock_t *spin){
+    zspin_lock(spin);
+    *pval = (zvalue_t)(que->end_chunk->value + que->end_pos);
+    que->end_pos += que->value_size;
+    if(que->end_pos < que->chunk_length){
+        /* current chunk has enough space */
+        return ZEOK;
+    }else{
+        /* allocate new chunk */
+        zchk_t *chunk = (zchk_t*) zatm_xchg_ptr(&que->spare_chunk, NULL);
+        if(!chunk){
+            chunk = ZCHUNK_ALLOCX(que->chunk_length);
+        }
+        if(!chunk){
+            zspin_unlock(spin);
+            return ZEMEM_INSUFFICIENT;
+        }
+        chunk->prev = que->end_chunk;
+        chunk->next = NULL;
+        que->end_chunk->next = chunk;
+        que->end_chunk = chunk;
+        que->end_pos = 0;
+    }
+    return ZEOK;
+}
+
+zinline void zqueue_unlock_back_pos(zqueue_t *que, zspinlock_t *spin){
+    zatm_inc(que->size);
+    zspin_unlock(spin);
+}
+
+zinline zerr_t zqueue_lock_front(zqueue_t *que, zvalue_t *pval,
+                                 zspinlock_t *spin){
+    zspin_lock(spin);
+    if(!*que->size){
+        zspin_unlock(spin);
+        return ZENOT_EXIST;
+    }
+    *pval = (zvalue_t)(que->begin_chunk->value + que->begin_pos);
+    return ZEOK;
+}
+
+zinline void zqueue_unlock_front(zqueue_t *que, zspinlock_t *spin){
+    zatm_dec(que->size);
+    que->begin_pos += que->value_size;
+    if(que->begin_pos == que->chunk_length){
+        zchk_t *chunk = que->begin_chunk;
+        que->begin_chunk = que->begin_chunk->next;
+        que->begin_chunk->prev = NULL;
+        que->begin_pos = 0;
+        chunk = (zchk_t*) zatm_xchg_ptr(&que->spare_chunk, chunk);
+        zmem_align_free(chunk);
+    }
+    zspin_unlock(spin);
+}
 ZC_END
 
 #endif

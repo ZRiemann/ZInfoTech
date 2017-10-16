@@ -261,15 +261,13 @@ zerr_t zrbtree_insert(zbtree_t *t, zbtnode_t *inserted_node) {
             int comp_result = zrbtree_compare_node(t, n, inserted_node);
             if (comp_result == 0) {
                 if(t->multiple){
-                    /* multi insert */
-                    while(n->next){
-                        n = n->next;
-                    }
-                    n->next = inserted_node; /* support multi insert if inserted_node is a list */
+                    /* insert multiple item */
+                    inserted_node->next = n->next;
+                    n->next = inserted_node;
                     zspin_unlock(&t->spin);
-                    //ZDBG("mulit item");
                     return 0;
                 }else{
+                    /* unique insert, report error */
                     ZDBG("equal item refer<ptr:%p key:%d> <==> inserted_node<ptr:%p key:%d>",
                          n, zrbn_key(n), inserted_node, zrbn_key(inserted_node));
                     zspin_unlock(&t->spin);
@@ -398,7 +396,7 @@ zerr_t zrbtree_erase(zbtree_t *t, zbtnode_t *key) {
     while(n){
         /* multiple recycle */
         //ZDBG("push_node<ptr:%p>", n);
-        zrbtree_push_node(t, &n);
+        zrbtree_recycle_node(t, &n);
         n = n->next;
     }
     //ZDBG("after erase<%d>:", zrbn_key(key));
@@ -421,7 +419,6 @@ zerr_t zrbtree_erasex(zbtree_t *t, zbtnode_t *key, zoperate compare){
     while (n != NULL) {
         comp_result = zrbtree_compare_node(t, n, key);
         if (comp_result == 0) {
-            zspin_unlock(&t->spin);
             break;
         } else if (comp_result > 0) {
             n = n->left;
@@ -435,100 +432,112 @@ zerr_t zrbtree_erasex(zbtree_t *t, zbtnode_t *key, zoperate compare){
         return -1;
     }
     /* erase node */
-    /*
-     * compare equal node
-     */
     child = n;
-    prev = NULL;
+    if(ZEQUAL == (ret = compare((zvalue_t)child->data, (zvalue_t*)child, (zvalue_t)key->data))){
+        /* erase list head */
+        if(child->next){
+            /* set next node to tree node */
+            child = child->next;
+            child->left = n->left;
+            if(n->left){
+                n->left->parent = child;
+            }
+            child->right = n->right;
+            if(n->right){
+                n->right->parent = child;
+            }
+            child->parent = n->parent;
+            if(n->parent){
+                if(n->parent->left == n){
+                    child->parent->left = child;
+                }else{
+                    child->parent->right = child;
+                }
+            }else{
+                /* change root node */
+                t->root = child;
+            }
+            zrbtree_recycle_node(t, &n);
+        }else{
+            /* erase it from tree */
+            if (n->left != NULL && n->right != NULL) {
+                zbtnode_t* pred = maximum_node(n->left);
+                //n->key   = pred->key;
+#if 0
+                memcpy(n->data, pred->data, t->data_size);
+                if(t->multiple){
+                    child = n->next;
+                    n->next = pred->next;
+                    pred->next = child;
+                }
+                n = pred;
+#else
+                zbtnode_t *tmp = pred->parent;
+                enum rbtree_node_color tmp_color = pred->color;
+                pred->color = n->color;
+                n->color = tmp_color;
+
+                if(pred->parent){
+                    pred == pred->parent->left ? (pred->parent->left = n) : (pred->parent->right = n);
+                }
+                if(n->parent){
+                    n == n->parent->left ? (n->parent->left = pred) : (n->parent->right = pred);
+                }
+                pred->parent = n->parent;
+                n->parent = tmp;
+
+                tmp = pred->left;
+                if(pred->left){
+                    pred->left->parent = n;
+                }
+                if(n->left){
+                    n->left->parent = pred;
+                }
+                pred->left = n->left;
+                n->left = tmp;
+
+                tmp = pred->right;
+                if(pred->right){
+                    pred->right->parent = n;
+                }
+                if(n->right){
+                    n->right->parent = pred;
+                }
+                pred->right = n->right;
+                n->right = tmp;
+                memcpy(n->data, pred->data, t->data_size);
+                if(!pred->parent){
+                    t->root = pred;
+                }
+#endif
+            }
+
+            assert(n->left == NULL || n->right == NULL);
+            child = n->right == NULL ? n->left  : n->right;
+            if (node_color(n) == BLACK) {
+                n->color = node_color(child);
+                delete_case1(t, n);
+            }
+            replace_node(t, n, child);
+            if (n->parent == NULL && child != NULL)
+            child->color = BLACK;
+            zrbtree_recycle_node(t, &n);
+        }
+        zspin_unlock(&t->spin);
+        return 0;
+    }/* erase list head */
+
+    /* erase list not head */
+    child = n->next;
+    prev = n;
     while(child){
         if(ZEQUAL == (ret = compare((zvalue_t)child->data, NULL, (zvalue_t)key->data))){
-            if(prev){
-                prev->next = child->next; /* just erase node from list */
-                zrbtree_push_node(t, &child);
-            }
+            prev->next = child->next; /* just erase node from list */
+            zrbtree_recycle_node(t, &child);
             break;
         }
         prev = child;
         child = child->next;
-    }
-    if(ZEQUAL == ret){
-        if(prev != NULL){
-            zspin_unlock(&t->spin);
-            return 0;
-        }//else{erase single node. as fllow}
-    }else{
-        /* Not find node. do nothing */
-        zspin_unlock(&t->spin);
-        return -1;
-    }
-    /*
-     * erase single node.
-     */
-    if (n->left != NULL && n->right != NULL) {
-        zbtnode_t* pred = maximum_node(n->left);
-        //n->key   = pred->key;
-#if 0
-        memcpy(n->data, pred->data, t->data_size);
-        if(t->multiple){
-            child = n->next;
-            n->next = pred->next;
-            pred->next = child;
-        }
-        n = pred;
-#else
-        zbtnode_t *tmp = pred->parent;
-        enum rbtree_node_color tmp_color = pred->color;
-        pred->color = n->color;
-        n->color = tmp_color;
-
-        if(pred->parent){
-            pred == pred->parent->left ? (pred->parent->left = n) : (pred->parent->right = n);
-        }
-        if(n->parent){
-            n == n->parent->left ? (n->parent->left = pred) : (n->parent->right = pred);
-        }
-        pred->parent = n->parent;
-        n->parent = tmp;
-
-        tmp = pred->left;
-        if(pred->left){
-            pred->left->parent = n;
-        }
-        if(n->left){
-            n->left->parent = pred;
-        }
-        pred->left = n->left;
-        n->left = tmp;
-
-        tmp = pred->right;
-        if(pred->right){
-            pred->right->parent = n;
-        }
-        if(n->right){
-            n->right->parent = pred;
-        }
-        pred->right = n->right;
-        n->right = tmp;
-        memcpy(n->data, pred->data, t->data_size);
-        if(!pred->parent){
-            t->root = pred;
-        }
-#endif
-    }
-
-    assert(n->left == NULL || n->right == NULL);
-    child = n->right == NULL ? n->left  : n->right;
-    if (node_color(n) == BLACK) {
-        n->color = node_color(child);
-        delete_case1(t, n);
-    }
-    replace_node(t, n, child);
-    if (n->parent == NULL && child != NULL)
-        child->color = BLACK;
-    while(n){
-        /* multiple recycle */
-        zrbtree_push_node(t, &n);
-        n = n->next;
     }
     //verify_properties(t);
     zspin_unlock(&t->spin);
@@ -572,16 +581,16 @@ zerr_t zrbtree_pop_front(zbtree_t *t, zbtnode_t **node,
     return 0;
 }
 
-zerr_t zrbtree_create(zbtree_t **tree, int32_t node_size, int32_t capacity,
+zerr_t zrbtree_create(zbtree_t **tree, int32_t data_size, int32_t capacity,
                       zoperate compare, int is_mutiple){
     int ret = ZEOK;
     zalloc_t *alc = NULL;
     zbtree_t *tr = (zbtree_t*)calloc(1, sizeof(zbtree_t));
-    zalloc_create(&alc, node_size, capacity, 512 * 1024 *1024);
+    zalloc_create(&alc, (int32_t)sizeof(zbtnode_t) + data_size, capacity, 512 * 1024 *1024);
     if(tr && alc){
         tr->root = NULL;
         tr->alloc = alc;
-        tr->data_size = node_size - (int32_t)sizeof(zbtnode_t);
+        tr->data_size = data_size;
         tr->cmp = compare;
         tr->multiple = is_mutiple;
         *tree = tr;
@@ -589,6 +598,7 @@ zerr_t zrbtree_create(zbtree_t **tree, int32_t node_size, int32_t capacity,
     }else{
         free(tr);
         zalloc_destroy(alc);
+        ret = ZEMEM_INSUFFICIENT;
     }
     return ret;
 }

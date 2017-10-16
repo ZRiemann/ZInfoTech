@@ -91,23 +91,6 @@ typedef struct zpair_s{
     zany_t key;
     zany_t value;
 }zpair_t;
-//#define ZPVU64 pair->value.u64
-
-
-typedef struct znode_s{
-    zvalue_t value;
-    struct znode_s* next;
-    struct znode_s* prev;
-    char net[]; // parents/children(network)
-}znod_t;
-
-#define ZCHUNK_SIZE 4096
-typedef struct zchunk_s{
-    struct zchunk_s *next;
-    struct zchunk_s *prev;
-    zvalue_t value[]; // value[chunk_size]
-}zchunk_t;
-
 
 #define ZOP_ARG zvalue_t in,zvalue_t *out,zvalue_t hint
 #define ZOP_NULL NULL,NULL,NULL

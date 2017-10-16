@@ -14,8 +14,12 @@
  *
  */
 /**
- * @file zit/container/base/alloc.h
- * @brief A container memory allocator
+ * @file zit/container/alloc.h
+ * @brief Memory allocator
+ *
+ * @par design pattern
+ *      -# Support fixed and unfixed memory poll
+ *      -# Support memory poll size control
  */
 #include <zit/base/type.h>
 #include <zit/base/error.h>
@@ -28,7 +32,8 @@ ZC_BEGIN
 /**
  * @brief A fixed size memory block allocator
  */
-typedef struct zbase_alloc_s{
+typedef struct zbase_allocator_s{
+    /* fixed size memory pool */
     zqueue_t *mem_que; /** memory queue, user define structure*/
     zqueue_t *rec_que; /** recycle queue, pointer to user define structure*/
     zspinlock_t spin_mo; /** spin lock to memory queue out */
@@ -48,70 +53,40 @@ typedef struct zbase_alloc_s{
  * @return ZEOK success
  *         ZEMEM_INSUFFICIENT memory insufficient
  */
-zinline zerr_t zalloc_create(zalloc_t **alloc, int block_size,
-                             int capacity, int limit_mem){
-    zerr_t ret = ZEOK;
-    zqueue_t *mque = NULL;
-    zqueue_t *rque = NULL;
-    zalloc_t *alc = (zalloc_t*)calloc(1, sizeof(zalloc_t));
-    zqueue_create(&mque, capacity, block_size);
-    zqueue_create(&rque, 512, sizeof(zvalue_t));
-    if(alc && mque && rque){
-        *alloc = alc;
-        alc->chk_cnt = 0;
-        alc->max_mem = (limit_mem > 1024*1024 && limit_mem <= 512*1024*1024)
-            ? limit_mem : 32 * 1024 * 1024;
-        alc->mem_que = mque;
-        alc->rec_que = rque;
-        zspin_init(&alc->spin_mo);
-        zspin_init(&alc->spin_ri);
-        zspin_init(&alc->spin_ro);
-        mque->end_pos = mque->chunk_length; /* set full memory */
-    }else{
-        ret = ZEMEM_INSUFFICIENT;
-        free(alc);
-        zqueue_destroy(mque);
-        zqueue_destroy(rque);
-    }
-    return ret;
-}
-
-zinline zerr_t zalloc_destroy(zalloc_t *alloc){
-    if(alloc){
-        zspin_fini(&alloc->spin_mo);
-        zspin_fini(&alloc->spin_ri);
-        zspin_fini(&alloc->spin_ro);
-        zqueue_destroy(alloc->mem_que);
-        zqueue_destroy(alloc->rec_que);
-        free(alloc);
-    }
-    return ZEOK;
-}
+ZAPI zerr_t zalloc_create(zalloc_t **alloc, int block_size,
+                             int capacity, int limit_mem);
+/**
+ * @brief Destroy allocator, created by zalloc_create
+ * @param [in] alloc allocator pointer
+ * @return ZOK success
+ */
+ZAPI zerr_t zalloc_destroy(zalloc_t *alloc);
 
 /**
  * @brief pop a memory block from allocator
- * @param [in] alloc pointer to zalloc_t
- * @param [out] ptr pointer pointer
+ * @param [in] alloc pointe to zalloc_t
+ * @param [out] ptr pointe to pointer
  * @return ZEOK pop OK
  *         ZEMEM_OUTOFBOUNDS memory buffer is max
  *         ZEMEM_INSUFFICIENT memory insufficient
  */
 zinline zerr_t zalloc_pop(zalloc_t *alloc, zptr_t *ptr){
     /* 1. pop recycle queue */
-    if(ZEOK == zqueue_lock_pop(alloc->rec_que, ptr, &alloc->spin_ro)){
+    if(ZEOK == zqueue_lock_front(alloc->rec_que, ptr, &alloc->spin_ro)){
         *ptr = *((zptr_t*)*ptr);
+        zqueue_unlock_front(alloc->rec_que, &alloc->spin_ro);
     }else{
         zqueue_t *mque = alloc->mem_que;
         /* 2. allocte from  memory queue */
         zspin_lock(&alloc->spin_mo);
         if(mque->end_pos == 0){
             /* 2.1.a no more free memory and allocte  a chunk */
-            zchkx_t *chunk = NULL;
+            zchk_t *chunk = NULL;
 
             if(alloc->max_mem <
                (mque->chunk_size * mque->value_size * alloc->chk_cnt)){
-                /* control max buffer size in max_mem
-                 * if buffered memory > max_mem maybe memory leak,
+                /* Control max memory pool size
+                 * If buffered memory > max_mem maybe memory leak,
                  * or IO speed not match need to redesign.
                  */
                 zspin_unlock(&alloc->spin_mo);
@@ -137,7 +112,7 @@ zinline zerr_t zalloc_pop(zalloc_t *alloc, zptr_t *ptr){
         *ptr = (zvalue_t)(mque->end_chunk->value + mque->end_pos);
         zspin_unlock(&alloc->spin_mo);
     }
-    memset(*ptr, 0, alloc->mem_que->value_size);
+    //memset(*ptr, 0, alloc->mem_que->value_size);
     return ZEOK;
 }
 
@@ -149,6 +124,7 @@ zinline zerr_t zalloc_pop(zalloc_t *alloc, zptr_t *ptr){
  *         ZEMEM_INSUFFICIENT can not allocate chunk memory
  */
 zinline zerr_t zalloc_push(zalloc_t *alloc, zptr_t *ptr){
+    memset(*ptr, 0, alloc->mem_que->value_size);
     return zqueue_lock_push(alloc->rec_que, ptr, &alloc->spin_ri);
 }
 

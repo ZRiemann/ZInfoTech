@@ -308,7 +308,7 @@ static zerr_t do_idle(ZOP_ARG){
                         }else if(-1 == sended && EAGAIN != errno && EINTR != errno){
                             /* May be socket error, recycle node */
                             prev_nod ? (prev_nod->next = nod->next) : (head = nod->next);
-                            zrbtree_push_node(emq->heart_beats, &nod);
+                            zrbtree_recycle_node(emq->heart_beats, &nod);
                             ZDBG("ssn<fd:%d> send heart beat FAIL. erase it ugly.", ssn->fd);
                             ZERRC(errno);
                         }

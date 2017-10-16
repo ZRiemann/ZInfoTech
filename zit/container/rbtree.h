@@ -1,5 +1,5 @@
-#ifndef _Z_CONT_RB_TREEX_H_
-#define _Z_CONT_RB_TREEX_H_
+#ifndef _Z_CONT_RB_TREE_H_
+#define _Z_CONT_RB_TREE_H_
 /*
  *
  * Copyright (c) 2016 by Z.Riemann ALL RIGHTS RESERVED
@@ -26,7 +26,7 @@
  */
 #include <zit/base/type.h>
 #include <zit/base/atomic.h>
-#include <zit/container/alloc.h>
+#include <zit/memory/alloc.h>
 #include <zit/thread/spin.h>
 
 ZC_BEGIN
@@ -47,7 +47,7 @@ typedef struct zbinary_tree_s{
     zalloc_t *alloc;
     zoperate cmp; /** 0-int32_t*(default) !0-zbtnode_t* */
     zspinlock_t spin; /** thread safe operate */
-    int data_size; /** data size */
+    int data_size; /** user data size */
     int multiple; /** 1- multiple 0- unique(default) */
 }zbtree_t;
 
@@ -57,7 +57,7 @@ typedef struct zbinary_tree_s{
 #define zrbn_set_black(node) do{(node)->color = BLACK;}while(0)
 #define zrbn_set_red(node) do{(node)->color = RED;}while(0)
 
-ZAPI zerr_t zrbtree_create(zbtree_t **tree, int32_t node_size, int32_t capacity,
+ZAPI zerr_t zrbtree_create(zbtree_t **tree, int32_t data_size, int32_t capacity,
                            zoperate compare, int is_mutiple);
 ZAPI zerr_t zrbtree_destroy(zbtree_t *tree);
 ZAPI void zrbtree_foreach(zbtnode_t *root, int order, zoperate do_each, zvalue_t hint);
@@ -87,7 +87,7 @@ zinline void zrbtree_set_node(zbtree_t *tree, zbtnode_t *node, zvalue_t value){
     memcpy(node->data, value, tree->data_size);
 }
 
-zinline zerr_t zrbtree_push_node(zbtree_t *tree, zbtnode_t **node){
+zinline zerr_t zrbtree_recycle_node(zbtree_t *tree, zbtnode_t **node){
     return zalloc_push(tree->alloc, (zvalue_t*)node);
 }
 
@@ -159,18 +159,23 @@ zinline zerr_t zrbtree_operate(zbtree_t *tree, zbtnode_t *key, zoperate op, zval
                 /* operate single node*/
                 while(refer){
                     if(ZEQUAL == cmp(refer, NULL, key)){
-                        op(refer, NULL, hint);
+                        if(ZEOK != (ret = op(refer, NULL, hint))){
+                            break;
+                        }
                     }
                     refer = refer->next;
                 }
             }else{
                 /* operate refer list */
                 while(refer){
-                    op(refer, NULL, hint);
+                    if(ZEOK != (ret = op(refer, NULL, hint))){
+                        break;
+                    }
+                    refer = refer->next;
                 }
             }
             zspin_unlock(&tree->spin);
-            return ZEOK;
+            return ret;
         }
     }
     zspin_unlock(&tree->spin);

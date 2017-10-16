@@ -109,10 +109,10 @@ zerr_t zemq_init(zemq_t *emq, const char *addr, int32_t port, zvalue_t hint,
     sprintf(emq->addr, "%s", addr);
     zqueue_create(&emq->emq, 4096, (int32_t)sizeof(zvalue_t));
     zrbtree_create(&emq->sessions,
-                   (int32_t)(sizeof(zbtnode_t) + sizeof(zssn_t)),
+                   (int32_t)sizeof(zssn_t),
                    256, NULL, 0);
     zrbtree_create(&emq->heart_beats,
-                   (int32_t)(sizeof(zbtnode_t) + sizeof(zvalue_t)),
+                   (int32_t)sizeof(zvalue_t),
                    256, zemq_hb_cmp_stamp, 1);
     zalloc_create(&emq->buf_alloc, alloc_buf_size, 256, 256*1024*1024);
     zsem_init(&emq->sem_emq, 0);
@@ -168,7 +168,7 @@ zinline zerr_t zemq_hb_get(zemq_t *emq, zssn_t **ssn, zbtnode_t **nod){
     return ret;
 }
 zinline zerr_t zemq_hb_push(zemq_t *emq, zbtnode_t **nod){
-    return zrbtree_push_node(emq->heart_beats, nod);
+    return zrbtree_recycle_node(emq->heart_beats, nod);
 }
 
 zinline zerr_t zemq_hb_insert(zemq_t *emq, zbtnode_t *nod){
@@ -892,7 +892,7 @@ static zerr_t zemq_release_conn(ZOP_ARG){
     zbtnode_t *nod = (zbtnode_t*)in;
     zsock_t fd= ((zssn_t*)nod->data)->fd;
     zsockclose(fd);
-    zrbtree_push_node(((zemq_t*)hint)->sessions, &nod); /*recycle nodes*/
+    zrbtree_recycle_node(((zemq_t*)hint)->sessions, &nod); /*recycle nodes*/
     return ZOK;
 }
 
