@@ -98,7 +98,9 @@ zinline zerr_t zalloc_pop(zalloc_t *alloc, zptr_t *ptr){
                 /* not enough memory */
                 zspin_unlock(&alloc->spin_mo);
                 return ZEMEM_INSUFFICIENT;
-            }
+			}else{
+				memset(chunk, 0, mque->chunk_length);
+			}
 
             ++alloc->chk_cnt;
             chunk->prev = mque->end_chunk;

@@ -27,6 +27,7 @@ Properties 4 and 5 together guarantee that no path in the tree is more than abou
 #include <zit/base/trace.h>
 #include <assert.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 zinline enum rbtree_node_color node_color(zbtnode_t *n){
     return n ? n->color : BLACK;

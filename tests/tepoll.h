@@ -2,7 +2,11 @@
 #define _ZTST_EPOLL_H_
 
 #include <zit/net/epoll.h>
-
+#ifdef ZSYS_WINDOWS
+static void tepoll(int argc, char **argv) {
+	printf("not support epoll.\n");
+}
+#else
 /*
  * argv:
  * epoll echo_svr_cli <ehco_number> <client_threads> <conn_per_thr>
@@ -418,4 +422,5 @@ static void tepoll(int argc, char **argv){
         ZERRC(ZNOT_SUPPORT);
     }
 }
+#endif /* ZSYS_WINDOWS */
 #endif

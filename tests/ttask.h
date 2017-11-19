@@ -97,7 +97,7 @@ static void ttask_generate(ztsk_svr_t *tsk_svr, zobj_pool_t *pool,
             if(ZOK == (ret = zobj_pool_pop(pool, &tsk, ZCLONE_MODE_REF))){
                 tsk->type = tsk_type;
                 printf("post msg: message[%d]\n", i);
-                sprintf(tsk->data, "message[%d]", i);
+                sprintf(zobj_extern((char*)tsk), "message[%d]", i);
                 ztsk_svr_post(tsk_svr, tsk);
             }else{
                 ZERRC(ret);
@@ -108,7 +108,8 @@ static void ttask_generate(ztsk_svr_t *tsk_svr, zobj_pool_t *pool,
         for(i = 0; i < total; ++i){
             if(ZOK == (ret = zobj_pool_pop(pool, &tsk, ZCLONE_MODE_REF))){
                 tsk->type = tsk_type;
-                *(int*)tsk->data = i;
+                /* *(int*)tsk->data = i; */
+				*(int*)zobj_extern((char*)tsk);
                 if(!(i & 0xfffff)){
                     ZDBG("post throughput task<%d>", i);
                 }

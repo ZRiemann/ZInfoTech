@@ -26,7 +26,7 @@
 #ifndef ZSYS_WINDOWS
 #define ZSYS_WINDOWS
 #endif
-#define snprintf _snprintf
+//#define snprintf _snprintf
 #else
 #define ZSYS_POSIX
 #endif

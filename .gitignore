@@ -66,3 +66,9 @@ builds/
 *.exe
 *.out
 *.app
+
+#folders
+build/vs2017/.vs
+build/*Debug
+build/*Release
+make/

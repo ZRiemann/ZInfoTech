@@ -55,8 +55,12 @@ typedef struct zobject_s{
     zoperate release; /** release object */
     zoperate serialize; /** serialize object */
 
-    char data[]; /** user definded */
+    /* char data[]; /** user definded */
 }zobj_t;
+
+zinline char* zobj_extern(char *obj){
+	return obj + sizeof(zobj_t);
+}
 
 /**
  * @brief device inherit object

@@ -49,8 +49,17 @@ typedef struct zqueue_s{
     int32_t chunk_length; /** chunk_size * value_size, space 2 time*/
 }zqueue_t;
 
+#if 0
 #define ZCHUNK_ALLOCX(size) (zchk_t*)zmem_align64(sizeof(zchk_t) + (size));
-
+#else
+zinline zchk_t *ZCHUNK_ALLOCX(size_t size) {
+	zchk_t *chk = (zchk_t*)zmem_align64(sizeof(zchk_t) + size);
+	if(chk){
+		memset(chk, 0, sizeof(zchk_t) + size);
+	}
+	return chk;
+}
+#endif
 zinline zerr_t zqueue_create(zqueue_t **queue, int32_t chunk_size, int32_t value_size){
     zchk_t *chunk = ZCHUNK_ALLOCX(chunk_size * value_size);
     zqueue_t *que = (zqueue_t*)zmem_align64(sizeof(zqueue_t));
@@ -253,7 +262,7 @@ zinline zerr_t zqueue_front(zqueue_t *que, zvalue_t *pval){
 }
 
 zinline void zqueue_swap(zqueue_t **que1, zqueue_t **que2){
-    *que2 = zatm_xchg_ptr(que1,*que2);
+    *que2 = (zqueue_t*)zatm_xchg_ptr(que1,*que2);
 }
 
 /*

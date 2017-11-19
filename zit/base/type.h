@@ -24,7 +24,7 @@
 ZC_BEGIN
 
 #ifdef ZSYS_WINDOWS
-#include "inttypes.h"
+#include "./inttypes.h"
 #elif defined(ZSYS_POSIX)
 #include <sys/types.h> // size_t
 #include <inttypes.h>

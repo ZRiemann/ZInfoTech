@@ -25,8 +25,8 @@ static void tmemory_alloc(int argc, char **argv){
     zdbg("%s = zalloc_pop(alc:%p, *(&ptr1):%p);", zstrerr(ret), alc, ptr1);
     ret = zalloc_pop(alc, &ptr2);
     zdbg("%s = zalloc_pop(alc:%p, *(&ptr2):%p);", zstrerr(ret), alc, ptr2);
-    if(block_size != ptr1 - ptr2){
-        ZERR("Test Fail block_size:%d != (ptr1 - ptr2):%d", block_size, ptr2-ptr1);
+    if(block_size != (char*)ptr1 - (char*)ptr2){
+        ZERR("Test Fail block_size:%d != (ptr1 - ptr2):%d", block_size, (char*)ptr2-(char*)ptr1);
     }else{
         ZMSG("Test zalloc_pop(..) OK");
     }
