@@ -68,7 +68,9 @@ builds/
 *.app
 
 #folders
-build/vs2017/.vs
-build/*Debug
-build/*Release
+build/vs*/.vs
+build/vs*/Debug
+build/vs*/*/Debug
+build/vs*/Release
+build/vs*/*/Release
 make/
