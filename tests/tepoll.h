@@ -172,10 +172,11 @@ static zthr_ret_t ZCALL zproc_heart_beat_cli(zvalue_t param){
             ZDBG("sock<%d> receive heart beat<bytes:%d> and not reply!", fds[idx], j);
             if(j == 0){
                 int down = 1;
+		int ii = 0;
                 ZDBG("Server close connection<fd:%d>", fds[idx]);
                 zsockclose(fds[idx]);
                 fds[idx] = ZINVALID_SOCKET;
-                for(int ii = 0; ii<nfd; ++ii){
+                for(ii = 0; ii<nfd; ++ii){
                     /* scan fds, check all fds is invalid */
                     if(fds[ii] != ZINVALID_SOCKET){
                         down = 0;
@@ -345,7 +346,9 @@ static zerr_t do_idle(ZOP_ARG){
 #endif
 static void tepoll(int argc, char **argv){
     if(argc == 6 && 0 == strcmp("echo_svr_cli", argv[2])){
-        zemq_t emq = {0};
+        /* zemq_t emq = {0}; */
+        zemq_t emq;
+        memset(&emq, 0, sizeof(emq));
         int client_threads = atoi(argv[4]);
         g_echo_number = atoi(argv[3]);
         g_conn_per_thr = atoi(argv[5]);
@@ -359,7 +362,8 @@ static void tepoll(int argc, char **argv){
 #endif
         zemq_run(&emq, NULL); /* run server */
         /* Run all echo clients */
-        for(int i=0; i<client_threads; i++){
+	int i = 0;
+        for(i=0; i<client_threads; i++){
             zthread_create(&clis[i], zproc_echo_cli, NULL);
         }
 
@@ -371,7 +375,9 @@ static void tepoll(int argc, char **argv){
         zemq_stop(&emq, NULL);
         zemq_fini(&emq, NULL);
     }else if(0 == strcmp("echo_svr", argv[2])){
-        zemq_t emq = {0};
+        /* zemq_t emq = {0}; */
+        zemq_t emq;
+        memset(&emq, 0, sizeof(emq));
         /* init and run emq*/
         zemq_init(&emq, NULL, ZECHO_PORT, NULL, TEMQ_BUF_SIZE);
         /* config emq */
@@ -388,11 +394,13 @@ static void tepoll(int argc, char **argv){
         zemq_fini(&emq, NULL);
     }else if(0 == strcmp("echo_cli", argv[2])){
         int client_threads = atoi(argv[4]);
+	int i = 0;
+
         g_echo_number = atoi(argv[3]);
         g_conn_per_thr = atoi(argv[5]);
         zthr_id_t *clis = (zthr_id_t*)calloc(client_threads, sizeof(zthr_id_t));
                 /* Run all echo clients */
-        for(int i=0; i<client_threads; i++){
+        for(i=0; i<client_threads; i++){
             zthread_create(&clis[i], zproc_echo_cli, NULL);
         }
 
@@ -403,11 +411,12 @@ static void tepoll(int argc, char **argv){
         ZDBG("client down.");
     }else if(0 == strcmp("heart_beat_cli", argv[2])){
         int client_threads = atoi(argv[4]);
+	int i = 0;
         g_echo_number = atoi(argv[3]);
         g_conn_per_thr = atoi(argv[5]);
         zthr_id_t *clis = (zthr_id_t*)calloc(client_threads, sizeof(zthr_id_t));
                 /* Run all echo clients */
-        for(int i=0; i<client_threads; i++){
+        for(i=0; i<client_threads; i++){
             zthread_create(&clis[i], zproc_heart_beat_cli, NULL);
         }
 

@@ -36,6 +36,7 @@ typedef CRITICAL_SECTION zspinlock_t;
 #else // ZSYS_WINDOWS
 
 #include <pthread.h>
+
 typedef pthread_spinlock_t zspinlock_t;
 
 #define zspin_init(spin) pthread_spin_init(spin, PTHREAD_PROCESS_PRIVATE)

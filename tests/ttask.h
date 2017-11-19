@@ -109,7 +109,7 @@ static void ttask_generate(ztsk_svr_t *tsk_svr, zobj_pool_t *pool,
             if(ZOK == (ret = zobj_pool_pop(pool, &tsk, ZCLONE_MODE_REF))){
                 tsk->type = tsk_type;
                 /* *(int*)tsk->data = i; */
-				*(int*)zobj_extern((char*)tsk);
+		*(int*)zobj_extern((char*)tsk) = i;
                 if(!(i & 0xfffff)){
                     ZDBG("post throughput task<%d>", i);
                 }

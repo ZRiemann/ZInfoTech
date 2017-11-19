@@ -195,7 +195,7 @@ zinline zerr_t zemq_insert_ssn(zemq_t *emq, zssn_t *ssn){
     //ZDBG("Insert node<ptr:%p key:%d ssn->fd:%d>", nod, zrbn_key(nod), ssn->fd);
     time(&ssn->last_operate);
     if(emq->heart_beat){
-        zbtnode_t *nod;
+        zbtnode_t *nod = NULL;
         ssn->heart_beat_stamp = ssn->last_operate + emq->heart_beat;
         if(ZOK == zemq_hb_get(emq, &ssn, &nod)){
             zemq_hb_insert(emq, nod);

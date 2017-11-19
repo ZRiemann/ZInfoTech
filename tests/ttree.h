@@ -138,7 +138,8 @@ static void ttree_vs_map(int cnt){
     zrbtree_foreach(tree->root, 0, ttree_print_key32, NULL);
     printf("\n");
     zrbtree_get_node(tree, &tmp_nod);
-    for(int round = 0; round < 10000; ++round){
+    int round = 0;
+    for(round = 0; round < 10000; ++round){
         if(!(round & 0xff)){
             printf("round<%d>", round);
         }
@@ -454,7 +455,8 @@ static void ttree_insert(){
     zrbtree_insert(tree, node);
     zrbtree_print(tree);
 
-    for(int i=0; i<20; ++i){
+    int i = 0;
+    for(i=0; i<20; ++i){
         node = zrbtree_key_node(tree, i);
         zrbtree_insert(tree, node);
     }
@@ -462,7 +464,7 @@ static void ttree_insert(){
     printf("\n");
     zrbtree_foreach(tree->root, 0, ttree_print_key32, NULL);
     printf("\n");
-    for(int i=0; i<100; ++i){
+    for(i=0; i<100; ++i){
         if(ZOK == zrbtree_erase(tree, (zbtnode_t*)&i)){
             zrbtree_print(tree);
         }else{
